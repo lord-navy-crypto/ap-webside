@@ -5,33 +5,28 @@ import { brand, collaborators } from "@/data/brand";
 const boxes = [
   {
     title: "AP",
-    description: "Concepts, formulas, practice, Hint Coach — open a subject folder first.",
+    description: "Concepts, formulas, practice — folders first. + to add with a change code.",
     href: "/ap",
   },
   {
     title: "Academic Platform",
-    description: "Learning Box, shared materials, Picture, Image Gen, Manager UI.",
+    description: "Learning Box, shared materials, Picture, Image Gen.",
     href: "/academic",
   },
   {
     title: "Code Resource",
-    description: "Python, Java, and web folders. Editors and embeds can live here.",
+    description: "Python, Java, and web folders. + to upload files.",
     href: "/code",
   },
   {
     title: "Forum",
-    description: "Users can post tips and questions. Local prototype for now.",
+    description: "Post tips and questions.",
     href: "/forum",
   },
   {
     title: "Partners",
-    description: "Open partner seats — register, then admin promotes to Manager access.",
+    description: "Add members with the master change code.",
     href: "/partners",
-  },
-  {
-    title: "Manager UI",
-    description: "Upload concepts, formulas, documents, files — no AI tokens needed.",
-    href: "/admin",
   },
 ];
 

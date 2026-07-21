@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { saveLearningItem } from "@/lib/storage";
+import ChangePanel from "@/components/ChangePanel";
 
 type Post = {
   id: string;
@@ -69,9 +70,13 @@ export default function ForumPage() {
       <div>
         <h1 className="text-3xl font-bold">Forum</h1>
         <p className="mt-2 text-slate-600">
-          Post questions, tips, or study notes. Posts are stored in this browser for now
-          (local prototype). A shared server forum can replace this when you are ready to expand.
+          Post tips locally in this browser. Use + to publish a shared document/file with a change code.
         </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <ChangePanel mode="document" label="+ Publish shared note" />
+        <ChangePanel mode="file" label="+ Upload file" />
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-3">

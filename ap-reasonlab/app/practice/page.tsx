@@ -9,6 +9,7 @@ import {
   questionnaires,
 } from "@/data/questionnaires";
 import FolderGrid from "@/components/FolderGrid";
+import ChangePanel from "@/components/ChangePanel";
 
 type Tab = "drills" | "sets";
 
@@ -50,8 +51,12 @@ function PracticeContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Practice</h1>
           <p className="mt-2 text-slate-600">
-            Open a subject folder first. Inside you will find half-process drills and generated sets.
+            Open a subject folder first. Use + to add a document or upload a practice file (change code required).
           </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <ChangePanel mode="document" label="+ Add practice note" />
+          <ChangePanel mode="file" label="+ Upload file" />
         </div>
         <FolderGrid folders={subjectFolders} />
       </div>
@@ -71,6 +76,11 @@ function PracticeContent() {
         <p className="mt-2 text-slate-600">
           Practice for this subject — hints only, no final answer keys.
         </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <ChangePanel mode="document" label="+ Add practice note" defaultSubject={subject} />
+        <ChangePanel mode="file" label="+ Upload file" />
       </div>
 
       <div className="card p-2">

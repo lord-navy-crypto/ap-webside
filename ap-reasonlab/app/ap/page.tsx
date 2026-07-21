@@ -1,20 +1,23 @@
+"use client";
+
 import Link from "next/link";
+import ChangePanel from "@/components/ChangePanel";
 
 const apTools = [
   {
     href: "/concepts",
     title: "Concepts",
-    description: "Subject folders → concepts & key guides. Click a subject first.",
+    description: "Subject folders → concepts & key guides. + to add.",
   },
   {
     href: "/formulas",
     title: "Formulas",
-    description: "Subject folders → unit formulas with when-to-use notes.",
+    description: "Subject folders → unit formulas. + to add.",
   },
   {
     href: "/practice",
     title: "Practice",
-    description: "Subject folders → half-process drills and generated sets.",
+    description: "Subject folders → drills and generated sets. + to upload files.",
   },
   {
     href: "/hints",
@@ -42,10 +45,15 @@ export default function ApHubPage() {
         </span>
         <h1 className="mt-3 text-3xl font-bold">AP Area</h1>
         <p className="mt-2 max-w-2xl text-blue-100">
-          Everything for AP study lives here. Open a tool, then open a subject folder —
-          content is organized so the first screen stays clean.
+          Open a tool, then a subject folder. Every page has a + button — save with a change code.
         </p>
       </section>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <ChangePanel mode="concept" label="+ Add concept" />
+        <ChangePanel mode="formula" label="+ Add formula" />
+        <ChangePanel mode="file" label="+ Upload file" />
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {apTools.map((tool) => (
@@ -60,10 +68,6 @@ export default function ApHubPage() {
           </Link>
         ))}
       </div>
-
-      <p className="text-sm text-slate-500">
-        Want A-Level or IB next? Those will be separate boxes on the home page — AP stays one part of Results.
-      </p>
     </div>
   );
 }

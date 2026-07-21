@@ -1,0 +1,10 @@
+# Results change codes (bootstrap — change on Vercel for production)
+#
+# Content code  → can add/edit content and upload files
+#                 CANNOT add members / change permissions
+# Master code   → can do everything (content + members)
+#
+CONTENT_CHANGE_CODE=C-43620D98
+MASTER_CHANGE_CODE=M-B67DDB61
+#
+# On Vercel also set GITHUB_TOKEN so saves publish to GitHub.

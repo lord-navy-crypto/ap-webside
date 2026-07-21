@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
           formulas: body.formulas || [],
           documents: body.documents || [],
           files: body.files || [],
+          members: body.members || current.members || [],
           updatedAt: Date.now(),
         }
       : {
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
           formulas: body.formulas ?? current.formulas,
           documents: body.documents ?? current.documents,
           files: body.files ?? current.files,
+          members: body.members ?? current.members ?? [],
           updatedAt: Date.now(),
         };
 

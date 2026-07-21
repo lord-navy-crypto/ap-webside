@@ -25,6 +25,7 @@ export type ManagedContent = {
   formulas: Formula[];
   documents: ManagedDocument[];
   files: ManagedFile[];
+  members: { id: string; name: string; note?: string; addedAt: number }[];
   updatedAt: number;
 };
 
@@ -49,6 +50,7 @@ const emptyContent = (): ManagedContent => ({
   formulas: [],
   documents: [],
   files: [],
+  members: [],
   updatedAt: 0,
 });
 
@@ -152,12 +154,20 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
   const fromGh = await githubGet("ap-reasonlab/data/managed-content.json", token);
   if (fromGh) {
     try {
-      return JSON.parse(fromGh.text) as ManagedContent;
+      const parsed = JSON.parse(fromGh.text) as ManagedContent;
+      if (!parsed.members) parsed.members = [];
+      if (!parsed.concepts) parsed.concepts = [];
+      if (!parsed.formulas) parsed.formulas = [];
+      if (!parsed.documents) parsed.documents = [];
+      if (!parsed.files) parsed.files = [];
+      return parsed;
     } catch {
       // fall through
     }
   }
-  return readJsonFile(CONTENT_PATH, emptyContent());
+  const local = await readJsonFile(CONTENT_PATH, emptyContent());
+  if (!local.members) local.members = [];
+  return local;
 }
 
 export async function saveManagedContent(

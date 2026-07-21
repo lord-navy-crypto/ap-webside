@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import ChangePanel from "@/components/ChangePanel";
 
 const academicTools = [
   {
@@ -10,7 +13,7 @@ const academicTools = [
   {
     href: "/academic/materials",
     title: "Shared materials",
-    description: "Documents and files uploaded by admin/partners — visible to everyone.",
+    description: "Documents and files added with a change code — visible to everyone.",
   },
   {
     href: "/picture",
@@ -21,11 +24,6 @@ const academicTools = [
     href: "/image-gen",
     title: "Image Generation",
     description: "Generate study visuals from a prompt. Free, no API key needed.",
-  },
-  {
-    href: "/admin",
-    title: "Manager UI",
-    description: "Admin/partner: add concepts, formulas, documents, files without AI tokens.",
   },
 ];
 
@@ -38,10 +36,14 @@ export default function AcademicPlatformPage() {
         </span>
         <h1 className="mt-3 text-3xl font-bold">Academic Platform</h1>
         <p className="mt-2 max-w-2xl text-slate-300">
-          Cross-curriculum tools for storing materials, pictures, and AI visuals.
-          Not tied to AP only — use this box as you expand into other exams and subjects.
+          Cross-curriculum tools. Click + to add documents or upload files — save with a change code.
         </p>
       </section>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <ChangePanel mode="document" label="+ Add shared document" />
+        <ChangePanel mode="file" label="+ Upload file" />
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {academicTools.map((tool) => (
