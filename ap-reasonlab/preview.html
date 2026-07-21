@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AP ReasonLab — Preview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f8fafc; color: #0f172a; line-height: 1.6; }
+    header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem; position: sticky; top: 0; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 2rem 1rem; }
+    .logo { font-weight: 700; color: #1d4ed8; font-size: 1.25rem; }
+    nav a { margin-left: 1rem; color: #475569; text-decoration: none; font-size: 0.9rem; }
+    nav a:hover { color: #2563eb; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; }
+    .badge { display: inline-block; background: #eff6ff; color: #1d4ed8; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; }
+    h1 { font-size: 2rem; margin: 0.5rem 0; }
+    .btn { display: inline-block; background: #2563eb; color: #fff; padding: 0.6rem 1rem; border-radius: 0.75rem; text-decoration: none; font-weight: 600; margin-right: 0.5rem; margin-top: 1rem; }
+    .btn.secondary { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
+    .warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 1rem; border-radius: 0.75rem; margin: 1rem 0; font-size: 0.9rem; }
+    .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.85rem; border-top: 1px solid #e2e8f0; background: #fff; margin-top: 2rem; }
+    code { background: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 0.25rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap" style="padding:0;display:flex;justify-content:space-between;align-items:center;">
+      <div class="logo">AP ReasonLab</div>
+      <nav>
+        <a href="#home">Home</a>
+        <a href="#features">Features</a>
+        <a href="#start">Start</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap" id="home">
+    <div class="card">
+      <span class="badge">Static Preview</span>
+      <h1>Learn AP by reasoning — not by copying answers</h1>
+      <p style="color:#475569; margin-top:0.75rem;">
+        这是网站框架预览页。完整功能请运行 Next.js 项目（见下方步骤）。
+      </p>
+      <a class="btn" href="#start">查看启动步骤</a>
+      <a class="btn secondary" href="#features">功能模块</a>
+    </div>
+
+    <div class="warn">
+      <strong>Learning only:</strong> 本工具只提供提示和半程引导，默认不给最终答案。AI 可能出错，请自行验证。
+    </div>
+
+    <div class="grid" id="features">
+      <div class="card">
+        <h3>Concept Library</h3>
+        <p style="color:#64748b;font-size:0.9rem;">AP 概念库：定义、要点、易错点、例子</p>
+      </div>
+      <div class="card">
+        <h3>Half-Process Practice</h3>
+        <p style="color:#64748b;font-size:0.9rem;">半程练习：隐藏关键步骤，填空推理</p>
+      </div>
+      <div class="card">
+        <h3>Hint Coach</h3>
+        <p style="color:#64748b;font-size:0.9rem;">提示教练：只给思路，不给最终答案</p>
+      </div>
+    </div>
+
+    <div class="card" id="start" style="margin-top:1rem;">
+      <h2>如何启动完整网站</h2>
+      <ol style="margin:1rem 0 0 1.25rem; color:#334155; font-size:0.95rem;">
+        <li>安装 Node.js 20+：<a href="https://nodejs.org">nodejs.org</a></li>
+        <li>打开终端，进入项目目录：<code>cd ap-reasonlab</code></li>
+        <li>安装依赖：<code>npm install</code></li>
+        <li>启动开发服务器：<code>npm run dev</code></li>
+        <li>浏览器打开：<code>http://localhost:3000</code></li>
+      </ol>
+    </div>
+  </div>
+
+  <footer>AP ReasonLab — Tutor, not solver</footer>
+</body>
+</html>
