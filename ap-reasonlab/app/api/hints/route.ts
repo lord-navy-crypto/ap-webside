@@ -44,6 +44,7 @@ async function callGroq(
       ],
       temperature: 0.4,
       max_tokens: 250,
+      response_format: { type: "json_object" },
     }),
   });
 
@@ -56,18 +57,50 @@ async function callGroq(
   const text = data?.choices?.[0]?.message?.content || "";
 
   try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      hints: [text.slice(0, 300)],
+      aiMayBeWrong: "AI may make mistakes. Verify with your textbook or teacher.",
+      note: "Powered by Groq (free tier).",
+    };
+  }
+}
+
+async function callGemini(apiKey: string, question: string, subject: string) {
+  const prompt = `${SYSTEM_PROMPT}\n\nSubject: ${subject}\nQuestion:\n${question}\n\nRespond in JSON: {"hints":["...","..."],"aiMayBeWrong":"...","note":"..."}`;
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini API error ${res.status}: ${errText}`);
+  }
+
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+  try {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
     }
   } catch {
-    // fall through to formatted text response
+    // fall through
   }
 
   return {
     hints: [text.slice(0, 300)],
-    aiMayBeWrong: "AI may make mistakes. Verify with your textbook or teacher.",
-    note: "Powered by Groq (free tier).",
+    aiMayBeWrong: "AI may make mistakes. Verify with your textbook.",
+    note: "Powered by Gemini API.",
   };
 }
 
@@ -76,66 +109,59 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const question = String(body.question || "").trim();
     const subject = String(body.subject || "AP Physics 1");
+    const userApiKey = String(body.userApiKey || "").trim();
+    const provider = String(body.provider || "groq") as "groq" | "gemini";
 
     if (!question) {
       return NextResponse.json({ error: "Question is required" }, { status: 400 });
     }
 
-    // Prefer Groq (free tier). Fallback to Gemini if configured. Otherwise mock hints.
+    if (userApiKey) {
+      if (provider === "groq") {
+        try {
+          const result = await callGroq(
+            userApiKey,
+            question,
+            subject,
+            "llama-3.3-70b-versatile"
+          );
+          return NextResponse.json({ ...result, note: "Powered by your own Groq key." });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Groq call failed";
+          return NextResponse.json({ error: message }, { status: 502 });
+        }
+      }
+
+      if (provider === "gemini") {
+        try {
+          const result = await callGemini(userApiKey, question, subject);
+          return NextResponse.json({ ...result, note: "Powered by your own Gemini key." });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Gemini call failed";
+          return NextResponse.json({ error: message }, { status: 502 });
+        }
+      }
+    }
+
     const groqKey = process.env.GROQ_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
 
     if (groqKey) {
       try {
-        const result = await callGroq(
-          groqKey,
-          question,
-          subject,
-          "llama-3.3-70b-versatile"
-        );
+        const result = await callGroq(groqKey, question, subject, "llama-3.3-70b-versatile");
         return NextResponse.json({ ...result, note: "Powered by Groq (free tier)." });
       } catch (error) {
         console.error(error);
-        // Fall through to next available provider or mock.
       }
     }
 
     if (geminiKey) {
-      const prompt = `${SYSTEM_PROMPT}\n\nSubject: ${subject}\nQuestion:\n${question}\n\nRespond in JSON: {"hints":["...","..."],"aiMayBeWrong":"...","note":"..."}`;
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        }
-      );
-
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error("Gemini API error:", errText);
-        return NextResponse.json(mockHints(question, subject));
-      }
-
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
       try {
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          return NextResponse.json(JSON.parse(jsonMatch[0]));
-        }
-      } catch {
-        // fall through
+        const result = await callGemini(geminiKey, question, subject);
+        return NextResponse.json({ ...result, note: "Powered by Gemini API." });
+      } catch (error) {
+        console.error(error);
       }
-
-      return NextResponse.json({
-        hints: [text.slice(0, 300)],
-        aiMayBeWrong: "AI may make mistakes. Verify with your textbook.",
-        note: "Powered by Gemini API.",
-      });
     }
 
     return NextResponse.json(mockHints(question, subject));

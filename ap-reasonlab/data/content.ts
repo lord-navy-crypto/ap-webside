@@ -112,6 +112,116 @@ export const concepts: Concept[] = [
     ],
     example: "∫₀² 3x² dx = [x³]₀² = 8 − 0 = 8.",
   },
+  {
+    id: "rotation",
+    title: "Torque & Rotational Motion",
+    subject: "AP Physics 1",
+    summary:
+      "Rotation extends Newton's laws to spinning objects. Torque τ = rF sin θ causes angular acceleration α = τ_net/I.",
+    keyPoints: [
+      "Torque depends on force, lever arm, and angle.",
+      "Rotational inertia I depends on mass distribution.",
+      "Rotational KE = ½Iω²; angular momentum L = Iω is conserved with no net external torque.",
+    ],
+    commonMistakes: [
+      "Using linear equations directly for angular motion.",
+      "Forgetting τ and α are vectors along the rotation axis.",
+      "Confusing rolling KE with only translational KE.",
+    ],
+    example: "A wheel with I = 0.5 kg·m² and τ = 2 N·m has α = 2/0.5 = 4 rad/s².",
+  },
+  {
+    id: "shm",
+    title: "Simple Harmonic Motion",
+    subject: "AP Physics 1",
+    summary:
+      "SHM is periodic motion where restoring force is proportional to displacement. Periods of spring and pendulum depend on system properties.",
+    keyPoints: [
+      "Mass-spring period: T = 2π√(m/k).",
+      "Simple pendulum period: T = 2π√(ℓ/g) (small angles).",
+      "Energy oscillates between kinetic and potential.",
+    ],
+    commonMistakes: [
+      "Assuming pendulum period depends on mass.",
+      "Forgetting small-angle approximation for pendulum formula.",
+      "Confusing frequency (1/T) with angular frequency (2π/T).",
+    ],
+    example: "A 1 kg mass on k = 4 N/m spring has T = 2π√(1/4) = π s.",
+  },
+  {
+    id: "fluids",
+    title: "Fluids",
+    subject: "AP Physics 1",
+    summary:
+      "Fluids involve density, pressure, buoyancy, and continuity. Hydrostatic pressure increases with depth; buoyant force equals weight of displaced fluid.",
+    keyPoints: [
+      "Density ρ = m/V; pressure P = F/A.",
+      "Hydrostatic pressure: P = P₀ + ρgh.",
+      "Buoyant force F_b = ρ_fluid V_displaced g.",
+    ],
+    commonMistakes: [
+      "Confusing pressure with force.",
+      "Forgetting buoyant force depends on displaced fluid volume, not object mass.",
+      "Using g inconsistently in units.",
+    ],
+    example:
+      "A 0.002 m³ block submerged in water (ρ = 1000 kg/m³) feels F_b = 1000 × 0.002 × 9.8 = 19.6 N.",
+  },
+  {
+    id: "limits-continuity",
+    title: "Limits & Continuity",
+    subject: "AP Calculus AB",
+    summary:
+      "Limits describe function behavior near a point. Continuity requires the limit to equal the function value.",
+    keyPoints: [
+      "lim x→a f(x) = L means f(x) approaches L as x approaches a.",
+      "A function is continuous at a if lim = f(a).",
+      "Intermediate Value Theorem: if f is continuous on [a,b] and k is between f(a) and f(b), then f(c)=k for some c in (a,b).",
+    ],
+    commonMistakes: [
+      "Substituting into indeterminate forms like 0/0 without simplifying.",
+      "Ignoring one-sided limits at piecewise boundaries.",
+      "Confusing limit value with function value at a hole.",
+    ],
+    example: "lim x→2 (x²−4)/(x−2) = lim x→2 (x+2) = 4.",
+  },
+  {
+    id: "related-rates",
+    title: "Related Rates & Optimization",
+    subject: "AP Calculus AB",
+    summary:
+      "Related rates use derivatives to connect changing quantities. Optimization finds maxima/minima using critical points and endpoints.",
+    keyPoints: [
+      "Differentiate an equation with respect to time t.",
+      "Optimization: find critical points where f′(x)=0 or undefined, then test endpoints.",
+      "First/second derivative tests classify extrema and concavity.",
+    ],
+    commonMistakes: [
+      "Forgetting to apply chain rule when differentiating with respect to t.",
+      "Misidentifying what is constant vs. changing in related rates.",
+      "In optimization, ignoring the domain or endpoints.",
+    ],
+    example:
+      "A sphere's volume V = (4/3)πr³. dV/dt = 4πr² dr/dt, so if r=3 and dV/dt=36π, dr/dt = 1.",
+  },
+  {
+    id: "diff-eqs",
+    title: "Differential Equations",
+    subject: "AP Calculus AB",
+    summary:
+      "Differential equations relate a function to its derivatives. AP Calculus AB focuses on separable equations and slope fields.",
+    keyPoints: [
+      "Separable equations: dy/dx = f(x)g(y) → separate and integrate.",
+      "Slope fields sketch the direction of solution curves.",
+      "Exponential growth/decay: dy/dt = ky ⇒ y = y₀e^(kt).",
+    ],
+    commonMistakes: [
+      "Forgetting to include +C and solve for the constant using initial conditions.",
+      "Dividing by g(y) without checking if g(y)=0 gives solutions.",
+      "Confusing general solution with particular solution.",
+    ],
+    example: "dy/dx = 2x/y → ∫ y dy = ∫ 2x dx → y²/2 = x² + C.",
+  },
 ];
 
 export const practiceQuestions: PracticeQuestion[] = [
@@ -206,6 +316,66 @@ export const practiceQuestions: PracticeQuestion[] = [
     hints: [
       "L1: ∫2x dx = x²; ∫1 dx = x.",
       "L2: Don't forget to evaluate at both bounds.",
+    ],
+  },
+  {
+    id: "p1-005",
+    subject: "AP Physics 1",
+    topic: "Rotational Motion",
+    question:
+      "A disk with rotational inertia 0.4 kg·m² experiences a net torque of 2.0 N·m. Find its angular acceleration.",
+    visibleSteps: ["Recall α = τ_net / I.", "Substitute τ_net and I."],
+    blankSteps: ["α = ______ rad/s²"],
+    hints: [
+      "L1: This is the rotational version of Newton's second law.",
+      "L2: Units of I are kg·m², torque is N·m.",
+    ],
+  },
+  {
+    id: "p1-006",
+    subject: "AP Physics 1",
+    topic: "Fluids",
+    question:
+      "A 0.005 m³ block is fully submerged in water (ρ = 1000 kg/m³). What is the magnitude of the buoyant force? Take g = 10 m/s².",
+    visibleSteps: [
+      "Recall Archimedes' principle: F_b = ρVg.",
+      "V displaced = V block because fully submerged.",
+    ],
+    blankSteps: ["F_b = ______ N"],
+    hints: [
+      "L1: Buoyant force equals weight of displaced fluid.",
+      "L2: ρ is the fluid density, not the block density.",
+    ],
+  },
+  {
+    id: "calc-002",
+    subject: "AP Calculus AB",
+    topic: "Limits",
+    question: "Find lim x→3 (x² − 9)/(x − 3).",
+    visibleSteps: [
+      "Direct substitution gives 0/0, so factor the numerator.",
+      "Cancel the common factor and re-evaluate the limit.",
+    ],
+    blankSteps: ["Limit = ______"],
+    hints: [
+      "L1: x² − 9 is a difference of squares.",
+      "L2: After canceling, substitute x = 3.",
+    ],
+  },
+  {
+    id: "calc-003",
+    subject: "AP Calculus AB",
+    topic: "Related Rates",
+    question:
+      "A spherical balloon is inflated so that its volume increases at 8π cm³/s. Find dr/dt when r = 2 cm.",
+    visibleSteps: [
+      "V = (4/3)πr³. Differentiate with respect to t.",
+      "Substitute dV/dt = 8π and r = 2.",
+    ],
+    blankSteps: ["dr/dt = ______ cm/s"],
+    hints: [
+      "L1: Use chain rule: dV/dt = dV/dr · dr/dt.",
+      "L2: dV/dr = 4πr².",
     ],
   },
 ];

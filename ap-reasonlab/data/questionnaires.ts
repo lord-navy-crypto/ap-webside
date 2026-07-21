@@ -338,6 +338,159 @@ export const questionnaires: Questionnaire[] = [
       },
     ],
   },
+  {
+    id: "phys1-gen-rotation",
+    title: "Physics 1 — Rotation & SHM Generated Set",
+    subject: "AP Physics 1",
+    kind: "generated",
+    description:
+      "Generated practice on torque, rotational inertia, angular momentum, and simple harmonic motion.",
+    generationNote:
+      "Original items aligned with AP Physics 1 CED Units 5–7 and 2026 equation sheet.",
+    estimatedMinutes: 30,
+    tags: ["rotation", "torque", "SHM", "generated"],
+    items: [
+      {
+        id: "phys1-rot-1",
+        format: "frq_half",
+        conceptId: "rotation",
+        conceptIntro: "Formula: α = τ_net / I.",
+        prompt:
+          "A wheel with rotational inertia 0.6 kg·m² experiences a net torque of 1.2 N·m. Find the angular acceleration.",
+        visibleSteps: ["Identify τ_net and I.", "Use α = τ_net / I."],
+        blankSteps: ["α = ______ rad/s²"],
+        hints: [
+          "L1: This is the rotational form of Newton's second law.",
+          "L2: Units check: N·m / (kg·m²) = rad/s².",
+        ],
+      },
+      {
+        id: "phys1-shm-1",
+        format: "frq_half",
+        conceptId: "shm",
+        conceptIntro: "Formula: T = 2π√(m/k) for mass-spring system.",
+        prompt:
+          "A 2.0 kg mass oscillates on a spring with spring constant 8.0 N/m. Find the period of oscillation.",
+        visibleSteps: [
+          "Recall T = 2π√(m/k).",
+          "Substitute m = 2.0 kg and k = 8.0 N/m.",
+        ],
+        blankSteps: ["T = ______ s"],
+        hints: ["L1: Simplify √(2/8) first.", "L2: Period depends on m and k, not amplitude."],
+      },
+    ],
+  },
+  {
+    id: "phys1-gen-fluids",
+    title: "Physics 1 — Fluids Generated Set",
+    subject: "AP Physics 1",
+    kind: "generated",
+    description:
+      "Generated practice on density, pressure, buoyancy, and hydrostatics for the 2026 AP Physics 1 exam.",
+    generationNote:
+      "Original items aligned with AP Physics 1 CED Unit 8 (Fluids) and official equation sheet.",
+    estimatedMinutes: 25,
+    tags: ["fluids", "buoyancy", "pressure", "generated"],
+    items: [
+      {
+        id: "phys1-fluid-1",
+        format: "frq_half",
+        conceptId: "fluids",
+        conceptIntro: "Formula: F_b = ρVg.",
+        prompt:
+          "A 0.003 m³ solid block is fully submerged in water (ρ = 1000 kg/m³). Take g = 10 m/s². Find the buoyant force magnitude.",
+        visibleSteps: [
+          "V_displaced = V_block because fully submerged.",
+          "Use F_b = ρ_fluid V_displaced g.",
+        ],
+        blankSteps: ["F_b = ______ N"],
+        hints: [
+          "L1: Buoyant force equals weight of displaced water.",
+          "L2: Use fluid density, not block density.",
+        ],
+      },
+      {
+        id: "phys1-fluid-2",
+        format: "concept_check",
+        conceptId: "fluids",
+        conceptIntro: "Density ρ = m/V.",
+        prompt:
+          "A wooden block has mass 0.4 kg and volume 0.0005 m³. Will it float in water? Justify using density.",
+        hints: ["Compare block density to water density (1000 kg/m³)."],
+      },
+    ],
+  },
+  {
+    id: "calcab-gen-limits",
+    title: "Calculus AB — Limits & Continuity Generated Set",
+    subject: "AP Calculus AB",
+    kind: "generated",
+    description:
+      "Generated drills on limits, factoring, continuity, and the Intermediate Value Theorem.",
+    generationNote: "Original items aligned with AP Calculus AB CED Unit 1.",
+    estimatedMinutes: 25,
+    tags: ["limits", "continuity", "generated"],
+    items: [
+      {
+        id: "calc-lim-1",
+        format: "frq_half",
+        conceptId: "limits-continuity",
+        conceptIntro: "Factor to resolve 0/0 indeterminate form.",
+        prompt: "Find lim x→2 (x² − 4)/(x − 2).",
+        visibleSteps: [
+          "Direct substitution gives 0/0.",
+          "Factor numerator and cancel common factor.",
+        ],
+        blankSteps: ["Limit = ______"],
+        hints: ["L1: x² − 4 is a difference of squares.", "L2: After canceling, substitute x = 2."],
+      },
+      {
+        id: "calc-lim-2",
+        format: "concept_check",
+        conceptId: "limits-continuity",
+        conceptIntro: "Continuity at a point requires lim = f(a).",
+        prompt:
+          "A function f is defined at x = 3 with f(3) = 5, but lim x→3 f(x) = 4. Is f continuous at x = 3? Why or why not?",
+        hints: ["For continuity, the limit must equal the function value."],
+      },
+    ],
+  },
+  {
+    id: "calcab-gen-optimization",
+    title: "Calculus AB — Related Rates & Optimization Generated Set",
+    subject: "AP Calculus AB",
+    kind: "generated",
+    description:
+      "Generated word problems on how fast quantities change and maximizing/minimizing functions.",
+    generationNote: "Original items aligned with AP Calculus AB CED Units 4–5.",
+    estimatedMinutes: 30,
+    tags: ["related rates", "optimization", "generated"],
+    items: [
+      {
+        id: "calc-opt-1",
+        format: "frq_half",
+        conceptId: "related-rates",
+        conceptIntro: "Differentiate with respect to time and substitute known rates.",
+        prompt:
+          "A spherical balloon is inflated so that its volume increases at 12π cm³/s. Find dr/dt when r = 3 cm.",
+        visibleSteps: [
+          "V = (4/3)πr³. Differentiate with respect to t.",
+          "Substitute dV/dt = 12π and r = 3.",
+        ],
+        blankSteps: ["dr/dt = ______ cm/s"],
+        hints: ["L1: dV/dt = 4πr² dr/dt.", "L2: Solve for dr/dt."],
+      },
+      {
+        id: "calc-opt-2",
+        format: "concept_check",
+        conceptId: "related-rates",
+        conceptIntro: "Critical points occur where f′(x) = 0 or undefined.",
+        prompt:
+          "When finding the maximum of a continuous function on a closed interval, why must you check the endpoints as well as critical points?",
+        hints: ["Extrema can occur at boundaries of the domain."],
+      },
+    ],
+  },
 ];
 
 export function getQuestionnaireById(id: string): Questionnaire | undefined {

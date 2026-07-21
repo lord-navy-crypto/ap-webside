@@ -143,6 +143,106 @@ export const keyConceptGuides: KeyConceptGuide[] = [
     ],
   },
   {
+    id: "guide-limits",
+    title: "Limits & Continuity",
+    subject: "AP Calculus AB",
+    category: "ap_content",
+    introduction:
+      "Limits describe how a function behaves near a point. Continuity means the limit equals the function value. These ideas justify derivatives and integrals.",
+    howToUseAI: [
+      "Ask AI to generate 5 limit problems with removable discontinuities.",
+      "Ask AI to explain the difference between f(a) and lim x→a f(x).",
+      "Have AI check your factoring steps for 0/0 indeterminate forms.",
+    ],
+    conceptQuestions: [
+      {
+        id: "gl1",
+        prompt: "Give an example where f(a) exists but lim x→a f(x) does not.",
+        hints: ["Jump discontinuity in a piecewise function."],
+      },
+    ],
+  },
+  {
+    id: "guide-optimization",
+    title: "Related Rates & Optimization",
+    subject: "AP Calculus AB",
+    category: "ap_content",
+    introduction:
+      "Derivatives let you solve real-world problems: how fast one quantity changes when another changes, and how to maximize or minimize a function subject to constraints.",
+    howToUseAI: [
+      "Ask AI to narrate a related-rates checklist without solving the numbers.",
+      "Generate 3 optimization problems and hide the final answer.",
+      "Ask AI to spot whether you treated a variable as constant incorrectly.",
+    ],
+    conceptQuestions: [
+      {
+        id: "go1",
+        prompt: "Why must you check endpoints in optimization?",
+        hints: ["Extrema can occur at boundaries of the domain."],
+      },
+    ],
+  },
+  {
+    id: "guide-rotation",
+    title: "Torque & Rotational Motion",
+    subject: "AP Physics 1",
+    category: "ap_content",
+    introduction:
+      "Rotational motion extends Newton's laws to spinning objects. Torque causes angular acceleration, rotational inertia depends on mass distribution, and angular momentum is conserved when no net external torque acts.",
+    howToUseAI: [
+      "Ask AI to compare torque and force with a door-pushing example.",
+      "Generate a rolling-without-slipping energy problem.",
+      "Ask AI to sketch an L-conservation setup, then solve it yourself.",
+    ],
+    conceptQuestions: [
+      {
+        id: "gr1",
+        prompt: "Why does a tightrope walker hold a long pole?",
+        hints: ["Increases rotational inertia, slowing angular acceleration."],
+      },
+    ],
+  },
+  {
+    id: "guide-shm",
+    title: "Simple Harmonic Motion",
+    subject: "AP Physics 1",
+    category: "ap_content",
+    introduction:
+      "SHM is periodic motion where a restoring force proportional to displacement brings the system back to equilibrium. Springs and pendulums are the classic AP examples.",
+    howToUseAI: [
+      "Ask AI to explain why pendulum period does not depend on mass.",
+      "Generate a spring-mass problem varying m and k.",
+      "Ask AI to draw an energy vs. position graph for SHM.",
+    ],
+    conceptQuestions: [
+      {
+        id: "gshm1",
+        prompt: "What happens to the period of a mass-spring system if k is quadrupled?",
+        hints: ["T is inversely proportional to √k; period halves."],
+      },
+    ],
+  },
+  {
+    id: "guide-fluids",
+    title: "Fluids",
+    subject: "AP Physics 1",
+    category: "ap_content",
+    introduction:
+      "Fluids involve density, pressure, buoyancy, and hydrostatics. Pressure increases with depth; buoyant force equals the weight of displaced fluid. These are new on the 2026 AP Physics 1 exam.",
+    howToUseAI: [
+      "Ask AI to explain why a steel ship floats but a steel block sinks.",
+      "Generate a buoyancy problem with a partially submerged object.",
+      "Ask AI to compare pressure at two depths in a fluid.",
+    ],
+    conceptQuestions: [
+      {
+        id: "gf1",
+        prompt: "Does buoyant force depend on the object's mass or the displaced fluid's weight?",
+        hints: ["Displaced fluid's weight (Archimedes' principle)."],
+      },
+    ],
+  },
+  {
     id: "guide-ai-explain",
     title: "Using AI to Explain AP Concepts",
     subject: "Study Skills / AI for AP",
