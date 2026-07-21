@@ -1,54 +1,27 @@
 import Link from "next/link";
 import EthicsBanner from "@/components/EthicsBanner";
+import { brand, collaborators } from "@/data/brand";
 
-const features = [
+const boxes = [
   {
-    title: "Concept Library",
-    description: "Definitions, key points, common mistakes, and examples.",
-    href: "/concepts",
-    icon: "📚",
+    title: "AP",
+    description: "Concepts, formulas, practice, Hint Coach — open a subject folder first.",
+    href: "/ap",
   },
   {
-    title: "Key Concept Guides",
-    description: "Introductions + how to use AI safely for each topic.",
-    href: "/key-concepts",
-    icon: "💡",
+    title: "Academic Platform",
+    description: "Learning Box, Picture upload, Image Generation — for any curriculum.",
+    href: "/academic",
   },
   {
-    title: "Formula Reference",
-    description: "AP Physics 1 & Calc AB formulas with when-to-use notes.",
-    href: "/formulas",
-    icon: "📐",
+    title: "Code Resource",
+    description: "Python, Java, and web folders. Editors and embeds can live here.",
+    href: "/code",
   },
   {
-    title: "Generated Sets",
-    description: "AI-generated practice by subject — hints only, no answer keys.",
-    href: "/questionnaires",
-    icon: "✨",
-  },
-  {
-    title: "Half-Process Practice",
-    description: "Fill-in reasoning steps instead of copying solutions.",
-    href: "/practice",
-    icon: "🧩",
-  },
-  {
-    title: "Hint Coach",
-    description: "Live strategy hints from Gemini API (optional key).",
-    href: "/hints",
-    icon: "🎯",
-  },
-  {
-    title: "Project Checklist",
-    description: "What's done, in progress, and still on your to-do list.",
-    href: "/checklist",
-    icon: "✅",
-  },
-  {
-    title: "Setup & AI Guide",
-    description: "Local setup, AI workflow, deploy, and team collaboration — one page.",
-    href: "/guide",
-    icon: "🤖",
+    title: "Forum",
+    description: "Users can post tips and questions. Local prototype for now.",
+    href: "/forum",
   },
 ];
 
@@ -57,60 +30,75 @@ export default function HomePage() {
     <div className="space-y-10">
       <section className="hero-gradient overflow-hidden rounded-2xl px-6 py-10 text-white shadow-xl md:px-10">
         <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-semibold tracking-wide">
-          GENERATED QUESTIONS ONLY
+          RESULTS · ACADEMIC BOX & PLATFORM
         </span>
-        <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-tight">
-          Learn AP by reasoning — not by copying answers
-        </h1>
-        <p className="mt-4 max-w-xl text-lg text-blue-100">
-          Feed topics to Claude or ChatGPT, generate original practice, embed it here.
-          Tutor-style hints — never pasted exam keys.
-        </p>
+        <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-tight">{brand.name}</h1>
+        <p className="mt-4 max-w-xl text-lg text-blue-100">{brand.tagline}</p>
+        <p className="mt-3 max-w-xl text-blue-100/90">{brand.description}</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href="/questionnaires"
+            href="/ap"
             className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow hover:bg-blue-50"
           >
-            Browse generated sets
+            Open AP box
           </Link>
           <Link
-            href="/guide"
+            href="/academic"
             className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
           >
-            Setup & AI guide
+            Academic Platform
           </Link>
         </div>
       </section>
 
       <EthicsBanner />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map((f) => (
-          <Link key={f.href} href={f.href} className="card-hover group">
-            <span className="text-2xl">{f.icon}</span>
-            <h2 className="mt-3 text-lg font-semibold group-hover:text-brand-700">
-              {f.title}
-            </h2>
-            <p className="mt-2 text-sm text-slate-600">{f.description}</p>
-          </Link>
-        ))}
+      <section className="space-y-3">
+        <h2 className="section-title">Main boxes</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {boxes.map((b) => (
+            <Link key={b.href} href={b.href} className="card-hover group flex items-start gap-3">
+              <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-xl">
+                📁
+              </span>
+              <div>
+                <h3 className="text-lg font-semibold group-hover:text-brand-700">{b.title}</h3>
+                <p className="mt-1 text-sm text-slate-600">{b.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <p className="text-sm text-slate-500">
+          Coming later: A-Level box and IB box — same folder pattern, separate from AP.
+        </p>
       </section>
 
-      <section className="card space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="section-title">Build status</h2>
-          <Link href="/checklist" className="text-sm font-medium text-brand-600 hover:underline">
-            Full checklist →
-          </Link>
+      <section className="card space-y-4">
+        <h2 className="section-title">Collaborators</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {collaborators.map((c) => (
+            <a
+              key={c.name}
+              href={c.github}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-3 hover:border-brand-300"
+            >
+              {c.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={c.avatar} alt="" className="h-10 w-10 rounded-full" />
+              ) : (
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-500">
+                  +
+                </span>
+              )}
+              <div>
+                <p className="font-medium text-slate-900">{c.name}</p>
+                <p className="text-xs text-slate-500">{c.role}</p>
+              </div>
+            </a>
+          ))}
         </div>
-        <ul className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-          <li>✅ Live site + GitHub + Vercel deploy</li>
-          <li>✅ Concepts, key guides, formulas (Physics 1 + Calc AB)</li>
-          <li>✅ Generated sets + formula practice drills</li>
-          <li>✅ Hint Coach (Gemini optional)</li>
-          <li>🔄 Expanding Units 4–8 content</li>
-          <li>🔜 GEMINI_API_KEY on Vercel + difficulty tiers UI</li>
-        </ul>
       </section>
     </div>
   );

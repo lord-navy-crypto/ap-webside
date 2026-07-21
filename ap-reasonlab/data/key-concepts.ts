@@ -1,4 +1,7 @@
 import { KeyConceptGuide } from "@/lib/types";
+import { macroGuides } from "@/data/ap-macro";
+import { microGuides } from "@/data/ap-micro";
+import { physics2Guides } from "@/data/ap-physics2";
 
 /**
  * Key concept introductions + concept-check questions
@@ -228,11 +231,12 @@ export const keyConceptGuides: KeyConceptGuide[] = [
     subject: "AP Physics 1",
     category: "ap_content",
     introduction:
-      "Fluids involve density, pressure, buoyancy, and hydrostatics. Pressure increases with depth; buoyant force equals the weight of displaced fluid. These are new on the 2026 AP Physics 1 exam.",
+      "Fluids involve density, pressure, buoyancy, continuity, and Bernoulli. AP Physics 1 assumes ideal (non-viscous, incompressible) fluid in a filled pipe unless stated otherwise. Pressure increases with depth; buoyant force equals the weight of displaced fluid.",
     howToUseAI: [
       "Ask AI to explain why a steel ship floats but a steel block sinks.",
       "Generate a buoyancy problem with a partially submerged object.",
       "Ask AI to compare pressure at two depths in a fluid.",
+      "Ask AI to explain why A₁v₁ = A₂v₂ means water speeds up in a narrow hose.",
     ],
     conceptQuestions: [
       {
@@ -307,6 +311,9 @@ export const keyConceptGuides: KeyConceptGuide[] = [
       },
     ],
   },
+  ...microGuides,
+  ...macroGuides,
+  ...physics2Guides,
 ];
 
 export function getGuideById(id: string): KeyConceptGuide | undefined {

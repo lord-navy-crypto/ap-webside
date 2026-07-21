@@ -1,65 +1,175 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { concepts } from "@/data/content";
+import { keyConceptGuides } from "@/data/key-concepts";
+import FolderGrid from "@/components/FolderGrid";
 
-export default function ConceptsPage() {
+type Filter = "all" | "concept" | "guide";
+
+function ConceptsContent() {
+  const searchParams = useSearchParams();
+  const subject = searchParams.get("subject");
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const filtered = concepts.filter((concept) => {
+  const subjects = useMemo(() => {
+    const set = new Set<string>();
+    concepts.forEach((c) => set.add(c.subject));
+    keyConceptGuides.forEach((g) => set.add(g.subject));
+    return [...set].sort();
+  }, []);
+
+  const subjectFolders = subjects.map((s) => {
+    const conceptCount = concepts.filter((c) => c.subject === s).length;
+    const guideCount = keyConceptGuides.filter((g) => g.subject === s).length;
+    return {
+      id: s,
+      title: s,
+      subtitle: `${conceptCount} concepts · ${guideCount} guides`,
+      count: conceptCount + guideCount,
+      href: `/concepts?subject=${encodeURIComponent(s)}`,
+    };
+  });
+
+  const list = useMemo(() => {
+    if (!subject) return [];
+    const items: Array<{
+      kind: "concept" | "guide";
+      id: string;
+      title: string;
+      summary: string;
+      href: string;
+    }> = [];
+
+    if (filter === "all" || filter === "concept") {
+      concepts
+        .filter((c) => c.subject === subject)
+        .forEach((c) =>
+          items.push({
+            kind: "concept",
+            id: c.id,
+            title: c.title,
+            summary: c.summary,
+            href: `/concepts/${c.id}`,
+          })
+        );
+    }
+    if (filter === "all" || filter === "guide") {
+      keyConceptGuides
+        .filter((g) => g.subject === subject)
+        .forEach((g) =>
+          items.push({
+            kind: "guide",
+            id: g.id,
+            title: g.title,
+            summary: g.introduction,
+            href: `/key-concepts/${g.id}`,
+          })
+        );
+    }
+    return items;
+  }, [subject, filter]);
+
+  const filtered = list.filter((item) => {
     if (!query.trim()) return true;
     const q = query.toLowerCase();
     return (
-      concept.title.toLowerCase().includes(q) ||
-      concept.subject.toLowerCase().includes(q) ||
-      concept.summary.toLowerCase().includes(q)
+      item.title.toLowerCase().includes(q) ||
+      item.summary.toLowerCase().includes(q)
     );
   });
+
+  if (!subject) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link href="/ap" className="text-sm text-brand-600 hover:underline">
+            ← AP Area
+          </Link>
+          <h1 className="mt-2 text-3xl font-bold">Concepts</h1>
+          <p className="mt-2 text-slate-600">
+            Open a subject folder first. Inside you will find concepts and key guides for that subject.
+          </p>
+        </div>
+        <FolderGrid folders={subjectFolders} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Concept Library</h1>
+        <Link href="/concepts" className="text-sm text-brand-600 hover:underline">
+          ← All subject folders
+        </Link>
+        <h1 className="mt-2 text-3xl font-bold">{subject}</h1>
         <p className="mt-2 text-slate-600">
-          Core AP knowledge points. Search by title, subject, or topic.
+          Concepts and key guides for this subject. Click a topic card to open it.
         </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ["all", "All"],
+            ["concept", "Concepts"],
+            ["guide", "Guides"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setFilter(value)}
+            className={filter === value ? "filter-pill-active" : "filter-pill"}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <input
         type="text"
         className="input"
-        placeholder="Search concepts (e.g. torque, integral, limit)..."
+        placeholder="Search topics in this subject..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
 
       {mounted && (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:grid-cols-2">
           {filtered.length > 0 ? (
-            filtered.map((concept) => (
+            filtered.map((item) => (
               <Link
-                key={concept.id}
-                href={`/concepts/${concept.id}`}
-                className="card block hover:border-brand-300 transition"
+                key={`${item.kind}-${item.id}`}
+                href={item.href}
+                className="card block transition hover:border-brand-300"
               >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="badge">{concept.subject}</span>
-                </div>
-                <h2 className="mt-3 text-xl font-semibold">{concept.title}</h2>
-                <p className="mt-2 text-sm text-slate-600">{concept.summary}</p>
+                <span className="badge">{item.kind === "concept" ? "Concept" : "Guide"}</span>
+                <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
+                <p className="mt-2 line-clamp-2 text-sm text-slate-600">{item.summary}</p>
               </Link>
             ))
           ) : (
-            <p className="text-sm text-slate-500">No concepts match your search.</p>
+            <p className="text-sm text-slate-500">No topics in this folder yet.</p>
           )}
         </div>
       )}
     </div>
+  );
+}
+
+export default function ConceptsPage() {
+  return (
+    <Suspense fallback={<div className="text-sm text-slate-500">Loading concepts...</div>}>
+      <ConceptsContent />
+    </Suspense>
   );
 }

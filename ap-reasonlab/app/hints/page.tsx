@@ -151,7 +151,10 @@ export default function HintsPage() {
           <label className="mb-2 block text-sm font-medium">Subject</label>
           <select className="input" value={subject} onChange={(e) => setSubject(e.target.value)}>
             <option>AP Physics 1</option>
+            <option>AP Physics 2</option>
             <option>AP Calculus AB</option>
+            <option>AP Microeconomics</option>
+            <option>AP Macroeconomics</option>
           </select>
         </div>
 

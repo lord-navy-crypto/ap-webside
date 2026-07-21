@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Nav from "@/components/Nav";
+import { brand } from "@/data/brand";
 
 export const metadata: Metadata = {
-  title: "AP ReasonLab",
-  description:
-    "Free AP study tool: concept library, hint coach, and half-process practice without final answers.",
+  title: "Results — Academic Box & Platform",
+  description: brand.description,
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
         <Nav />
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
         <footer className="border-t border-slate-200 bg-white py-6 text-center text-sm text-slate-500">
-          AP ReasonLab — Tutor, not solver. Open-source learning project.
+          {brand.name} — Academic box & platform. Tutor, not solver.
         </footer>
       </body>
     </html>

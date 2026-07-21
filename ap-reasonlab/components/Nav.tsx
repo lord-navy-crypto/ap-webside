@@ -1,15 +1,12 @@
 import Link from "next/link";
+import { brand } from "@/data/brand";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/concepts", label: "Concepts" },
-  { href: "/key-concepts", label: "Key Concepts" },
-  { href: "/formulas", label: "Formulas" },
-  { href: "/questionnaires", label: "Generated Sets" },
-  { href: "/practice", label: "Practice" },
-  { href: "/hints", label: "Hint Coach" },
-  { href: "/checklist", label: "Checklist" },
-  { href: "/guide", label: "Setup & AI" },
+  { href: "/ap", label: "AP" },
+  { href: "/academic", label: "Academic Platform" },
+  { href: "/code", label: "Code" },
+  { href: "/forum", label: "Forum" },
   { href: "/about", label: "About" },
 ];
 
@@ -19,9 +16,9 @@ export default function Nav() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-            AP
+            R
           </span>
-          <span className="text-lg font-bold text-slate-900">ReasonLab</span>
+          <span className="text-lg font-bold text-slate-900">{brand.name}</span>
         </Link>
         <nav className="flex flex-wrap gap-1">
           {links.map((link) => (

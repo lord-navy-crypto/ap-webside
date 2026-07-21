@@ -1,4 +1,7 @@
 import { Formula } from "@/lib/types";
+import { macroFormulas } from "@/data/ap-macro";
+import { microFormulas } from "@/data/ap-micro";
+import { physics2Formulas } from "@/data/ap-physics2";
 
 /**
  * Formulas aligned with College Board AP course frameworks.
@@ -285,6 +288,50 @@ export const formulas: Formula[] = [
     relatedConceptId: "fluids",
     sourceNote: "AP Physics 1 equation sheet (College Board)",
   },
+  {
+    id: "p1-mass-flow",
+    subject: "AP Physics 1",
+    unit: "Unit 8: Fluids",
+    name: "Mass flow rate",
+    expression: "ṁ = ρAv",
+    variables: "ρ = density, A = cross-sectional area, v = flow speed",
+    whenToUse: "Steady flow through a pipe; links to continuity equation.",
+    relatedConceptId: "fluids",
+    sourceNote: "AP Physics 1 CED Unit 8 (College Board)",
+  },
+  {
+    id: "p1-continuity",
+    subject: "AP Physics 1",
+    unit: "Unit 8: Fluids",
+    name: "Continuity equation (incompressible fluid)",
+    expression: "A₁v₁ = A₂v₂",
+    variables: "A = area, v = speed at two points in a filled pipe",
+    whenToUse: "Ideal fluid in steady flow; narrower pipe → faster speed.",
+    relatedConceptId: "fluids",
+    sourceNote: "AP Physics 1 CED Unit 8 (College Board)",
+  },
+  {
+    id: "p1-bernoulli",
+    subject: "AP Physics 1",
+    unit: "Unit 8: Fluids",
+    name: "Bernoulli equation",
+    expression: "P + ½ρv² + ρgy = constant",
+    variables: "Along one streamline; steady, incompressible, non-viscous flow",
+    whenToUse: "Relate pressure, speed, and height in flowing fluid.",
+    relatedConceptId: "fluids",
+    sourceNote: "AP Physics 1 CED Unit 8 (College Board)",
+  },
+  {
+    id: "p1-torricelli",
+    subject: "AP Physics 1",
+    unit: "Unit 8: Fluids",
+    name: "Torricelli's theorem",
+    expression: "v = √(2gh)",
+    variables: "h = vertical height from fluid surface to exit hole",
+    whenToUse: "Speed of efflux from a tank (Bernoulli special case).",
+    relatedConceptId: "fluids",
+    sourceNote: "AP Physics 1 CED Unit 8 (College Board)",
+  },
   // ── AP Calculus AB — Limits (Unit 1) ──
   {
     id: "calc-limit-def",
@@ -442,6 +489,9 @@ export const formulas: Formula[] = [
     relatedConceptId: "integrals-basics",
     sourceNote: "AP Calculus AB CED",
   },
+  ...microFormulas,
+  ...macroFormulas,
+  ...physics2Formulas,
 ];
 
 export function getFormulasBySubject(subject: string): Formula[] {
