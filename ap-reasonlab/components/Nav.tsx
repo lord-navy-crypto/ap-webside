@@ -3,10 +3,11 @@ import Link from "next/link";
 const links = [
   { href: "/", label: "Home" },
   { href: "/concepts", label: "Concepts" },
-  { href: "/key-concepts", label: "Key Concepts" },
   { href: "/formulas", label: "Formulas" },
-  { href: "/questionnaires", label: "Generated Sets" },
   { href: "/practice", label: "Practice" },
+  { href: "/picture", label: "Picture" },
+  { href: "/image-gen", label: "Image Gen" },
+  { href: "/learning-box", label: "Learning Box" },
   { href: "/hints", label: "Hint Coach" },
   { href: "/checklist", label: "Checklist" },
   { href: "/guide", label: "Setup & AI" },

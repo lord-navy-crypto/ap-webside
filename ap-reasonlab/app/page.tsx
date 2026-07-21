@@ -4,15 +4,9 @@ import EthicsBanner from "@/components/EthicsBanner";
 const features = [
   {
     title: "Concept Library",
-    description: "Definitions, key points, common mistakes, and examples.",
+    description: "Concepts + key guides + AI-usage tips + study skills — all in one place.",
     href: "/concepts",
     icon: "📚",
-  },
-  {
-    title: "Key Concept Guides",
-    description: "Introductions + how to use AI safely for each topic.",
-    href: "/key-concepts",
-    icon: "💡",
   },
   {
     title: "Formula Reference",
@@ -21,20 +15,32 @@ const features = [
     icon: "📐",
   },
   {
-    title: "Generated Sets",
-    description: "AI-generated practice by subject — hints only, no answer keys.",
-    href: "/questionnaires",
-    icon: "✨",
-  },
-  {
-    title: "Half-Process Practice",
-    description: "Fill-in reasoning steps instead of copying solutions.",
+    title: "Practice",
+    description: "Half-process drills + AI-generated sets — hints only, no answer keys.",
     href: "/practice",
     icon: "🧩",
   },
   {
+    title: "Picture",
+    description: "Upload photos of notes, textbook pages, or diagrams. Stored in your browser.",
+    href: "/picture",
+    icon: "🖼️",
+  },
+  {
+    title: "Image Generation",
+    description: "Generate study diagrams from a prompt. Free, no API key needed.",
+    href: "/image-gen",
+    icon: "🎨",
+  },
+  {
+    title: "Learning Box",
+    description: "Store your own notes & materials. Random draw for spaced review.",
+    href: "/learning-box",
+    icon: "📦",
+  },
+  {
     title: "Hint Coach",
-    description: "Live strategy hints from Gemini API (optional key).",
+    description: "Strategy hints from Groq (default) or your own Groq/Gemini key.",
     href: "/hints",
     icon: "🎯",
   },
@@ -68,16 +74,16 @@ export default function HomePage() {
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href="/questionnaires"
+            href="/practice"
             className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow hover:bg-blue-50"
           >
-            Browse generated sets
+            Browse practice
           </Link>
           <Link
-            href="/guide"
+            href="/learning-box"
             className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
           >
-            Setup & AI guide
+            Open Learning Box
           </Link>
         </div>
       </section>
@@ -105,10 +111,10 @@ export default function HomePage() {
         </div>
         <ul className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
           <li>✅ Live site + GitHub + Vercel deploy</li>
-          <li>✅ Concepts, key guides, formulas (Physics 1 & 2, Calc AB, Micro, Macro)</li>
-          <li>✅ Generated sets + formula practice drills</li>
+          <li>✅ Concepts + key guides merged; Physics 1 & 2, Calc AB, Micro, Macro</li>
+          <li>✅ Practice merged (drills + generated sets)</li>
+          <li>✅ Picture upload + Image Generation + Learning Box</li>
           <li>✅ Hint Coach (Groq default + bring your own key)</li>
-          <li>🔄 More generated sets per unit</li>
           <li>🔜 GROQ_API_KEY on Vercel + difficulty tiers UI</li>
         </ul>
       </section>
