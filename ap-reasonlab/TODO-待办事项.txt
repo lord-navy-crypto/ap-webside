@@ -1,0 +1,25 @@
+AP ReasonLab — 待办清单
+更新: 2026-07-21
+
+【立即】
+□ Terminal: git push 到 https://github.com/lord-navy-crypto/ap-webside（用 Token）
+□ 或: npx vercel --prod 确认正式网址可访问
+
+【内容】
+□ data/questionnaires.ts 添加更多生成题
+□ data/content.ts 扩展概念库
+□ 选一门主科深耕（Physics 1 或 Calc AB）
+
+【AI】
+□ .env.local 配置 GEMINI_API_KEY
+□ Vercel 环境变量同步 GEMINI_API_KEY
+□ 测试 /hints 页面
+
+【产品】
+□ 三层难度筛选 UI
+□ 站内 AI 生成题按钮
+□ 收集 10–20 用户反馈
+
+【申请】
+□ 文书: YYGS heavy ion + ReasonLab 社区项目
+□ 勿在各校文书重复同一故事
