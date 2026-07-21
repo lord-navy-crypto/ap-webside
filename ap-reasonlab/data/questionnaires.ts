@@ -183,6 +183,126 @@ export const questionnaires: Questionnaire[] = [
     ],
   },
   {
+    id: "phys1-gen-formulas",
+    title: "Physics 1 — Formula Application Set",
+    subject: "AP Physics 1",
+    kind: "generated",
+    description:
+      "Practice choosing and applying official equation-sheet formulas. Half-process only.",
+    generationNote:
+      "Original problems aligned with AP Physics 1 CED Units 1, 4, 5.",
+    estimatedMinutes: 30,
+    tags: ["formulas", "energy", "momentum", "kinematics", "generated"],
+    items: [
+      {
+        id: "phys1-form-f1",
+        format: "frq_half",
+        conceptId: "kinematics-basics",
+        conceptIntro: "Formula: v² = v₀² + 2aΔx — no time given.",
+        prompt:
+          "A car slows from 20 m/s to 10 m/s with constant acceleration −2 m/s². How far does it travel during braking?",
+        visibleSteps: [
+          "List: v₀ = 20, v = 10, a = −2 (if +x is forward).",
+          "Pick v² = v₀² + 2aΔx.",
+        ],
+        blankSteps: ["Δx = ______ m"],
+        hints: ["L1: Time is not needed.", "L2: Watch sign of a vs direction."],
+      },
+      {
+        id: "phys1-form-f2",
+        format: "frq_half",
+        conceptId: "energy-work",
+        conceptIntro: "Formula: K = ½mv².",
+        prompt:
+          "A 0.8 kg ball’s speed increases from 5 m/s to 15 m/s. Find the change in kinetic energy.",
+        visibleSteps: ["Compute K_i and K_f separately.", "ΔK = K_f − K_i."],
+        blankSteps: ["ΔK = ______ J"],
+        hints: ["L1: K uses speed squared.", "L2: ΔK can be computed as ½m(v_f² − v_i²)."],
+      },
+      {
+        id: "phys1-form-f3",
+        format: "concept_check",
+        conceptId: "momentum",
+        conceptIntro: "Formula: J = FΔt = Δp.",
+        prompt:
+          "A 50 N force acts on a cart for 0.20 s. What quantity equals 50 × 0.20 in SI units, and what does it measure?",
+        hints: ["Impulse in N·s = kg·m/s = change in momentum."],
+      },
+      {
+        id: "phys1-form-f4",
+        format: "mcq",
+        conceptId: "energy-work",
+        conceptIntro: "Formula: U_g = mgh.",
+        prompt:
+          "Doubling only the height of an object (same mass, same g) changes gravitational PE by:",
+        choices: [
+          "A) Factor of 4",
+          "B) Factor of 2",
+          "C) Unchanged",
+          "D) Factor of ½",
+        ],
+        hints: ["U_g is linear in h when m and g fixed."],
+      },
+    ],
+  },
+  {
+    id: "calcab-gen-formulas",
+    title: "Calculus AB — Formula & Rule Set",
+    subject: "AP Calculus AB",
+    kind: "generated",
+    description:
+      "Derivative rules, FTC, and power-rule integration drills. No exam formula sheet — memorize these.",
+    generationNote: "Original items aligned with AP Calculus AB CED Units 2–6.",
+    estimatedMinutes: 35,
+    tags: ["formulas", "derivatives", "integrals", "FTC", "generated"],
+    items: [
+      {
+        id: "calc-form-c1",
+        format: "frq_half",
+        conceptId: "derivatives-basics",
+        conceptIntro: "Chain rule: d/dx f(g(x)) = f′(g(x))·g′(x).",
+        prompt: "Find d/dx [(3x² + 1)⁴].",
+        visibleSteps: [
+          "Outer function: u⁴ ⇒ derivative 4u³.",
+          "Inner function: 3x² + 1 ⇒ derivative 6x.",
+        ],
+        blankSteps: ["Result = ____________________"],
+        hints: ["L1: Multiply outer and inner derivatives.", "L2: Substitute u = 3x² + 1 at end."],
+      },
+      {
+        id: "calc-form-c2",
+        format: "frq_half",
+        conceptId: "integrals-basics",
+        conceptIntro: "FTC Part 2: ∫ₐᵇ f(x) dx = F(b) − F(a).",
+        prompt: "Evaluate ∫₀² (x² + 1) dx.",
+        visibleSteps: [
+          "Antiderivative: x³/3 + x.",
+          "Evaluate at 2 and 0.",
+        ],
+        blankSteps: ["Value = ______"],
+        hints: ["L1: Power rule for integration.", "L2: F(0) simplifies the lower bound."],
+      },
+      {
+        id: "calc-form-c3",
+        format: "fill_blank",
+        conceptId: "derivatives-basics",
+        conceptIntro: "Product rule: (fg)′ = f′g + fg′.",
+        prompt:
+          "If f(x) = x² and g(x) = sin x, then (fg)′(x) = ______·sin x + x²·______.",
+        hints: ["Differentiate each factor separately."],
+      },
+      {
+        id: "calc-form-c4",
+        format: "concept_check",
+        conceptId: "integrals-basics",
+        conceptIntro: "FTC Part 1 links accumulation and derivative.",
+        prompt:
+          "In one sentence: why does d/dx ∫₀ˣ t² dt equal x²?",
+        hints: ["FTC Part 1: derivative of accumulation function returns integrand."],
+      },
+    ],
+  },
+  {
     id: "ai-ap-study-habits",
     title: "How to Use AI for AP — Generated Reflection Set",
     subject: "Study Skills / AI for AP",

@@ -73,6 +73,76 @@ export const keyConceptGuides: KeyConceptGuide[] = [
     ],
   },
   {
+    id: "guide-energy",
+    title: "Work, Energy & Power",
+    subject: "AP Physics 1",
+    category: "ap_content",
+    introduction:
+      "Energy methods often replace force analysis: track K and U, use W_net = ΔK, and draw energy bar charts. Near Earth, U_g = mgh; springs store U_s = ½kx². Power tells how fast energy transfers.",
+    howToUseAI: [
+      "Ask AI to walk through an energy bar chart for a roller coaster — you fill in the numbers.",
+      "Ask: “Which formula fits: work, KE, or PE?” given a word problem setup.",
+      "Generate 3 original energy half-process problems with different heights/speeds.",
+    ],
+    conceptQuestions: [
+      {
+        id: "ge1",
+        prompt: "When is mechanical energy (K + U) conserved?",
+        hints: ["No non-conservative work (e.g. friction) doing net work on system."],
+      },
+      {
+        id: "ge2",
+        prompt: "Why does friction reduce mechanical energy?",
+        hints: ["Friction does negative work; energy dissipates as thermal."],
+      },
+    ],
+  },
+  {
+    id: "guide-momentum",
+    title: "Momentum & Impulse",
+    subject: "AP Physics 1",
+    category: "ap_content",
+    introduction:
+      "Momentum p = mv helps analyze collisions and explosions. Impulse J = FΔt = Δp connects force applied over time to momentum change. In an isolated system, total momentum is conserved.",
+    howToUseAI: [
+      "Ask AI for a collision setup with two objects — you write conservation equation.",
+      "Ask AI to explain elastic vs inelastic without solving numbers.",
+      "Generate impulse problems from F–t graph descriptions.",
+    ],
+    conceptQuestions: [
+      {
+        id: "gm1",
+        prompt: "Why must you treat momentum as a vector in 1D collisions?",
+        hints: ["Signs encode direction; opposite velocities add in Δp."],
+      },
+    ],
+  },
+  {
+    id: "guide-integrals",
+    title: "Integrals & the Fundamental Theorem",
+    subject: "AP Calculus AB",
+    category: "ap_content",
+    introduction:
+      "Integration reverses differentiation and measures accumulated change. FTC Part 2 lets you evaluate ∫ₐᵇ f(x) dx = F(b) − F(a). On the AP exam you must know common antiderivatives — there is no formula sheet.",
+    howToUseAI: [
+      "Ask AI for 5 definite integrals using power rule only — no answers.",
+      "Ask AI to explain signed area vs total area under a curve.",
+      "Have AI check your antiderivative by differentiating your result.",
+    ],
+    conceptQuestions: [
+      {
+        id: "gi1",
+        prompt: "What does ∫ₐᵇ f(x) dx represent when f is velocity?",
+        hints: ["Net displacement over [a, b]."],
+      },
+      {
+        id: "gi2",
+        prompt: "Why do indefinite integrals need +C?",
+        hints: ["Many antiderivatives differ by a constant."],
+      },
+    ],
+  },
+  {
     id: "guide-ai-explain",
     title: "Using AI to Explain AP Concepts",
     subject: "Study Skills / AI for AP",

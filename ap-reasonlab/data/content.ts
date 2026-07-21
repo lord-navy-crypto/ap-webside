@@ -56,6 +56,62 @@ export const concepts: Concept[] = [
     ],
     example: "If f(x) = x³, then f′(x) = 3x².",
   },
+  {
+    id: "energy-work",
+    title: "Work & Energy",
+    subject: "AP Physics 1",
+    summary:
+      "Energy methods track how work transfers energy. Kinetic energy K = ½mv²; gravitational PE U_g = mgh near Earth.",
+    keyPoints: [
+      "Work W = Fd cos θ (constant force); W_net = ΔK.",
+      "Conservative forces allow energy bar charts: K + U = constant (no non-conservative work).",
+      "Power P = ΔE/Δt measures rate of energy transfer.",
+    ],
+    commonMistakes: [
+      "Using mgh without consistent zero level for h.",
+      "Forgetting friction does negative work and removes mechanical energy.",
+      "Mixing up work done BY a force vs ON an object.",
+    ],
+    example:
+      "A 2 kg book lifted 3 m gains ΔU_g = mgh = (2)(9.8)(3) ≈ 59 J of gravitational PE.",
+  },
+  {
+    id: "momentum",
+    title: "Linear Momentum & Impulse",
+    subject: "AP Physics 1",
+    summary:
+      "Momentum p = mv is conserved in isolated systems. Impulse J = FΔt = Δp links force over time to momentum change.",
+    keyPoints: [
+      "Closed system with no external impulse ⇒ total p conserved.",
+      "Impulse equals area under F–t graph.",
+      "Elastic vs inelastic collisions differ in whether KE is conserved.",
+    ],
+    commonMistakes: [
+      "Using momentum conservation when external forces (e.g. friction) are significant.",
+      "Treating momentum as scalar instead of vector.",
+      "Assuming all collisions conserve kinetic energy.",
+    ],
+    example:
+      "A 0.5 kg ball changes velocity from +4 m/s to −2 m/s: Δp = m(v_f − v_i) = 0.5(−2 − 4) = −3 kg·m/s.",
+  },
+  {
+    id: "integrals-basics",
+    title: "Integrals & FTC",
+    subject: "AP Calculus AB",
+    summary:
+      "Integration accumulates change. The Fundamental Theorem connects antiderivatives to definite integrals.",
+    keyPoints: [
+      "∫ₐᵇ f(x) dx = F(b) − F(a) where F′ = f.",
+      "Definite integral = signed area under curve (above x-axis positive).",
+      "∫ xⁿ dx = xⁿ⁺¹/(n+1) + C for n ≠ −1.",
+    ],
+    commonMistakes: [
+      "Forgetting +C in indefinite integrals.",
+      "Wrong antiderivative sign or exponent.",
+      "Confusing average value with average rate of change.",
+    ],
+    example: "∫₀² 3x² dx = [x³]₀² = 8 − 0 = 8.",
+  },
 ];
 
 export const practiceQuestions: PracticeQuestion[] = [
@@ -99,6 +155,57 @@ export const practiceQuestions: PracticeQuestion[] = [
       "L1: Frictionless means no horizontal friction force.",
       "L2: On a flat surface, weight and normal force are vertical.",
       "L3: Use a = F_net / m after confirming net force.",
+    ],
+  },
+  {
+    id: "p1-003",
+    subject: "AP Physics 1",
+    topic: "Energy",
+    question:
+      "A 1.5 kg cart at 4 m/s on a frictionless track. Find its kinetic energy.",
+    visibleSteps: [
+      "Recall K = ½mv².",
+      "Substitute m and v (speed, not velocity sign for K).",
+    ],
+    blankSteps: ["K = ______ J"],
+    hints: [
+      "L1: K uses speed squared.",
+      "L2: Units: kg · (m/s)² = joules.",
+    ],
+  },
+  {
+    id: "p1-004",
+    subject: "AP Physics 1",
+    topic: "Momentum",
+    question:
+      "A 2 kg object moving at 3 m/s collides and stops. What is the magnitude of its momentum change?",
+    visibleSteps: [
+      "Define initial momentum p_i = mv_i.",
+      "Final momentum p_f = 0.",
+      "Find |Δp| = |p_f − p_i|.",
+    ],
+    blankSteps: ["|Δp| = ______ kg·m/s"],
+    hints: [
+      "L1: Momentum is a vector; magnitude of change is asked.",
+      "L2: Δp = m(v_f − v_i) with signs.",
+    ],
+  },
+  {
+    id: "calc-001",
+    subject: "AP Calculus AB",
+    topic: "Integrals",
+    question: "Evaluate ∫₀¹ (2x + 1) dx.",
+    visibleSteps: [
+      "Find antiderivative of 2x + 1.",
+      "Apply FTC: F(1) − F(0).",
+    ],
+    blankSteps: [
+      "Antiderivative F(x) = ____________________",
+      "Definite integral = ______",
+    ],
+    hints: [
+      "L1: ∫2x dx = x²; ∫1 dx = x.",
+      "L2: Don't forget to evaluate at both bounds.",
     ],
   },
 ];

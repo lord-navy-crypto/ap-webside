@@ -4,9 +4,11 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/concepts", label: "Concepts" },
   { href: "/key-concepts", label: "Key Concepts" },
+  { href: "/formulas", label: "Formulas" },
   { href: "/questionnaires", label: "Generated Sets" },
   { href: "/practice", label: "Practice" },
   { href: "/hints", label: "Hint Coach" },
+  { href: "/checklist", label: "Checklist" },
   { href: "/guide", label: "AI Guide" },
   { href: "/about", label: "About" },
 ];

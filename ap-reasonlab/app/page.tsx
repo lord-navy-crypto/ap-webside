@@ -15,6 +15,12 @@ const features = [
     icon: "💡",
   },
   {
+    title: "Formula Reference",
+    description: "AP Physics 1 & Calc AB formulas with when-to-use notes.",
+    href: "/formulas",
+    icon: "📐",
+  },
+  {
     title: "Generated Sets",
     description: "AI-generated practice by subject — hints only, no answer keys.",
     href: "/questionnaires",
@@ -31,6 +37,12 @@ const features = [
     description: "Live strategy hints from Gemini API (optional key).",
     href: "/hints",
     icon: "🎯",
+  },
+  {
+    title: "Project Checklist",
+    description: "What's done, in progress, and still on your to-do list.",
+    href: "/checklist",
+    icon: "✅",
   },
   {
     title: "AI Guide",
@@ -85,14 +97,19 @@ export default function HomePage() {
       </section>
 
       <section className="card space-y-3">
-        <h2 className="section-title">Build status</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="section-title">Build status</h2>
+          <Link href="/checklist" className="text-sm font-medium text-brand-600 hover:underline">
+            Full checklist →
+          </Link>
+        </div>
         <ul className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
-          <li>✅ Generated question sets by subject</li>
-          <li>✅ AI Guide (generate & embed workflow)</li>
-          <li>✅ Concept library & key concept guides</li>
+          <li>✅ Live site + GitHub + Vercel deploy</li>
+          <li>✅ Concepts, key guides, formulas (Physics 1 + Calc AB)</li>
+          <li>✅ Generated sets + formula practice drills</li>
           <li>✅ Hint Coach (Gemini optional)</li>
-          <li>🔜 Three difficulty tiers (types ready, UI later)</li>
-          <li>🔜 In-browser question generator button</li>
+          <li>🔄 Expanding Units 4–8 content</li>
+          <li>🔜 GEMINI_API_KEY on Vercel + difficulty tiers UI</li>
         </ul>
       </section>
     </div>

@@ -77,3 +77,26 @@ export interface KeyConceptGuide {
     hints: string[];
   }[];
 }
+
+export interface Formula {
+  id: string;
+  subject: string;
+  unit: string;
+  name: string;
+  expression: string;
+  variables: string;
+  whenToUse: string;
+  relatedConceptId?: string;
+  /** e.g. College Board AP Physics 1 equation sheet */
+  sourceNote: string;
+}
+
+export type ChecklistStatus = "done" | "in_progress" | "todo";
+
+export interface ChecklistItem {
+  id: string;
+  status: ChecklistStatus;
+  title: string;
+  description: string;
+  link?: string;
+}
