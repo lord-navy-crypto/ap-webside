@@ -13,7 +13,7 @@
 | 提示教练 | `/hints` | 只给提示，不给答案 |
 | 生成题集 | `/questionnaires` | 按科目 · **仅 AI 生成题** |
 | 关键概念指南 | `/key-concepts` | 概念介绍 + AI 用法 + 概念题 |
-| AI 指南 | `/guide` | 如何生成题、嵌入网站、接 API |
+| AI 指南 | `/guide` | **统一页面**：本地设置 + AI 生成 + 部署 + 协作 |
 | 关于 | `/about` | 产品原则与伦理说明 |
 
 AI 接口在 `app/api/hints/route.ts`：

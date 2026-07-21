@@ -45,8 +45,8 @@ const features = [
     icon: "✅",
   },
   {
-    title: "AI Guide",
-    description: "How to generate questions with Claude/ChatGPT and embed them.",
+    title: "Setup & AI Guide",
+    description: "Local setup, AI workflow, deploy, and team collaboration — one page.",
     href: "/guide",
     icon: "🤖",
   },
@@ -77,7 +77,7 @@ export default function HomePage() {
             href="/guide"
             className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
           >
-            AI setup guide
+            Setup & AI guide
           </Link>
         </div>
       </section>

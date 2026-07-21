@@ -9,7 +9,7 @@ const links = [
   { href: "/practice", label: "Practice" },
   { href: "/hints", label: "Hint Coach" },
   { href: "/checklist", label: "Checklist" },
-  { href: "/guide", label: "AI Guide" },
+  { href: "/guide", label: "Setup & AI" },
   { href: "/about", label: "About" },
 ];
 

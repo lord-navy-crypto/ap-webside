@@ -59,3 +59,99 @@ body {
 .filter-pill-active {
   @apply rounded-full border border-brand-500 bg-brand-600 px-4 py-1.5 text-sm font-semibold text-white shadow-sm;
 }
+
+/* ── Guide hub (luxury unified setup + AI page) ── */
+.guide-hero {
+  background: linear-gradient(
+    145deg,
+    #0f172a 0%,
+    #1e3a8a 35%,
+    #2563eb 65%,
+    #4f46e5 100%
+  );
+}
+
+.guide-hero-grid {
+  background-image: radial-gradient(
+      circle at 20% 50%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(147, 197, 253, 0.15) 0%,
+      transparent 40%
+    ),
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+}
+
+.guide-nav-item {
+  @apply flex items-center gap-2.5 rounded-xl px-4 py-3 text-left text-sm font-medium text-slate-600 transition;
+}
+
+.guide-nav-item:hover {
+  @apply bg-slate-50 text-brand-700;
+}
+
+.guide-nav-item-active {
+  @apply bg-brand-600 text-white shadow-md shadow-brand-600/25;
+}
+
+.guide-nav-item-active:hover {
+  @apply bg-brand-700 text-white;
+}
+
+.guide-panel {
+  @apply rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-200/40 md:p-8;
+}
+
+.guide-panel-inner {
+  @apply rounded-2xl border border-slate-200/80 bg-white p-5;
+}
+
+.guide-step {
+  @apply flex gap-4;
+}
+
+.guide-step-num {
+  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-sm font-bold text-white shadow-md shadow-brand-600/30;
+}
+
+.guide-step-body {
+  @apply min-w-0 flex-1 pb-6;
+}
+
+.guide-code-block {
+  @apply overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-inner;
+}
+
+.guide-stat-card {
+  @apply rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-4 text-center shadow-sm;
+}
+
+.guide-flow-card {
+  @apply rounded-2xl border border-slate-200/80 bg-gradient-to-br from-brand-50/50 to-white p-4 shadow-sm;
+}
+
+.guide-faq {
+  @apply rounded-2xl border border-slate-200/80 bg-white px-5 py-4 transition hover:border-brand-300 hover:shadow-sm;
+}
+
+.guide-faq summary {
+  @apply list-none;
+}
+
+.guide-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-faq summary::after {
+  content: "+";
+  @apply float-right text-brand-500 font-bold;
+}
+
+.guide-faq[open] summary::after {
+  content: "−";
+}
