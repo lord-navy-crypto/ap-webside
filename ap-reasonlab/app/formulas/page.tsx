@@ -4,19 +4,31 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { formulas, getFormulaSubjects } from "@/data/formulas";
+import FolderGrid from "@/components/FolderGrid";
 
 function FormulasContent() {
   const searchParams = useSearchParams();
   const subjects = getFormulaSubjects();
-  const activeSubject = searchParams.get("subject") ?? subjects[0];
-  const filtered = formulas.filter((f) => f.subject === activeSubject);
-
+  const activeSubject = searchParams.get("subject");
   const [query, setQuery] = useState("");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const subjectFolders = subjects.map((s) => ({
+    id: s,
+    title: s,
+    subtitle: "Open to browse formulas by unit",
+    count: formulas.filter((f) => f.subject === s).length,
+    href: `/formulas?subject=${encodeURIComponent(s)}`,
+  }));
+
+  const filtered = useMemo(
+    () => (activeSubject ? formulas.filter((f) => f.subject === activeSubject) : []),
+    [activeSubject]
+  );
 
   const byUnit = useMemo(() => {
     return filtered.reduce<Record<string, typeof filtered>>((acc, f) => {
@@ -40,40 +52,39 @@ function FormulasContent() {
     );
   }, [byUnit, query]);
 
+  if (!activeSubject) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link href="/ap" className="text-sm text-brand-600 hover:underline">
+            ← AP Area
+          </Link>
+          <h1 className="mt-2 text-3xl font-bold">Formulas</h1>
+          <p className="mt-2 text-slate-600">
+            Open a subject folder first. Inside you will see formulas grouped by unit.
+          </p>
+        </div>
+        <FolderGrid folders={subjectFolders} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Formula Reference</h1>
+        <Link href="/formulas" className="text-sm text-brand-600 hover:underline">
+          ← All subject folders
+        </Link>
+        <h1 className="mt-2 text-3xl font-bold">{activeSubject}</h1>
         <p className="mt-2 text-slate-600">
-          AP-aligned formulas from College Board course frameworks. Search by name or formula.
+          Formulas for this subject, grouped by unit.
         </p>
       </div>
-
-      <div className="flex flex-wrap gap-2">
-        {subjects.map((s) => (
-          <Link
-            key={s}
-            href={`/formulas?subject=${encodeURIComponent(s)}`}
-            className={
-              s === activeSubject
-                ? "badge bg-brand-600 text-white"
-                : "badge hover:bg-slate-100"
-            }
-          >
-            {s}
-          </Link>
-        ))}
-      </div>
-
-      <p className="text-xs text-slate-500">
-        Physics 1 formulas match topics on the official AP Physics 1 equation sheet. Calculus
-        AB has no official exam sheet — these are required curriculum formulas.
-      </p>
 
       <input
         type="text"
         className="input"
-        placeholder={`Search ${activeSubject} formulas (e.g. torque, buoyancy, integral)...`}
+        placeholder="Search formulas in this subject..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
@@ -83,7 +94,9 @@ function FormulasContent() {
           {visibleUnits.length > 0 ? (
             visibleUnits.map(([unit, items]) => (
               <section key={unit} className="space-y-3">
-                <h2 className="text-xl font-semibold text-brand-800">{unit}</h2>
+                <h2 className="flex items-center gap-2 text-xl font-semibold text-brand-800">
+                  <span aria-hidden>📁</span> {unit}
+                </h2>
                 <div className="grid gap-4">
                   {items.map((f) => (
                     <article key={f.id} className="card space-y-2">
@@ -120,12 +133,15 @@ function FormulasContent() {
       )}
 
       <section className="card bg-brand-50/50">
-        <h2 className="section-title">Formula practice sets</h2>
+        <h2 className="section-title">Practice this subject</h2>
         <p className="text-sm text-slate-600">
-          Apply these formulas in half-process generated sets — hints only.
+          Open the matching subject folder in Practice for drills and generated sets.
         </p>
-        <Link href="/questionnaires" className="btn-primary mt-3 inline-block">
-          Browse generated sets
+        <Link
+          href={`/practice?subject=${encodeURIComponent(activeSubject)}`}
+          className="btn-primary mt-3 inline-block"
+        >
+          Open practice folder
         </Link>
       </section>
     </div>

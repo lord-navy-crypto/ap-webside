@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   deleteLearningItem,
   getLearningItems,
@@ -8,8 +9,11 @@ import {
   saveLearningItem,
   type LearningBoxItem,
 } from "@/lib/storage";
+import { starterLearningMaterials } from "@/data/starter-learning";
 
 type Tab = "library" | "random";
+
+const SEEDED_KEY = "results-learning-seeded-v1";
 
 export default function LearningBoxPage() {
   const [tab, setTab] = useState<Tab>("library");
@@ -26,7 +30,19 @@ export default function LearningBoxPage() {
 
   useEffect(() => {
     setMounted(true);
-    refresh();
+    (async () => {
+      try {
+        if (typeof localStorage !== "undefined" && !localStorage.getItem(SEEDED_KEY)) {
+          for (const m of starterLearningMaterials) {
+            await saveLearningItem(m);
+          }
+          localStorage.setItem(SEEDED_KEY, "1");
+        }
+      } catch {
+        // ignore seed errors
+      }
+      await refresh();
+    })();
   }, []);
 
   async function refresh() {
@@ -60,6 +76,26 @@ export default function LearningBoxPage() {
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
+    }
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setError("");
+    try {
+      for (const file of Array.from(files)) {
+        const text = await file.text();
+        await saveLearningItem({
+          title: file.name.replace(/\.[^.]+$/, ""),
+          content: text.slice(0, 100_000),
+          category: category.trim() || "Uploaded",
+        });
+      }
+      await refresh();
+      e.target.value = "";
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "File upload failed");
     }
   }
 
@@ -101,8 +137,12 @@ export default function LearningBoxPage() {
         <h1 className="text-3xl font-bold">Learning Box</h1>
         <p className="mt-2 text-slate-600">
           Store your own study notes, summaries, and self-developed learning materials.
-          Use the random draw to review a non-AP knowledge item — great for spaced review.
+          Upload text files (.txt, .md) or paste content. Use Random Draw for spaced review
+          of knowledge that is not tied to the AP curriculum.
         </p>
+        <Link href="/academic" className="mt-2 inline-block text-sm text-brand-600 hover:underline">
+          ← Academic Platform
+        </Link>
       </div>
 
       <div className="card p-2">
@@ -158,8 +198,21 @@ export default function LearningBoxPage() {
                 placeholder="Paste your notes, summary, or any self-developed material..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                required
+                required={!editingId}
               />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Or upload document files</label>
+              <input
+                type="file"
+                accept=".txt,.md,.markdown,.csv,.json,text/*"
+                multiple
+                onChange={handleFileUpload}
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-600 file:px-4 file:py-2 file:text-white hover:file:bg-brand-700"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Text files are stored in this browser. PDF binary upload can be added later.
+              </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <button type="submit" className="btn-primary">

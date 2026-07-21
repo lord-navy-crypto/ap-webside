@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { concepts } from "@/data/content";
 import { keyConceptGuides } from "@/data/key-concepts";
+import FolderGrid from "@/components/FolderGrid";
 
-type Filter = "all" | "concept" | "ap_content" | "ai_for_ap" | "study_skill";
+type Filter = "all" | "concept" | "guide";
 
-const categoryLabel: Record<string, string> = {
-  ap_content: "AP Guide",
-  ai_for_ap: "AI for AP",
-  study_skill: "Study Skill",
-};
-
-export default function ConceptsPage() {
+function ConceptsContent() {
+  const searchParams = useSearchParams();
+  const subject = searchParams.get("subject");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [mounted, setMounted] = useState(false);
@@ -22,122 +20,156 @@ export default function ConceptsPage() {
     setMounted(true);
   }, []);
 
-  const items = useMemo(() => {
-    const list: Array<
-      | { kind: "concept"; id: string; title: string; subject: string; summary: string }
-      | {
-          kind: "guide";
-          id: string;
-          title: string;
-          subject: string;
-          summary: string;
-          category: string;
-        }
-    > = [];
+  const subjects = useMemo(() => {
+    const set = new Set<string>();
+    concepts.forEach((c) => set.add(c.subject));
+    keyConceptGuides.forEach((g) => set.add(g.subject));
+    return [...set].sort();
+  }, []);
+
+  const subjectFolders = subjects.map((s) => {
+    const conceptCount = concepts.filter((c) => c.subject === s).length;
+    const guideCount = keyConceptGuides.filter((g) => g.subject === s).length;
+    return {
+      id: s,
+      title: s,
+      subtitle: `${conceptCount} concepts · ${guideCount} guides`,
+      count: conceptCount + guideCount,
+      href: `/concepts?subject=${encodeURIComponent(s)}`,
+    };
+  });
+
+  const list = useMemo(() => {
+    if (!subject) return [];
+    const items: Array<{
+      kind: "concept" | "guide";
+      id: string;
+      title: string;
+      summary: string;
+      href: string;
+    }> = [];
 
     if (filter === "all" || filter === "concept") {
-      concepts.forEach((c) =>
-        list.push({
-          kind: "concept",
-          id: c.id,
-          title: c.title,
-          subject: c.subject,
-          summary: c.summary,
-        })
-      );
-    }
-    if (filter === "all" || filter === "ap_content" || filter === "ai_for_ap" || filter === "study_skill") {
-      keyConceptGuides
-        .filter((g) => filter === "all" || g.category === filter)
-        .forEach((g) =>
-          list.push({
-            kind: "guide",
-            id: g.id,
-            title: g.title,
-            subject: g.subject,
-            summary: g.introduction,
-            category: g.category,
+      concepts
+        .filter((c) => c.subject === subject)
+        .forEach((c) =>
+          items.push({
+            kind: "concept",
+            id: c.id,
+            title: c.title,
+            summary: c.summary,
+            href: `/concepts/${c.id}`,
           })
         );
     }
-    return list;
-  }, [filter]);
+    if (filter === "all" || filter === "guide") {
+      keyConceptGuides
+        .filter((g) => g.subject === subject)
+        .forEach((g) =>
+          items.push({
+            kind: "guide",
+            id: g.id,
+            title: g.title,
+            summary: g.introduction,
+            href: `/key-concepts/${g.id}`,
+          })
+        );
+    }
+    return items;
+  }, [subject, filter]);
 
-  const filtered = items.filter((item) => {
+  const filtered = list.filter((item) => {
     if (!query.trim()) return true;
     const q = query.toLowerCase();
     return (
       item.title.toLowerCase().includes(q) ||
-      item.subject.toLowerCase().includes(q) ||
       item.summary.toLowerCase().includes(q)
     );
   });
 
-  const filters: { value: Filter; label: string }[] = [
-    { value: "all", label: "All" },
-    { value: "concept", label: "Concepts" },
-    { value: "ap_content", label: "AP Guides" },
-    { value: "ai_for_ap", label: "AI for AP" },
-    { value: "study_skill", label: "Study Skills" },
-  ];
+  if (!subject) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link href="/ap" className="text-sm text-brand-600 hover:underline">
+            ← AP Area
+          </Link>
+          <h1 className="mt-2 text-3xl font-bold">Concepts</h1>
+          <p className="mt-2 text-slate-600">
+            Open a subject folder first. Inside you will find concepts and key guides for that subject.
+          </p>
+        </div>
+        <FolderGrid folders={subjectFolders} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Concept Library</h1>
+        <Link href="/concepts" className="text-sm text-brand-600 hover:underline">
+          ← All subject folders
+        </Link>
+        <h1 className="mt-2 text-3xl font-bold">{subject}</h1>
         <p className="mt-2 text-slate-600">
-          Core AP concepts, key guides, AI-usage tips, and study skills — all in one place.
-          Search by title, subject, or topic.
+          Concepts and key guides for this subject. Click a topic card to open it.
         </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ["all", "All"],
+            ["concept", "Concepts"],
+            ["guide", "Guides"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setFilter(value)}
+            className={filter === value ? "filter-pill-active" : "filter-pill"}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <input
         type="text"
         className="input"
-        placeholder="Search concepts and guides (e.g. torque, monopoly, derivatives)..."
+        placeholder="Search topics in this subject..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
 
-      <div className="flex flex-wrap gap-2">
-        {filters.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            onClick={() => setFilter(f.value)}
-            className={filter === f.value ? "filter-pill-active" : "filter-pill"}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
       {mounted && (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:grid-cols-2">
           {filtered.length > 0 ? (
             filtered.map((item) => (
               <Link
                 key={`${item.kind}-${item.id}`}
-                href={item.kind === "concept" ? `/concepts/${item.id}` : `/key-concepts/${item.id}`}
+                href={item.href}
                 className="card block transition hover:border-brand-300"
               >
-                <div className="flex flex-wrap gap-2">
-                  <span className="badge">{item.subject}</span>
-                  {item.kind === "concept" ? (
-                    <span className="badge">Concept</span>
-                  ) : (
-                    <span className="badge">{categoryLabel[(item as { category: string }).category]}</span>
-                  )}
-                </div>
-                <h2 className="mt-3 text-xl font-semibold">{item.title}</h2>
+                <span className="badge">{item.kind === "concept" ? "Concept" : "Guide"}</span>
+                <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
                 <p className="mt-2 line-clamp-2 text-sm text-slate-600">{item.summary}</p>
               </Link>
             ))
           ) : (
-            <p className="text-sm text-slate-500">No items match your search.</p>
+            <p className="text-sm text-slate-500">No topics in this folder yet.</p>
           )}
         </div>
       )}
     </div>
+  );
+}
+
+export default function ConceptsPage() {
+  return (
+    <Suspense fallback={<div className="text-sm text-slate-500">Loading concepts...</div>}>
+      <ConceptsContent />
+    </Suspense>
   );
 }
