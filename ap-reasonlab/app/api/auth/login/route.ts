@@ -33,7 +33,15 @@ export async function POST(req: NextRequest) {
         createdAt: Date.now(),
       };
       file.users.push(user);
-      await saveUsers(file);
+      try {
+        await saveUsers(file);
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Could not save user. Set GITHUB_TOKEN on Vercel for registration.";
+        return NextResponse.json({ error: message }, { status: 500 });
+      }
       await setSessionCookie({ id: user.id, name: user.name, role: user.role });
       return NextResponse.json({ user: { id: user.id, name: user.name, role: user.role } });
     }

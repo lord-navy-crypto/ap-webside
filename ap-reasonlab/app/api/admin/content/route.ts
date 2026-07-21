@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { canManageContent, getSession, isFullAdmin } from "@/lib/auth";
+import {
+  canManageContent,
+  getGithubTokenFromCookie,
+  getSession,
+  isFullAdmin,
+  setGithubTokenCookie,
+} from "@/lib/auth";
 import { loadManagedContent, saveManagedContent, uid, type ManagedContent } from "@/lib/managed-store";
 
+async function publishToken(bodyToken?: string) {
+  const fromBody = bodyToken?.trim();
+  if (fromBody) {
+    await setGithubTokenCookie(fromBody);
+    return fromBody;
+  }
+  return getGithubTokenFromCookie();
+}
+
 export async function GET() {
-  const content = await loadManagedContent();
+  const token = await getGithubTokenFromCookie();
+  const content = await loadManagedContent(token);
   return NextResponse.json(content);
 }
 
@@ -14,8 +30,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = (await req.json()) as Partial<ManagedContent> & { replace?: boolean };
-    const current = await loadManagedContent();
+    const body = (await req.json()) as Partial<ManagedContent> & {
+      replace?: boolean;
+      githubToken?: string;
+    };
+    const token = await publishToken(body.githubToken);
+    const current = await loadManagedContent(token);
     const next: ManagedContent = body.replace
       ? {
           concepts: body.concepts || [],
@@ -32,16 +52,15 @@ export async function POST(req: NextRequest) {
           updatedAt: Date.now(),
         };
 
-    // Non-admins cannot wipe everything accidentally without replace flag from admin tools
     if (body.replace && !isFullAdmin(session.role)) {
       return NextResponse.json({ error: "Only full admin can replace all content" }, { status: 403 });
     }
 
-    const result = await saveManagedContent(next);
+    const result = await saveManagedContent(next, token);
     return NextResponse.json({ ok: true, mode: result.mode, content: next, savedBy: session.name });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to save content" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Failed to save content";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -54,7 +73,8 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
     const kind = String(body.kind || "");
-    const current = await loadManagedContent();
+    const token = await publishToken(body.githubToken);
+    const current = await loadManagedContent(token);
 
     if (kind === "concept") {
       const concept = body.item;
@@ -135,14 +155,19 @@ export async function PUT(req: NextRequest) {
       else if (target === "document") current.documents = current.documents.filter((d) => d.id !== id);
       else if (target === "file") current.files = current.files.filter((f) => f.id !== id);
       else return NextResponse.json({ error: "Unknown delete target" }, { status: 400 });
+    } else if (kind === "set_github_token") {
+      const t = String(body.githubToken || "").trim();
+      if (!t) return NextResponse.json({ error: "githubToken required" }, { status: 400 });
+      await setGithubTokenCookie(t);
+      return NextResponse.json({ ok: true, note: "GitHub token saved for this browser session." });
     } else {
       return NextResponse.json({ error: "Unknown kind" }, { status: 400 });
     }
 
-    const result = await saveManagedContent(current);
+    const result = await saveManagedContent(current, token);
     return NextResponse.json({ ok: true, mode: result.mode, content: current });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Update failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

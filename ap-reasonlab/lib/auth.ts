@@ -10,6 +10,7 @@ export type SessionUser = {
 };
 
 const COOKIE = "results_session";
+const GH_COOKIE = "results_gh_token";
 
 function authSecret(): string {
   return (
@@ -75,6 +76,25 @@ export async function setSessionCookie(user: SessionUser) {
 export async function clearSessionCookie() {
   const jar = await cookies();
   jar.delete(COOKIE);
+  jar.delete(GH_COOKIE);
+}
+
+/** Optional GitHub PAT for publishing Manager saves (BYOK). */
+export async function setGithubTokenCookie(token: string) {
+  const jar = await cookies();
+  jar.set(GH_COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+}
+
+export async function getGithubTokenFromCookie(): Promise<string | undefined> {
+  const jar = await cookies();
+  const v = jar.get(GH_COOKIE)?.value?.trim();
+  return v || undefined;
 }
 
 export function canManageContent(role: Role): boolean {
@@ -95,8 +115,6 @@ export function tryEnvLogin(password: string): SessionUser | null {
   if (partner && password === partner) {
     return { id: "env-partner", name: "Partner", role: "partner" };
   }
-  // Dev-friendly defaults so the manager UI works before env is set.
-  // Change these on Vercel for production.
   if (!admin && password === "results-admin") {
     return { id: "dev-admin", name: "Admin", role: "admin" };
   }

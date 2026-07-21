@@ -14,6 +14,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [githubToken, setGithubToken] = useState("");
   const [tab, setTab] = useState<Tab>("concepts");
   const [content, setContent] = useState<ManagedContent | null>(null);
   const [users, setUsers] = useState<Array<{ id: string; name: string; role: string; createdAt: number }>>([]);
@@ -102,7 +103,11 @@ export default function AdminPage() {
     const res = await fetch("/api/admin/content", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind, item }),
+      body: JSON.stringify({
+        kind,
+        item,
+        githubToken: githubToken.trim() || undefined,
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -110,7 +115,28 @@ export default function AdminPage() {
       return;
     }
     setContent(data.content);
-    setSaveNote(`Saved (${data.mode}). ${data.mode === "local" ? "Commit/push or set GITHUB_TOKEN on Vercel to publish for everyone." : "Published via GitHub — Vercel will redeploy."}`);
+    setSaveNote(
+      data.mode === "github"
+        ? "Saved to GitHub. Vercel will redeploy so everyone sees it (1–2 min)."
+        : "Saved locally (dev). On Vercel you must set GITHUB_TOKEN or paste a GitHub token below."
+    );
+  }
+
+  async function saveGithubToken(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSaveNote("");
+    const res = await fetch("/api/admin/content", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "set_github_token", githubToken: githubToken.trim() }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Could not save token");
+      return;
+    }
+    setSaveNote(data.note || "GitHub token saved for this session.");
   }
 
   async function deleteItem(target: string, id: string) {
@@ -118,7 +144,12 @@ export default function AdminPage() {
     const res = await fetch("/api/admin/content", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kind: "delete", target, id }),
+      body: JSON.stringify({
+        kind: "delete",
+        target,
+        id,
+        githubToken: githubToken.trim() || undefined,
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -269,7 +300,26 @@ export default function AdminPage() {
           {saveNote}
         </div>
       )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 whitespace-pre-wrap">{error}</p>}
+
+      <form onSubmit={saveGithubToken} className="card space-y-3">
+        <h2 className="text-lg font-semibold">Publish token (required on Vercel)</h2>
+        <p className="text-sm text-slate-600">
+          Vercel cannot write files to disk. To make Save work, either set{" "}
+          <code>GITHUB_TOKEN</code> in Vercel env, or paste a GitHub PAT here (Contents: Read and
+          Write on this repo). Token stays in an httpOnly cookie for this browser only.
+        </p>
+        <input
+          type="password"
+          className="input"
+          placeholder="ghp_... or github_pat_..."
+          value={githubToken}
+          onChange={(e) => setGithubToken(e.target.value)}
+        />
+        <button type="submit" className="btn-secondary">
+          Save token for this session
+        </button>
+      </form>
 
       <div className="flex flex-wrap gap-2">
         {(

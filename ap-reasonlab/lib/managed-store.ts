@@ -14,7 +14,6 @@ export type ManagedFile = {
   id: string;
   name: string;
   mime: string;
-  /** Small text/base64 payload for simple uploads (keep under ~1MB). */
   dataUrl?: string;
   note?: string;
   uploadedAt: number;
@@ -55,6 +54,14 @@ const emptyContent = (): ManagedContent => ({
 
 const emptyUsers = (): UsersFile => ({ users: [], updatedAt: 0 });
 
+function repoSettings() {
+  return {
+    token: process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "",
+    repo: process.env.GITHUB_REPO || "lord-navy-crypto/ap-webside",
+    branch: process.env.GITHUB_BRANCH || "main",
+  };
+}
+
 async function readJsonFile<T>(filePath: string, fallback: T): Promise<T> {
   try {
     const raw = await readFile(filePath, "utf8");
@@ -68,26 +75,57 @@ async function writeJsonFile(filePath: string, data: unknown): Promise<void> {
   await writeFile(filePath, JSON.stringify(data, null, 2) + "\n", "utf8");
 }
 
-async function githubWrite(filePathInRepo: string, content: string, message: string): Promise<boolean> {
-  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-  const repo = process.env.GITHUB_REPO || "lord-navy-crypto/ap-webside";
-  const branch = process.env.GITHUB_BRANCH || "main";
-  if (!token) return false;
+async function githubGet(
+  filePathInRepo: string,
+  token?: string
+): Promise<{ text: string; sha: string } | null> {
+  const { token: envToken, repo, branch } = repoSettings();
+  const auth = token || envToken;
+  if (!auth) return null;
+
+  const apiPath = filePathInRepo.replace(/^\/+/, "");
+  const url = `https://api.github.com/repos/${repo}/contents/${apiPath}?ref=${encodeURIComponent(branch)}`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${auth}`,
+      Accept: "application/vnd.github+json",
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  const body = await res.json();
+  if (!body.content || !body.sha) return null;
+  const text = Buffer.from(body.content.replace(/\n/g, ""), "base64").toString("utf8");
+  return { text, sha: body.sha };
+}
+
+async function githubWrite(
+  filePathInRepo: string,
+  content: string,
+  message: string,
+  token?: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { token: envToken, repo, branch } = repoSettings();
+  const auth = token || envToken;
+  if (!auth) {
+    return {
+      ok: false,
+      error:
+        "No GitHub token. On Vercel the disk is read-only, so Manager saves need GITHUB_TOKEN (env) or a token pasted in Manager UI.",
+    };
+  }
 
   const apiPath = filePathInRepo.replace(/^\/+/, "");
   const url = `https://api.github.com/repos/${repo}/contents/${apiPath}`;
   const headers = {
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer ${auth}`,
     Accept: "application/vnd.github+json",
     "Content-Type": "application/json",
   };
 
   let sha: string | undefined;
-  const getRes = await fetch(`${url}?ref=${encodeURIComponent(branch)}`, { headers });
-  if (getRes.ok) {
-    const body = await getRes.json();
-    sha = body.sha;
-  }
+  const existing = await githubGet(apiPath, auth);
+  if (existing) sha = existing.sha;
 
   const putRes = await fetch(url, {
     method: "PUT",
@@ -100,35 +138,79 @@ async function githubWrite(filePathInRepo: string, content: string, message: str
     }),
   });
 
-  return putRes.ok;
+  if (!putRes.ok) {
+    const errText = await putRes.text();
+    return {
+      ok: false,
+      error: `GitHub write failed (${putRes.status}): ${errText.slice(0, 300)}`,
+    };
+  }
+  return { ok: true };
 }
 
-export async function loadManagedContent(): Promise<ManagedContent> {
+export async function loadManagedContent(token?: string): Promise<ManagedContent> {
+  const fromGh = await githubGet("ap-reasonlab/data/managed-content.json", token);
+  if (fromGh) {
+    try {
+      return JSON.parse(fromGh.text) as ManagedContent;
+    } catch {
+      // fall through
+    }
+  }
   return readJsonFile(CONTENT_PATH, emptyContent());
 }
 
-export async function saveManagedContent(data: ManagedContent): Promise<{ mode: "github" | "local" }> {
+export async function saveManagedContent(
+  data: ManagedContent,
+  token?: string
+): Promise<{ mode: "github" | "local" }> {
   const next = { ...data, updatedAt: Date.now() };
   const text = JSON.stringify(next, null, 2) + "\n";
   const repoPath = "ap-reasonlab/data/managed-content.json";
-  const viaGithub = await githubWrite(repoPath, text, "chore: update managed content via Admin UI");
-  if (viaGithub) return { mode: "github" };
-  await writeJsonFile(CONTENT_PATH, next);
-  return { mode: "local" };
+  const viaGithub = await githubWrite(
+    repoPath,
+    text,
+    "chore: update managed content via Admin UI",
+    token
+  );
+  if (viaGithub.ok) return { mode: "github" };
+
+  // Local/dev fallback — fails on Vercel read-only FS.
+  try {
+    await writeJsonFile(CONTENT_PATH, next);
+    return { mode: "local" };
+  } catch {
+    throw new Error(viaGithub.error);
+  }
 }
 
-export async function loadUsers(): Promise<UsersFile> {
+export async function loadUsers(token?: string): Promise<UsersFile> {
+  const fromGh = await githubGet("ap-reasonlab/data/users.json", token);
+  if (fromGh) {
+    try {
+      return JSON.parse(fromGh.text) as UsersFile;
+    } catch {
+      // fall through
+    }
+  }
   return readJsonFile(USERS_PATH, emptyUsers());
 }
 
-export async function saveUsers(data: UsersFile): Promise<{ mode: "github" | "local" }> {
+export async function saveUsers(
+  data: UsersFile,
+  token?: string
+): Promise<{ mode: "github" | "local" }> {
   const next = { ...data, updatedAt: Date.now() };
   const text = JSON.stringify(next, null, 2) + "\n";
   const repoPath = "ap-reasonlab/data/users.json";
-  const viaGithub = await githubWrite(repoPath, text, "chore: update users via Admin UI");
-  if (viaGithub) return { mode: "github" };
-  await writeJsonFile(USERS_PATH, next);
-  return { mode: "local" };
+  const viaGithub = await githubWrite(repoPath, text, "chore: update users via Admin UI", token);
+  if (viaGithub.ok) return { mode: "github" };
+  try {
+    await writeJsonFile(USERS_PATH, next);
+    return { mode: "local" };
+  } catch {
+    throw new Error(viaGithub.error);
+  }
 }
 
 export function uid(prefix = "id"): string {
