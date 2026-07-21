@@ -7,6 +7,9 @@ const links = [
   { href: "/academic", label: "Academic Platform" },
   { href: "/code", label: "Code" },
   { href: "/forum", label: "Forum" },
+  { href: "/partners", label: "Partners" },
+  { href: "/admin", label: "Manager" },
+  { href: "/register", label: "Register" },
   { href: "/about", label: "About" },
 ];
 

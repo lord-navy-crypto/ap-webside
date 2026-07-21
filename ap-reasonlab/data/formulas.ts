@@ -2,14 +2,16 @@ import { Formula } from "@/lib/types";
 import { macroFormulas } from "@/data/ap-macro";
 import { microFormulas } from "@/data/ap-micro";
 import { physics2Formulas } from "@/data/ap-physics2";
+import managed from "@/data/managed-content.json";
 
 /**
  * Formulas aligned with College Board AP course frameworks.
  * Physics 1: official equation sheet topics (AP Central).
  * Calculus AB: standard AB curriculum (no official sheet on exam — must know these).
+ * Managed formulas from Admin UI are merged from managed-content.json.
  */
 
-export const formulas: Formula[] = [
+const builtInFormulas: Formula[] = [
   // ── AP Physics 1 — Kinematics (Unit 1) ──
   {
     id: "p1-v-eq",
@@ -492,6 +494,11 @@ export const formulas: Formula[] = [
   ...microFormulas,
   ...macroFormulas,
   ...physics2Formulas,
+];
+
+export const formulas: Formula[] = [
+  ...builtInFormulas,
+  ...((managed.formulas || []) as Formula[]),
 ];
 
 export function getFormulasBySubject(subject: string): Formula[] {

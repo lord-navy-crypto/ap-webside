@@ -8,6 +8,11 @@ const academicTools = [
       "Document & Storage for your own notes and materials, plus Random Draw for spaced review.",
   },
   {
+    href: "/academic/materials",
+    title: "Shared materials",
+    description: "Documents and files uploaded by admin/partners — visible to everyone.",
+  },
+  {
     href: "/picture",
     title: "Picture",
     description: "Upload photos of handwritten notes, textbook pages, and diagrams.",
@@ -16,6 +21,11 @@ const academicTools = [
     href: "/image-gen",
     title: "Image Generation",
     description: "Generate study visuals from a prompt. Free, no API key needed.",
+  },
+  {
+    href: "/admin",
+    title: "Manager UI",
+    description: "Admin/partner: add concepts, formulas, documents, files without AI tokens.",
   },
 ];
 

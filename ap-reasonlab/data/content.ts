@@ -2,8 +2,9 @@ import { Concept, PracticeQuestion } from "@/lib/types";
 import { macroConcepts } from "@/data/ap-macro";
 import { microConcepts } from "@/data/ap-micro";
 import { physics2Concepts } from "@/data/ap-physics2";
+import managed from "@/data/managed-content.json";
 
-export const concepts: Concept[] = [
+const builtInConcepts: Concept[] = [
   {
     id: "kinematics-basics",
     title: "Kinematics Basics",
@@ -232,6 +233,11 @@ export const concepts: Concept[] = [
   ...microConcepts,
   ...macroConcepts,
   ...physics2Concepts,
+];
+
+export const concepts: Concept[] = [
+  ...builtInConcepts,
+  ...((managed.concepts || []) as Concept[]),
 ];
 
 export const practiceQuestions: PracticeQuestion[] = [
