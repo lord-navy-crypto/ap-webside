@@ -9,7 +9,7 @@ import {
   questionnaires,
 } from "@/data/questionnaires";
 import FolderGrid from "@/components/FolderGrid";
-import ChangePanel from "@/components/ChangePanel";
+import UploadAndShow from "@/components/UploadAndShow";
 
 type Tab = "drills" | "sets";
 
@@ -54,10 +54,7 @@ function PracticeContent() {
             Open a subject folder first. Use + to add a document or upload a practice file (change code required).
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <ChangePanel mode="document" label="+ Add practice note" />
-          <ChangePanel mode="file" label="+ Upload file" />
-        </div>
+        <UploadAndShow alsoShow={["document"]} title="Uploaded files & notes" />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -78,10 +75,7 @@ function PracticeContent() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <ChangePanel mode="document" label="+ Add practice note" defaultSubject={subject} />
-        <ChangePanel mode="file" label="+ Upload file" />
-      </div>
+      <UploadAndShow alsoShow={["document"]} title="Uploaded files & notes" />
 
       <div className="card p-2">
         <div className="grid grid-cols-2 gap-2">

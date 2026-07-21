@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { collaborators } from "@/data/brand";
-import ChangePanel from "@/components/ChangePanel";
+import UploadAndShow from "@/components/UploadAndShow";
 
 type Member = { id: string; name: string; note?: string; addedAt: number };
 
@@ -36,11 +36,7 @@ export default function PartnersPage() {
         </p>
       </section>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <ChangePanel mode="member" label="+ Add member" onSaved={refresh} />
-        <ChangePanel mode="file" label="+ Upload file" onSaved={refresh} />
-        <ChangePanel mode="document" label="+ Add partner note" onSaved={refresh} />
-      </div>
+      <UploadAndShow alsoShow={["member", "document"]} title="Uploaded files & notes" />
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">GitHub collaborators</h2>

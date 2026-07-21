@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { saveLearningItem } from "@/lib/storage";
-import ChangePanel from "@/components/ChangePanel";
+import UploadAndShow from "@/components/UploadAndShow";
 
 type Post = {
   id: string;
@@ -74,10 +74,7 @@ export default function ForumPage() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <ChangePanel mode="document" label="+ Publish shared note" />
-        <ChangePanel mode="file" label="+ Upload file" />
-      </div>
+      <UploadAndShow alsoShow={["document"]} title="Uploaded files & notes" />
 
       <form onSubmit={handleSubmit} className="card space-y-3">
         <h2 className="text-lg font-semibold">New post</h2>

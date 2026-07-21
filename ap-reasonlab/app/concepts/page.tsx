@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { concepts } from "@/data/content";
 import { keyConceptGuides } from "@/data/key-concepts";
 import FolderGrid from "@/components/FolderGrid";
-import ChangePanel from "@/components/ChangePanel";
+import UploadAndShow from "@/components/UploadAndShow";
 
 type Filter = "all" | "concept" | "guide";
 
@@ -97,13 +97,10 @@ function ConceptsContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Concepts</h1>
           <p className="mt-2 text-slate-600">
-            Open a subject folder first. Use + to add a concept or upload a file (change code required).
+            Open a subject folder first. Upload files on the left — they show on the right immediately after a successful save.
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <ChangePanel mode="concept" />
-          <ChangePanel mode="file" label="+ Upload file" />
-        </div>
+        <UploadAndShow alsoShow={["concept"]} title="Uploaded files & notes" />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -121,11 +118,11 @@ function ConceptsContent() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <ChangePanel mode="concept" defaultSubject={subject} />
-        <ChangePanel mode="document" label="+ Add note / document" />
-        <ChangePanel mode="file" label="+ Upload file" />
-      </div>
+      <UploadAndShow
+        alsoShow={["concept", "document"]}
+        defaultSubject={subject}
+        title="Uploaded files & notes"
+      />
 
       <div className="flex flex-wrap gap-2">
         {(

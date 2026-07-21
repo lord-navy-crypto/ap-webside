@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { formulas, getFormulaSubjects } from "@/data/formulas";
 import FolderGrid from "@/components/FolderGrid";
-import ChangePanel from "@/components/ChangePanel";
+import UploadAndShow from "@/components/UploadAndShow";
 
 function FormulasContent() {
   const searchParams = useSearchParams();
@@ -65,10 +65,7 @@ function FormulasContent() {
             Open a subject folder first. Use + to add a formula or upload a file (change code required).
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <ChangePanel mode="formula" />
-          <ChangePanel mode="file" label="+ Upload file" />
-        </div>
+        <UploadAndShow alsoShow={["formula"]} title="Uploaded files & notes" />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -86,10 +83,7 @@ function FormulasContent() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <ChangePanel mode="formula" defaultSubject={activeSubject} />
-        <ChangePanel mode="file" label="+ Upload file" />
-      </div>
+      <UploadAndShow alsoShow={["formula"]} defaultSubject={activeSubject || undefined} title="Uploaded files & notes" />
 
       <input
         type="text"

@@ -9,7 +9,8 @@ type Props = {
   /** Default subject for concept/formula forms */
   defaultSubject?: string;
   label?: string;
-  onSaved?: () => void;
+  /** Called after successful save; receives latest managed content when available */
+  onSaved?: (content?: unknown) => void;
 };
 
 /**
@@ -102,11 +103,11 @@ export default function ChangePanel({
 
       setNote(
         data.mode === "github"
-          ? "Saved. Vercel will redeploy so everyone sees it (1–2 min)."
-          : "Saved (local/dev). On Vercel, set GITHUB_TOKEN or paste a GitHub token below."
+          ? "Saved. It should appear on the right now (everyone else after redeploy, ~1–2 min)."
+          : "Saved. It should appear on the right now."
       );
       reset();
-      onSaved?.();
+      onSaved?.(data.content);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
