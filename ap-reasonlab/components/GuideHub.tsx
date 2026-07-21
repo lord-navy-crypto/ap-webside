@@ -253,10 +253,19 @@ export default function GuideHub() {
                 </p>
               </StepCard>
 
-              <StepCard n="3" title="Optional — Gemini Hint Coach">
+              <StepCard n="3" title="Optional — Free AI Hint Coach">
                 <ol className="list-decimal space-y-2 pl-5">
                   <li>
-                    Get a free key at{" "}
+                    Get a free key from{" "}
+                    <a
+                      href="https://console.groq.com/keys"
+                      className="font-medium text-brand-600 hover:underline"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Groq
+                    </a>{" "}
+                    (recommended: 1,000 requests/day, no credit card) or{" "}
                     <a
                       href="https://aistudio.google.com/apikey"
                       className="font-medium text-brand-600 hover:underline"
@@ -264,16 +273,20 @@ export default function GuideHub() {
                       rel="noreferrer"
                     >
                       Google AI Studio
-                    </a>
+                    </a>{" "}
+                    as a fallback.
                   </li>
                   <li>
                     Create <code className="rounded bg-slate-100 px-1.5 py-0.5">.env.local</code>{" "}
-                    with <code className="rounded bg-slate-100 px-1.5 py-0.5">GEMINI_API_KEY=…</code>
+                    with <code className="rounded bg-slate-100 px-1.5 py-0.5">GROQ_API_KEY=…</code>
                   </li>
                   <li>Restart dev server → test at /hints</li>
+                  <li>
+                    Add the same key to Vercel Environment Variables for production.
+                  </li>
                 </ol>
                 <p className="text-xs text-slate-500">
-                  Without a key, mock hints still work for demos.
+                  Without a key, mock hints still work for demos. The site prefers Groq when available.
                 </p>
               </StepCard>
 
