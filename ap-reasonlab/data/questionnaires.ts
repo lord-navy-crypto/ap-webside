@@ -1,4 +1,7 @@
 import { Questionnaire } from "@/lib/types";
+import { macroQuestionnaires } from "@/data/ap-macro";
+import { microQuestionnaires } from "@/data/ap-micro";
+import { physics2Questionnaires } from "@/data/ap-physics2";
 
 /**
  * Generated question sets only.
@@ -418,6 +421,23 @@ export const questionnaires: Questionnaire[] = [
           "A wooden block has mass 0.4 kg and volume 0.0005 m³. Will it float in water? Justify using density.",
         hints: ["Compare block density to water density (1000 kg/m³)."],
       },
+      {
+        id: "phys1-fluid-3",
+        format: "frq_half",
+        conceptId: "fluids",
+        conceptIntro: "Continuity: A₁v₁ = A₂v₂.",
+        prompt:
+          "Water flows through a pipe that narrows from area A₁ = 0.04 m² to A₂ = 0.01 m². If v₁ = 2 m/s, find v₂.",
+        visibleSteps: [
+          "Apply A₁v₁ = A₂v₂ for incompressible steady flow.",
+          "Solve for v₂.",
+        ],
+        blankSteps: ["v₂ = ______ m/s"],
+        hints: [
+          "L1: Smaller area means faster speed.",
+          "L2: v₂ = (A₁/A₂) × v₁.",
+        ],
+      },
     ],
   },
   {
@@ -491,6 +511,9 @@ export const questionnaires: Questionnaire[] = [
       },
     ],
   },
+  ...microQuestionnaires,
+  ...macroQuestionnaires,
+  ...physics2Questionnaires,
 ];
 
 export function getQuestionnaireById(id: string): Questionnaire | undefined {

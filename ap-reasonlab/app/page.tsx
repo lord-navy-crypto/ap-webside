@@ -16,7 +16,7 @@ const features = [
   },
   {
     title: "Formula Reference",
-    description: "AP Physics 1 & Calc AB formulas with when-to-use notes.",
+    description: "AP Physics 1 & 2, Calc AB, Micro & Macro formulas with when-to-use notes.",
     href: "/formulas",
     icon: "📐",
   },
@@ -105,11 +105,11 @@ export default function HomePage() {
         </div>
         <ul className="grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
           <li>✅ Live site + GitHub + Vercel deploy</li>
-          <li>✅ Concepts, key guides, formulas (Physics 1 + Calc AB)</li>
+          <li>✅ Concepts, key guides, formulas (Physics 1 & 2, Calc AB, Micro, Macro)</li>
           <li>✅ Generated sets + formula practice drills</li>
-          <li>✅ Hint Coach (Gemini optional)</li>
-          <li>🔄 Expanding Units 4–8 content</li>
-          <li>🔜 GEMINI_API_KEY on Vercel + difficulty tiers UI</li>
+          <li>✅ Hint Coach (Groq default + bring your own key)</li>
+          <li>🔄 More generated sets per unit</li>
+          <li>🔜 GROQ_API_KEY on Vercel + difficulty tiers UI</li>
         </ul>
       </section>
     </div>

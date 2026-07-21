@@ -1,4 +1,7 @@
 import { Concept, PracticeQuestion } from "@/lib/types";
+import { macroConcepts } from "@/data/ap-macro";
+import { microConcepts } from "@/data/ap-micro";
+import { physics2Concepts } from "@/data/ap-physics2";
 
 export const concepts: Concept[] = [
   {
@@ -153,19 +156,23 @@ export const concepts: Concept[] = [
     title: "Fluids",
     subject: "AP Physics 1",
     summary:
-      "Fluids involve density, pressure, buoyancy, and continuity. Hydrostatic pressure increases with depth; buoyant force equals weight of displaced fluid.",
+      "Ideal fluids in filled pipes: density, pressure, buoyancy, continuity, and Bernoulli. AP assumes non-viscous, incompressible flow unless stated otherwise.",
     keyPoints: [
-      "Density ρ = m/V; pressure P = F/A.",
-      "Hydrostatic pressure: P = P₀ + ρgh.",
-      "Buoyant force F_b = ρ_fluid V_displaced g.",
+      "Density ρ = m/V; pressure P = F/A; hydrostatic ΔP = ρgΔh.",
+      "Buoyant force F_B = ρ_fluid V_displaced g; compare object and fluid density for float/sink.",
+      "Continuity: A₁v₁ = A₂v₂ — smaller area means faster flow speed.",
+      "Bernoulli: P + ½ρv² + ρgy = constant along a streamline (steady, ideal fluid).",
+      "Torricelli: v = √(2gh) for efflux speed from height h below surface.",
+      "Use ΣF = ma with buoyancy for submerged objects (e.g. F_B − mg = ma).",
     ],
     commonMistakes: [
       "Confusing pressure with force.",
+      "Applying Bernoulli across different streamlines or with viscosity.",
       "Forgetting buoyant force depends on displaced fluid volume, not object mass.",
-      "Using g inconsistently in units.",
+      "Using Poiseuille/viscosity formulas (not AP Physics 1 core).",
     ],
     example:
-      "A 0.002 m³ block submerged in water (ρ = 1000 kg/m³) feels F_b = 1000 × 0.002 × 9.8 = 19.6 N.",
+      "Water leaves a tank through a hole h = 2 m below the surface: v = √(2gh) = √(2 × 9.8 × 2) ≈ 6.3 m/s.",
   },
   {
     id: "limits-continuity",
@@ -222,6 +229,9 @@ export const concepts: Concept[] = [
     ],
     example: "dy/dx = 2x/y → ∫ y dy = ∫ 2x dx → y²/2 = x² + C.",
   },
+  ...microConcepts,
+  ...macroConcepts,
+  ...physics2Concepts,
 ];
 
 export const practiceQuestions: PracticeQuestion[] = [
