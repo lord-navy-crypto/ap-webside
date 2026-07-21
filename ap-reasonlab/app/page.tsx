@@ -10,7 +10,7 @@ const boxes = [
   },
   {
     title: "Academic Platform",
-    description: "Learning Box, Picture upload, Image Generation — for any curriculum.",
+    description: "Learning Box, shared materials, Picture, Image Gen, Manager UI.",
     href: "/academic",
   },
   {
@@ -22,6 +22,16 @@ const boxes = [
     title: "Forum",
     description: "Users can post tips and questions. Local prototype for now.",
     href: "/forum",
+  },
+  {
+    title: "Partners",
+    description: "Open partner seats — register, then admin promotes to Manager access.",
+    href: "/partners",
+  },
+  {
+    title: "Manager UI",
+    description: "Upload concepts, formulas, documents, files — no AI tokens needed.",
+    href: "/admin",
   },
 ];
 
