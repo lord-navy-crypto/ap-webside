@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { formulas, getFormulaSubjects } from "@/data/formulas";
 import FolderGrid from "@/components/FolderGrid";
+import ChangePanel from "@/components/ChangePanel";
 
 function FormulasContent() {
   const searchParams = useSearchParams();
@@ -61,8 +62,12 @@ function FormulasContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Formulas</h1>
           <p className="mt-2 text-slate-600">
-            Open a subject folder first. Inside you will see formulas grouped by unit.
+            Open a subject folder first. Use + to add a formula or upload a file (change code required).
           </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <ChangePanel mode="formula" />
+          <ChangePanel mode="file" label="+ Upload file" />
         </div>
         <FolderGrid folders={subjectFolders} />
       </div>
@@ -79,6 +84,11 @@ function FormulasContent() {
         <p className="mt-2 text-slate-600">
           Formulas for this subject, grouped by unit.
         </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <ChangePanel mode="formula" defaultSubject={activeSubject} />
+        <ChangePanel mode="file" label="+ Upload file" />
       </div>
 
       <input
