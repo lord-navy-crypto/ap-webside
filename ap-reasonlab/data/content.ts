@@ -2,6 +2,7 @@ import { Concept, PracticeQuestion } from "@/lib/types";
 import { macroConcepts } from "@/data/ap-macro";
 import { microConcepts } from "@/data/ap-micro";
 import { physics2Concepts } from "@/data/ap-physics2";
+import { expandedApConcepts } from "@/data/ap-expanded";
 import managed from "@/data/managed-content.json";
 
 const builtInConcepts: Concept[] = [
@@ -45,7 +46,7 @@ const builtInConcepts: Concept[] = [
   {
     id: "derivatives-basics",
     title: "Derivatives Basics",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     summary:
       "A derivative measures instantaneous rate of change and slope of a tangent line.",
     keyPoints: [
@@ -101,7 +102,7 @@ const builtInConcepts: Concept[] = [
   {
     id: "integrals-basics",
     title: "Integrals & FTC",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     summary:
       "Integration accumulates change. The Fundamental Theorem connects antiderivatives to definite integrals.",
     keyPoints: [
@@ -178,7 +179,7 @@ const builtInConcepts: Concept[] = [
   {
     id: "limits-continuity",
     title: "Limits & Continuity",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     summary:
       "Limits describe function behavior near a point. Continuity requires the limit to equal the function value.",
     keyPoints: [
@@ -196,7 +197,7 @@ const builtInConcepts: Concept[] = [
   {
     id: "related-rates",
     title: "Related Rates & Optimization",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     summary:
       "Related rates use derivatives to connect changing quantities. Optimization finds maxima/minima using critical points and endpoints.",
     keyPoints: [
@@ -215,7 +216,7 @@ const builtInConcepts: Concept[] = [
   {
     id: "diff-eqs",
     title: "Differential Equations",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     summary:
       "Differential equations relate a function to its derivatives. AP Calculus AB focuses on separable equations and slope fields.",
     keyPoints: [
@@ -233,6 +234,7 @@ const builtInConcepts: Concept[] = [
   ...microConcepts,
   ...macroConcepts,
   ...physics2Concepts,
+  ...expandedApConcepts,
 ];
 
 export const concepts: Concept[] = [
@@ -318,7 +320,7 @@ export const practiceQuestions: PracticeQuestion[] = [
   },
   {
     id: "calc-001",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     topic: "Integrals",
     question: "Evaluate ∫₀¹ (2x + 1) dx.",
     visibleSteps: [
@@ -365,7 +367,7 @@ export const practiceQuestions: PracticeQuestion[] = [
   },
   {
     id: "calc-002",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     topic: "Limits",
     question: "Find lim x→3 (x² − 9)/(x − 3).",
     visibleSteps: [
@@ -380,7 +382,7 @@ export const practiceQuestions: PracticeQuestion[] = [
   },
   {
     id: "calc-003",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     topic: "Related Rates",
     question:
       "A spherical balloon is inflated so that its volume increases at 8π cm³/s. Find dr/dt when r = 2 cm.",

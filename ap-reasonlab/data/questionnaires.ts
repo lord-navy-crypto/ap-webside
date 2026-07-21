@@ -118,7 +118,7 @@ export const questionnaires: Questionnaire[] = [
   {
     id: "calcab-gen-derivatives-a",
     title: "Calculus AB — Derivatives Generated Set A",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     kind: "generated",
     description: "Generated derivative drills using power rule and meaning of f′.",
     generationNote: "AI-generated from derivatives topic outline.",
@@ -152,7 +152,7 @@ export const questionnaires: Questionnaire[] = [
   {
     id: "calcab-gen-rates",
     title: "Calculus AB — Rates Generated Set",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     kind: "generated",
     description: "Generated rate-of-change word problems and concept checks.",
     generationNote: "AI-generated rates applications set.",
@@ -251,7 +251,7 @@ export const questionnaires: Questionnaire[] = [
   {
     id: "calcab-gen-formulas",
     title: "Calculus AB — Formula & Rule Set",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     kind: "generated",
     description:
       "Derivative rules, FTC, and power-rule integration drills. No exam formula sheet — memorize these.",
@@ -443,7 +443,7 @@ export const questionnaires: Questionnaire[] = [
   {
     id: "calcab-gen-limits",
     title: "Calculus AB — Limits & Continuity Generated Set",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     kind: "generated",
     description:
       "Generated drills on limits, factoring, continuity, and the Intermediate Value Theorem.",
@@ -478,7 +478,7 @@ export const questionnaires: Questionnaire[] = [
   {
     id: "calcab-gen-optimization",
     title: "Calculus AB — Related Rates & Optimization Generated Set",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     kind: "generated",
     description:
       "Generated word problems on how fast quantities change and maximizing/minimizing functions.",

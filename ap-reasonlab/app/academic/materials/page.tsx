@@ -16,7 +16,7 @@ export default function ManagedMaterialsPage() {
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["document"]} title="All shared files & documents" />
+      <UploadAndShow alsoShow={["document", "folder"]} folderArea="materials" title="All shared files & documents" />
     </div>
   );
 }

@@ -54,7 +54,7 @@ function PracticeContent() {
             Open a subject folder first. Use + to add a document or upload a practice file (change code required).
           </p>
         </div>
-        <UploadAndShow alsoShow={["document"]} title="Uploaded files & notes" />
+        <UploadAndShow alsoShow={["document", "folder"]} folderArea="practice" title="Uploaded files & notes" />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -75,7 +75,7 @@ function PracticeContent() {
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["document"]} title="Uploaded files & notes" />
+      <UploadAndShow alsoShow={["document", "folder"]} folderArea="practice" title="Uploaded files & notes" />
 
       <div className="card p-2">
         <div className="grid grid-cols-2 gap-2">

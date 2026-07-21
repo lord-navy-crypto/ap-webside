@@ -4,12 +4,16 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { formulas, getFormulaSubjects } from "@/data/formulas";
+import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
 
 function FormulasContent() {
   const searchParams = useSearchParams();
-  const subjects = getFormulaSubjects();
+  const subjects = useMemo(() => {
+    const set = new Set<string>([...AP_SUBJECTS, ...getFormulaSubjects()]);
+    return [...set].sort();
+  }, []);
   const activeSubject = searchParams.get("subject");
   const [query, setQuery] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -65,7 +69,7 @@ function FormulasContent() {
             Open a subject folder first. Use + to add a formula or upload a file (change code required).
           </p>
         </div>
-        <UploadAndShow alsoShow={["formula"]} title="Uploaded files & notes" />
+        <UploadAndShow alsoShow={["formula", "folder"]} folderArea="formulas" title="Uploaded files & notes" />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -83,7 +87,7 @@ function FormulasContent() {
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["formula"]} defaultSubject={activeSubject || undefined} title="Uploaded files & notes" />
+      <UploadAndShow alsoShow={["formula", "folder"]} folderArea="formulas" defaultSubject={activeSubject || undefined} title="Uploaded files & notes" />
 
       <input
         type="text"

@@ -20,12 +20,22 @@ export type ManagedFile = {
   uploadedBy?: string;
 };
 
+export type ManagedFolder = {
+  id: string;
+  title: string;
+  /** Which area this folder belongs to, e.g. concepts | formulas | code | academic */
+  area: string;
+  note?: string;
+  createdAt: number;
+};
+
 export type ManagedContent = {
   concepts: Concept[];
   formulas: Formula[];
   documents: ManagedDocument[];
   files: ManagedFile[];
   members: { id: string; name: string; note?: string; addedAt: number }[];
+  folders: ManagedFolder[];
   updatedAt: number;
 };
 
@@ -51,6 +61,7 @@ const emptyContent = (): ManagedContent => ({
   documents: [],
   files: [],
   members: [],
+  folders: [],
   updatedAt: 0,
 });
 
@@ -160,6 +171,7 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
       if (!parsed.formulas) parsed.formulas = [];
       if (!parsed.documents) parsed.documents = [];
       if (!parsed.files) parsed.files = [];
+      if (!parsed.folders) parsed.folders = [];
       return parsed;
     } catch {
       // fall through
@@ -167,6 +179,7 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
   }
   const local = await readJsonFile(CONTENT_PATH, emptyContent());
   if (!local.members) local.members = [];
+  if (!local.folders) local.folders = [];
   return local;
 }
 

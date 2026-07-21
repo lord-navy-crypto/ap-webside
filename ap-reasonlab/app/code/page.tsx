@@ -2,25 +2,26 @@
 
 import Link from "next/link";
 import UploadAndShow from "@/components/UploadAndShow";
+import { howToEmbedEditors, standardSnippets } from "@/data/code-snippets";
 
-const resources = [
+const langs = [
   {
     id: "python",
     title: "Python",
-    description: "Snippets and study scripts. Upload files with +.",
     href: "/code/python",
+    description: "Standard snippets + documents. No in-browser editor yet.",
   },
   {
     id: "java",
     title: "Java",
-    description: "Java examples. Upload files with +.",
     href: "/code/java",
+    description: "CSA-style starters + documents. No in-browser editor yet.",
   },
   {
     id: "web",
     title: "Web / HTML",
-    description: "Web demos and embeds. Upload files with +.",
     href: "/code/web",
+    description: "HTML starters + simulation documents. No editor yet.",
   },
 ];
 
@@ -30,14 +31,19 @@ export default function CodePage() {
       <div>
         <h1 className="text-3xl font-bold">Code Resource</h1>
         <p className="mt-2 text-slate-600">
-          Programming area. Use + to upload code files or notes (change code required).
+          Python, Java, and Web folders with standard code samples. Editors are not installed yet —
+          upload files, add documents, or save simulation page notes with a change code.
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["document"]} title="Uploaded files & notes" />
+      <UploadAndShow
+        alsoShow={["document", "folder"]}
+        folderArea="code"
+        title="Uploaded files, docs & folders"
+      />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {resources.map((r) => (
+        {langs.map((r) => (
           <Link key={r.id} href={r.href} className="card-hover group flex items-start gap-3">
             <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl">
               📁
@@ -49,6 +55,29 @@ export default function CodePage() {
           </Link>
         ))}
       </div>
+
+      <section className="card space-y-2">
+        <h2 className="text-lg font-semibold">How to add a real editor later</h2>
+        <pre className="whitespace-pre-wrap text-sm text-slate-600">{howToEmbedEditors}</pre>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Standard snippets (preview)</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          {standardSnippets.map((s) => (
+            <article key={s.id} className="card space-y-2">
+              <div className="flex flex-wrap gap-2">
+                <span className="badge">{s.language}</span>
+              </div>
+              <h3 className="font-semibold">{s.title}</h3>
+              <p className="text-sm text-slate-600">{s.description}</p>
+              <pre className="overflow-x-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-100">
+                {s.code}
+              </pre>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

@@ -49,7 +49,7 @@ export default function ApHubPage() {
         </p>
       </section>
 
-      <UploadAndShow alsoShow={["concept", "formula"]} title="Uploaded files & notes" />
+      <UploadAndShow alsoShow={["concept", "formula", "folder"]} folderArea="ap" title="Uploaded files & notes" />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {apTools.map((tool) => (

@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { collaborators } from "@/data/brand";
 import UploadAndShow from "@/components/UploadAndShow";
 
 type Member = { id: string; name: string; note?: string; addedAt: number };
@@ -12,7 +10,7 @@ export default function PartnersPage() {
 
   async function refresh() {
     try {
-      const data = await fetch("/api/edit").then((r) => r.json());
+      const data = await fetch("/api/edit", { cache: "no-store" }).then((r) => r.json());
       setMembers(data.members || []);
     } catch {
       setMembers([]);
@@ -31,49 +29,30 @@ export default function PartnersPage() {
         </span>
         <h1 className="mt-3 text-3xl font-bold">Partners & members</h1>
         <p className="mt-2 max-w-2xl text-brand-100">
-          No accounts. Anyone can browse. To add a member, use the + button and the{" "}
-          <strong>master change code</strong>. Content edits elsewhere use the content change code.
+          Add members yourself with the master change code. Put a GitHub username in the note
+          (example: github:shulai-ui) to keep them linked to repo collaborators.
         </p>
       </section>
 
-      <UploadAndShow alsoShow={["member", "document"]} title="Uploaded files & notes" />
+      <UploadAndShow
+        alsoShow={["member", "document", "folder"]}
+        folderArea="partners"
+        title="Files, docs & folders"
+      />
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">GitHub collaborators</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {collaborators.map((c) => (
-            <a
-              key={c.name}
-              href={c.github}
-              target="_blank"
-              rel="noreferrer"
-              className="card-hover flex items-center gap-3"
-            >
-              {c.avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.avatar} alt="" className="h-12 w-12 rounded-full" />
-              ) : (
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-lg font-bold text-brand-700">
-                  +
-                </span>
-              )}
-              <div>
-                <p className="font-semibold">{c.name}</p>
-                <p className="text-xs text-slate-500">{c.role}</p>
-              </div>
-            </a>
-          ))}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Members ({members.length})</h2>
+          <button type="button" onClick={refresh} className="text-xs text-brand-600 hover:underline">
+            Refresh list
+          </button>
         </div>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Members added on site ({members.length})</h2>
         {members.length === 0 ? (
           <div className="card text-sm text-slate-500">
-            No members yet. Use + Add member with the master change code.
+            No members yet. Use + Add member (master code). Note field can hold github:username.
           </div>
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid max-h-80 gap-3 overflow-y-auto sm:grid-cols-2">
             {members.map((m) => (
               <li key={m.id} className="card">
                 <p className="font-semibold">{m.name}</p>
@@ -83,13 +62,6 @@ export default function PartnersPage() {
           </ul>
         )}
       </section>
-
-      <p className="text-sm text-slate-500">
-        Editing tip: every AP / Academic page has a + button. Save always asks for a change code.{" "}
-        <Link href="/admin" className="text-brand-600 hover:underline">
-          How editing works →
-        </Link>
-      </p>
     </div>
   );
 }
