@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import ChangePanel from "@/components/ChangePanel";
+import UploadAndShow from "@/components/UploadAndShow";
 
 const academicTools = [
   {
@@ -40,10 +40,7 @@ export default function AcademicPlatformPage() {
         </p>
       </section>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <ChangePanel mode="document" label="+ Add shared document" />
-        <ChangePanel mode="file" label="+ Upload file" />
-      </div>
+      <UploadAndShow alsoShow={["document"]} title="Uploaded files & notes" />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {academicTools.map((tool) => (
