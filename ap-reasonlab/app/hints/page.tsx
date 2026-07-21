@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EthicsBanner from "@/components/EthicsBanner";
 
 type Provider = "groq" | "gemini";
@@ -13,14 +13,32 @@ type HintResponse = {
 };
 
 export default function HintsPage() {
+  // Initialize from hash to avoid SSR/client mismatch and keep mode shareable.
   const [mode, setMode] = useState<Mode>("default");
   const [question, setQuestion] = useState("");
   const [subject, setSubject] = useState("AP Physics 1");
   const [provider, setProvider] = useState<Provider>("groq");
   const [userKey, setUserKey] = useState("");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<HintResponse | null>(null);
   const [error, setError] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== "undefined" && window.location.hash === "#byok") {
+      setMode("bring-your-own");
+    }
+  }, []);
+
+  const promptWithNotes = () => {
+    let full = question;
+    if (notes.trim()) {
+      full += "\n\n[Student notes / context]\n" + notes.trim();
+    }
+    return full;
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,7 +47,10 @@ export default function HintsPage() {
     setResult(null);
 
     try {
-      const payload: Record<string, string> = { question, subject };
+      const payload: Record<string, string> = {
+        question: promptWithNotes(),
+        subject,
+      };
       if (mode === "bring-your-own") {
         payload.provider = provider;
         payload.userApiKey = userKey.trim();
@@ -77,7 +98,7 @@ export default function HintsPage() {
                 : "bg-slate-50 text-slate-600 hover:bg-slate-100"
             }`}
           >
-            Default AI (free tier)
+            Default AI (free)
           </button>
           <button
             type="button"
@@ -95,8 +116,8 @@ export default function HintsPage() {
 
       {mode === "default" && (
         <div className="rounded-2xl border border-brand-100 bg-brand-50/50 px-5 py-4 text-sm text-brand-900">
-          <strong>Default mode:</strong> uses the site&apos;s free Groq API key. No setup needed.
-          Subject to daily rate limits.
+          <strong>Default AI:</strong> uses the site&apos;s free Groq API key. No setup needed.
+          Subject to daily rate limits. If it shows mock hints, the site key is not configured yet.
         </div>
       )}
 
@@ -134,7 +155,7 @@ export default function HintsPage() {
           </select>
         </div>
 
-        {mode === "bring-your-own" && (
+        {mounted && mode === "bring-your-own" && (
           <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
             <div>
               <label className="mb-2 block text-sm font-medium">Provider</label>
@@ -173,6 +194,21 @@ export default function HintsPage() {
             onChange={(e) => setQuestion(e.target.value)}
             required
           />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium">
+            Your notes / context (optional)
+          </label>
+          <textarea
+            className="textarea min-h-[100px]"
+            placeholder="Paste your own notes, formulas, or what you have tried so the AI can give better hints. Not saved or uploaded to the server."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            This text is only included in the current AI prompt and is not stored.
+          </p>
         </div>
 
         <button type="submit" className="btn-primary" disabled={loading || !question.trim()}>
