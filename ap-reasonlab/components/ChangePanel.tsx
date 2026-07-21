@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 
-type Mode = "concept" | "formula" | "document" | "file" | "member";
+type Mode = "concept" | "formula" | "document" | "file" | "member" | "folder";
 
 type Props = {
   mode: Mode;
   /** Default subject for concept/formula forms */
   defaultSubject?: string;
+  /** Area for folder creation */
+  folderArea?: string;
   label?: string;
   /** Called after successful save; receives latest managed content when available */
   onSaved?: (content?: unknown) => void;
@@ -20,6 +22,7 @@ type Props = {
 export default function ChangePanel({
   mode,
   defaultSubject = "AP Physics 1",
+  folderArea = "general",
   label,
   onSaved,
 }: Props) {
@@ -47,6 +50,7 @@ export default function ChangePanel({
     document: "Add document",
     file: "Upload file",
     member: "Add member (master code only)",
+    folder: "Add folder",
   };
 
   function reset() {
@@ -86,6 +90,9 @@ export default function ChangePanel({
       } else if (mode === "member") {
         action = "add_member";
         item = { name: title, note: memberNote };
+      } else if (mode === "folder") {
+        action = "add_folder";
+        item = { title, area: folderArea, note: memberNote || summary };
       }
 
       const res = await fetch("/api/edit", {
@@ -130,13 +137,34 @@ export default function ChangePanel({
         <form onSubmit={handleSubmit} className="card space-y-3 border-brand-200">
           <h3 className="font-semibold text-slate-900">{titles[mode]}</h3>
 
-          {(mode === "concept" || mode === "formula" || mode === "document" || mode === "member") && (
+          {(mode === "concept" ||
+            mode === "formula" ||
+            mode === "document" ||
+            mode === "member" ||
+            mode === "folder") && (
             <input
               className="input"
-              placeholder={mode === "formula" ? "Formula name" : mode === "member" ? "Member name" : "Title"}
+              placeholder={
+                mode === "formula"
+                  ? "Formula name"
+                  : mode === "member"
+                    ? "Member name"
+                    : mode === "folder"
+                      ? "Folder name"
+                      : "Title"
+              }
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+            />
+          )}
+
+          {mode === "folder" && (
+            <input
+              className="input"
+              placeholder="Note (optional)"
+              value={memberNote}
+              onChange={(e) => setMemberNote(e.target.value)}
             />
           )}
 

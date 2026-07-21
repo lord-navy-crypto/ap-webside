@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { concepts } from "@/data/content";
 import { keyConceptGuides } from "@/data/key-concepts";
+import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
 
@@ -23,6 +24,7 @@ function ConceptsContent() {
 
   const subjects = useMemo(() => {
     const set = new Set<string>();
+    AP_SUBJECTS.forEach((s) => set.add(s));
     concepts.forEach((c) => set.add(c.subject));
     keyConceptGuides.forEach((g) => set.add(g.subject));
     return [...set].sort();
@@ -100,7 +102,11 @@ function ConceptsContent() {
             Open a subject folder first. Upload files on the left — they show on the right immediately after a successful save.
           </p>
         </div>
-        <UploadAndShow alsoShow={["concept"]} title="Uploaded files & notes" />
+        <UploadAndShow
+          alsoShow={["concept", "folder"]}
+          folderArea="concepts"
+          title="Uploaded files & folders"
+        />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -119,9 +125,10 @@ function ConceptsContent() {
       </div>
 
       <UploadAndShow
-        alsoShow={["concept", "document"]}
+        alsoShow={["concept", "document", "folder"]}
         defaultSubject={subject}
-        title="Uploaded files & notes"
+        folderArea="concepts"
+        title="Uploaded files & folders"
       />
 
       <div className="flex flex-wrap gap-2">

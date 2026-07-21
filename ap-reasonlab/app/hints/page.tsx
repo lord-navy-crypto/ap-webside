@@ -152,9 +152,17 @@ export default function HintsPage() {
           <select className="input" value={subject} onChange={(e) => setSubject(e.target.value)}>
             <option>AP Physics 1</option>
             <option>AP Physics 2</option>
-            <option>AP Calculus AB</option>
+            <option>AP Physics C: Mechanics</option>
+            <option>AP Physics C: E&M</option>
+            <option>AP Calculus AB/BC</option>
+            <option>AP Statistics</option>
+            <option>AP Chemistry</option>
+            <option>AP Biology</option>
+            <option>AP Psychology</option>
+            <option>AP Computer Science A</option>
             <option>AP Microeconomics</option>
             <option>AP Macroeconomics</option>
+            <option>AP US History</option>
           </select>
         </div>
 

@@ -58,7 +58,7 @@ export const keyConceptGuides: KeyConceptGuide[] = [
   {
     id: "guide-derivatives",
     title: "Derivatives as Instantaneous Rate",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     category: "ap_content",
     introduction:
       "A derivative f′(x) is the instantaneous rate of change of f at x, and the slope of the tangent line. Algebraically you use limit definitions and rules (power, product, chain). Conceptually you connect derivatives to velocity, growth, and sensitivity.",
@@ -123,7 +123,7 @@ export const keyConceptGuides: KeyConceptGuide[] = [
   {
     id: "guide-integrals",
     title: "Integrals & the Fundamental Theorem",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     category: "ap_content",
     introduction:
       "Integration reverses differentiation and measures accumulated change. FTC Part 2 lets you evaluate ∫ₐᵇ f(x) dx = F(b) − F(a). On the AP exam you must know common antiderivatives — there is no formula sheet.",
@@ -148,7 +148,7 @@ export const keyConceptGuides: KeyConceptGuide[] = [
   {
     id: "guide-limits",
     title: "Limits & Continuity",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     category: "ap_content",
     introduction:
       "Limits describe how a function behaves near a point. Continuity means the limit equals the function value. These ideas justify derivatives and integrals.",
@@ -168,7 +168,7 @@ export const keyConceptGuides: KeyConceptGuide[] = [
   {
     id: "guide-optimization",
     title: "Related Rates & Optimization",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     category: "ap_content",
     introduction:
       "Derivatives let you solve real-world problems: how fast one quantity changes when another changes, and how to maximize or minimize a function subject to constraints.",

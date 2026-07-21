@@ -2,6 +2,7 @@ import { Formula } from "@/lib/types";
 import { macroFormulas } from "@/data/ap-macro";
 import { microFormulas } from "@/data/ap-micro";
 import { physics2Formulas } from "@/data/ap-physics2";
+import { expandedApFormulas } from "@/data/ap-expanded";
 import managed from "@/data/managed-content.json";
 
 /**
@@ -337,7 +338,7 @@ const builtInFormulas: Formula[] = [
   // ── AP Calculus AB — Limits (Unit 1) ──
   {
     id: "calc-limit-def",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 1: Limits",
     name: "Limit definition of derivative",
     expression: "f′(x) = lim(h→0) [f(x+h) − f(x)] / h",
@@ -348,7 +349,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-avg-roc",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 1: Limits",
     name: "Average rate of change",
     expression: "[f(b) − f(a)] / (b − a)",
@@ -360,7 +361,7 @@ const builtInFormulas: Formula[] = [
   // ── AP Calculus AB — Derivatives (Units 2–3) ──
   {
     id: "calc-power",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 2: Differentiation",
     name: "Power rule",
     expression: "d/dx (xⁿ) = n xⁿ⁻¹",
@@ -371,7 +372,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-product",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 3: Composite & Implicit",
     name: "Product rule",
     expression: "(fg)′ = f′g + fg′",
@@ -382,7 +383,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-quotient",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 3: Composite & Implicit",
     name: "Quotient rule",
     expression: "(f/g)′ = (f′g − fg′) / g²",
@@ -393,7 +394,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-chain",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 3: Composite & Implicit",
     name: "Chain rule",
     expression: "d/dx f(g(x)) = f′(g(x)) · g′(x)",
@@ -405,7 +406,7 @@ const builtInFormulas: Formula[] = [
   // ── AP Calculus AB — Integrals (Unit 6) ──
   {
     id: "calc-ftc1",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 6: Integration",
     name: "Fundamental Theorem of Calculus (Part 1)",
     expression: "d/dx ∫ₐˣ f(t) dt = f(x)",
@@ -416,7 +417,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-ftc2",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 6: Integration",
     name: "Fundamental Theorem of Calculus (Part 2)",
     expression: "∫ₐᵇ f(x) dx = F(b) − F(a)",
@@ -427,7 +428,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-int-power",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 6: Integration",
     name: "Power rule for integration",
     expression: "∫ xⁿ dx = xⁿ⁺¹/(n+1) + C, n ≠ −1",
@@ -438,7 +439,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-u-sub",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 7: Differential Equations",
     name: "U-substitution",
     expression: "∫ f(g(x)) g′(x) dx = ∫ f(u) du",
@@ -449,7 +450,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-separation",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 7: Differential Equations",
     name: "Separation of variables",
     expression: "dy/dx = f(x)g(y) ⇒ ∫ dy/g(y) = ∫ f(x) dx",
@@ -460,7 +461,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-area",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 8: Applications of Integration",
     name: "Area between curves",
     expression: "A = ∫ₐᵇ [f(x) − g(x)] dx",
@@ -471,7 +472,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-volume-disk",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 8: Applications of Integration",
     name: "Volume of revolution (disk method)",
     expression: "V = π ∫ₐᵇ [R(x)]² dx",
@@ -482,7 +483,7 @@ const builtInFormulas: Formula[] = [
   },
   {
     id: "calc-avg-value",
-    subject: "AP Calculus AB",
+    subject: "AP Calculus AB/BC",
     unit: "Unit 8: Applications of Integration",
     name: "Average value of a function",
     expression: "f_avg = 1/(b−a) ∫ₐᵇ f(x) dx",
@@ -494,6 +495,7 @@ const builtInFormulas: Formula[] = [
   ...microFormulas,
   ...macroFormulas,
   ...physics2Formulas,
+  ...expandedApFormulas,
 ];
 
 export const formulas: Formula[] = [

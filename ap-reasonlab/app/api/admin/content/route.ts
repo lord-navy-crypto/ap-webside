@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
           documents: body.documents || [],
           files: body.files || [],
           members: body.members || current.members || [],
+          folders: body.folders || current.folders || [],
           updatedAt: Date.now(),
         }
       : {
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
           documents: body.documents ?? current.documents,
           files: body.files ?? current.files,
           members: body.members ?? current.members ?? [],
+          folders: body.folders ?? current.folders ?? [],
           updatedAt: Date.now(),
         };
 

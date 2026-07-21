@@ -25,7 +25,7 @@ const boxes = [
   },
   {
     title: "Partners",
-    description: "Add members with the master change code.",
+    description: "Add members yourself (master change code). Link GitHub usernames in notes.",
     href: "/partners",
   },
 ];
@@ -79,13 +79,22 @@ export default function HomePage() {
       </section>
 
       <section className="card space-y-4">
-        <h2 className="section-title">Collaborators</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="section-title">Collaborators & members</h2>
+          <Link href="/partners" className="text-sm font-medium text-brand-600 hover:underline">
+            Manage on Partners →
+          </Link>
+        </div>
+        <p className="text-sm text-slate-600">
+          Add people yourself on Partners with the master change code. Use note{" "}
+          <code>github:username</code> to link GitHub collaborators.
+        </p>
         <div className="grid gap-3 sm:grid-cols-3">
           {collaborators.map((c) => (
             <a
               key={c.name}
-              href={c.github}
-              target="_blank"
+              href={c.github.startsWith("http") ? c.github : "/partners"}
+              target={c.github.startsWith("http") ? "_blank" : undefined}
               rel="noreferrer"
               className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-3 hover:border-brand-300"
             >

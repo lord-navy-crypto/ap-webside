@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     const token = await tokenFrom(body);
     const current: ManagedContent = await loadManagedContent(token);
     if (!current.members) current.members = [];
+    if (!current.folders) current.folders = [];
 
     if (action === "add_concept") {
       const item = body.item || {};
@@ -118,6 +119,18 @@ export async function POST(req: NextRequest) {
         note: item.note ? String(item.note) : undefined,
         addedAt: Date.now(),
       });
+    } else if (action === "add_folder") {
+      const item = body.item || {};
+      if (!item.title || !item.area) {
+        return NextResponse.json({ error: "folder title and area required" }, { status: 400 });
+      }
+      current.folders.push({
+        id: uid("folder"),
+        title: String(item.title),
+        area: String(item.area),
+        note: item.note ? String(item.note) : undefined,
+        createdAt: Date.now(),
+      });
     } else if (action === "delete") {
       const target = String(body.target || "");
       const id = String(body.id || "");
@@ -132,6 +145,7 @@ export async function POST(req: NextRequest) {
       else if (target === "document") current.documents = current.documents.filter((d) => d.id !== id);
       else if (target === "file") current.files = current.files.filter((f) => f.id !== id);
       else if (target === "member") current.members = current.members.filter((m) => m.id !== id);
+      else if (target === "folder") current.folders = current.folders.filter((f) => f.id !== id);
       else return NextResponse.json({ error: "Unknown delete target" }, { status: 400 });
     } else if (action === "set_github_token") {
       const t = String(body.githubToken || "").trim();
