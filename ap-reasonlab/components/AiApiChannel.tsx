@@ -36,7 +36,7 @@ export default function AiApiChannel({
         >
           <span className="block">Default website API</span>
           <span className={`mt-1 block text-xs font-normal ${channel === "site" ? "text-blue-100" : "text-slate-500"}`}>
-            Shared site Instant / Flash. Free to try; may hit shared rate limits.
+            Shared site fast models. Free to try; may hit shared rate limits.
           </span>
         </button>
         <button
@@ -58,7 +58,7 @@ export default function AiApiChannel({
       {channel === "byok" && (
         <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/80 p-3">
           <p className="text-xs text-amber-900">
-            Your key is sent only for this request and is not stored. Models stay on Instant / Flash by design.
+            Your key is sent only for this request and is not stored. Groq can use a supported fallback if Instant is retired.
           </p>
           <div>
             <label className="mb-1 block text-sm font-medium">Provider</label>

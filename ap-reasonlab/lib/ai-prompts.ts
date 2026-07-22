@@ -5,9 +5,9 @@ Site name: Results — academic box & platform (tutor, not solver).
 Purpose: Learn by reasoning. Hints and half-process guidance only — no final exam answers by design.
 Main areas:
 - AP (/ap): subject-first workspace → units, concepts, formulas, practice, documents, AI Toolbox.
-- Academic Platform (/academic): Learning Box, shared materials, Picture, Image Gen.
+- Academic Platform (/academic): Private Learning Box, Shared Materials, Picture, Image Gen.
 - Code (/code): Python, Java, web resource folders.
-- Forum (/forum): tips and questions.
+- Forum (/forum): public discussions and replies; a display name is required to post. Shared Materials is the separate public file library.
 - Partners (/partners): members (master change code to add).
 - Manage (/manage): no-code content manager (editors; needs change code).
 - Search (/search): find concepts, formulas, practice across subjects.

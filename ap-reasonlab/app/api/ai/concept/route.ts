@@ -20,6 +20,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    if (subject.length > 120 || conceptTitle.length > 160 || conceptSummary.length > 4_000 || question.length > 3_000) {
+      return NextResponse.json({ error: "Concept request is too long" }, { status: 400 });
+    }
 
     const user = `Subject: ${subject || "AP"}
 Concept title: ${conceptTitle || "(user will name it in the question)"}

@@ -202,7 +202,7 @@ function ToolboxContent() {
         <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">AI Toolbox</p>
         <h1 className="mt-1 text-3xl font-bold">Study tools powered by Instant models</h1>
         <p className="mt-2 max-w-2xl text-slate-600">
-          Three focused AIs. Site default uses shared Instant / Flash. Your own API is more
+          Three focused AIs. Site default uses shared fast models. Your own API is more
           effective and more powerful for personal quota when the shared key is busy.
         </p>
       </div>

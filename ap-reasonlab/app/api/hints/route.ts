@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
     if (question.length > 6000) {
       return NextResponse.json({ error: "Question is too long (max 6000 characters)." }, { status: 400 });
     }
+    if (subject.length > 120 || notes.length > 8_000) {
+      return NextResponse.json({ error: "Subject or notes are too long" }, { status: 400 });
+    }
 
     const user = `Subject: ${subject}
 

@@ -77,6 +77,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    if (name.length > 160 || area.length > 120 || summary.length > 4_000 || rawContent.length > 20_000) {
+      return NextResponse.json({ error: "Concept input is too long" }, { status: 400 });
+    }
 
     const userPrompt = `Area/subject: ${area}
 Concept name: ${name}

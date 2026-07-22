@@ -1,9 +1,10 @@
 /**
- * Shared AI client — forced Instant / Flash only (no Versatile).
- * Groq Instant first, Gemini Flash as fallback for site keys.
+ * Shared AI client — Groq Instant first, its supported replacement when retired,
+ * then Gemini Flash for site-key fallback. Versatile is intentionally excluded.
  */
 
 export const GROQ_INSTANT_MODEL = "llama-3.1-8b-instant";
+export const GROQ_FALLBACK_MODEL = "openai/gpt-oss-20b";
 export const GEMINI_FLASH_MODEL = "gemini-2.0-flash";
 
 export type AiProvider = "groq" | "gemini";
@@ -19,7 +20,8 @@ async function callGroqJson(
   apiKey: string,
   system: string,
   user: string,
-  maxTokens: number
+  maxTokens: number,
+  model = GROQ_INSTANT_MODEL
 ): Promise<ChatJsonResult> {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -28,7 +30,7 @@ async function callGroqJson(
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: GROQ_INSTANT_MODEL,
+      model,
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -56,8 +58,8 @@ async function callGroqJson(
   return {
     data,
     provider: "groq",
-    model: GROQ_INSTANT_MODEL,
-    note: `Powered by Groq Instant (${GROQ_INSTANT_MODEL}).`,
+    model,
+    note: `Powered by Groq (${model}).`,
   };
 }
 
@@ -67,10 +69,10 @@ async function callGeminiJson(
   user: string
 ): Promise<ChatJsonResult> {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_FLASH_MODEL}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_FLASH_MODEL}:generateContent`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         contents: [{ parts: [{ text: `${system}\n\n${user}` }] }],
         generationConfig: {
@@ -106,8 +108,8 @@ async function callGeminiJson(
 }
 
 /**
- * Site default: Groq Instant → Gemini Flash.
- * BYOK: only the provider the user selected (still Instant/Flash).
+ * Site default: Groq Instant (with supported Groq replacement) → Gemini Flash.
+ * BYOK: only the provider the user selected.
  */
 export async function runChatJson(options: {
   system: string;
@@ -128,10 +130,10 @@ export async function runChatJson(options: {
         note: `Your own Gemini key · Flash (${GEMINI_FLASH_MODEL}) — usually stronger quota and fewer shared limits.`,
       };
     }
-    const result = await callGroqJson(userKey, options.system, options.user, maxTokens);
+    const result = await callGroqWithFallback(userKey, options.system, options.user, maxTokens);
     return {
       ...result,
-      note: `Your own Groq key · Instant (${GROQ_INSTANT_MODEL}) — usually stronger quota and fewer shared limits.`,
+        note: `Your own Groq key · ${result.model} — usually stronger quota and fewer shared limits.`,
     };
   }
 
@@ -141,10 +143,10 @@ export async function runChatJson(options: {
 
   if (groqKey) {
     try {
-      const result = await callGroqJson(groqKey, options.system, options.user, maxTokens);
+      const result = await callGroqWithFallback(groqKey, options.system, options.user, maxTokens);
       return {
         ...result,
-        note: `Site default · Groq Instant (${GROQ_INSTANT_MODEL}).`,
+        note: `Site default · Groq (${result.model}).`,
       };
     } catch (e) {
       errors.push(e instanceof Error ? e.message : "Groq failed");
@@ -168,6 +170,21 @@ export async function runChatJson(options: {
       ? `All AI channels failed: ${errors.join(" | ")}`
       : "No site AI keys configured (GROQ_API_KEY / GEMINI_API_KEY)."
   );
+}
+
+async function callGroqWithFallback(
+  apiKey: string,
+  system: string,
+  user: string,
+  maxTokens: number
+): Promise<ChatJsonResult> {
+  try {
+    return await callGroqJson(apiKey, system, user, maxTokens, GROQ_INSTANT_MODEL);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (!/Groq API error (400|404|410)/.test(message)) throw error;
+    return callGroqJson(apiKey, system, user, maxTokens, GROQ_FALLBACK_MODEL);
+  }
 }
 
 export function asStringList(value: unknown): string[] {

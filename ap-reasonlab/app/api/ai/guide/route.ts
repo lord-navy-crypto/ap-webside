@@ -12,6 +12,9 @@ export async function POST(req: NextRequest) {
     if (!question) {
       return NextResponse.json({ error: "Question is required" }, { status: 400 });
     }
+    if (question.length > 2_000) {
+      return NextResponse.json({ error: "Question is too long (max 2,000 characters)" }, { status: 400 });
+    }
 
     const user = `SITE FACTS:
 ${SITE_GUIDE_FACTS}
