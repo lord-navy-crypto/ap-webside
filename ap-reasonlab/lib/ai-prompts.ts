@@ -14,7 +14,7 @@ Main areas:
 - About (/about): brand, ethics, how change codes work (codes themselves are not published on the page — ask an admin).
 AI Toolbox (/hints): three tools — (1) Hint & Process for problems, (2) Concept Explainer, (3) Site Guide (this tool).
 Editing: No login required for browsing. Saving content uses a change code (content code for uploads/edits; master code can also add members). Set codes on Vercel as CONTENT_CHANGE_CODE and MASTER_CHANGE_CODE.
-Publishing: GITHUB_TOKEN on Vercel lets Manage/+ saves publish to GitHub.
+Publishing: CONTENT_GITHUB_TOKEN on Vercel lets Manage/+ saves publish to GitHub.
 Authors / collaborators (public):
 - lord-navy-crypto — Founder / Full Admin (GitHub).
 - shulai-ui — Partner with GitHub write access.
