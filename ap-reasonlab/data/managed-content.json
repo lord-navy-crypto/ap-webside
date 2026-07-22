@@ -70,9 +70,19 @@
     }
   ],
   "members": [],
-  "updatedAt": 1784705084957,
+  "updatedAt": 1784708562076,
   "folders": [],
   "subjects": [],
   "units": [],
-  "contentItems": []
+  "contentItems": [],
+  "forumPosts": [
+    {
+      "id": "forum-post-mrvtebvg-ckjv9",
+      "author": "test",
+      "title": "how to write code",
+      "body": "python",
+      "createdAt": 1784708562076,
+      "replies": []
+    }
+  ]
 }
