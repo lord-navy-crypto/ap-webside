@@ -177,18 +177,19 @@ function ConceptsContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Concepts</h1>
           <p className="mt-2 text-slate-600">
-            Each subject folder has its own storage. Open a folder to add concepts and files —
-            they stay in that folder and do not mix with other subjects.
+            Open a subject folder to study concepts. Each folder keeps its own storage separate
+            from other subjects.
           </p>
         </div>
+        <FolderGrid folders={subjectFolders} />
         <UploadAndShow
           alsoShow={["folder"]}
           folderArea="concepts"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/concepts"
           title="Root concepts storage"
+          collapsedByDefault
         />
-        <FolderGrid folders={subjectFolders} />
       </div>
     );
   }
@@ -201,19 +202,10 @@ function ConceptsContent() {
         </Link>
         <h1 className="mt-2 text-3xl font-bold">{subject}</h1>
         <p className="mt-2 text-slate-600">
-          Storage for {subject} only. Type area, name, and paste notes — Auto-sort fills key
-          points, common mistakes, and examples.
+          Browse topics for {subject}. Open folder storage below when you need to add notes or
+          files.
         </p>
       </div>
-
-      <UploadAndShow
-        alsoShow={["concept", "document", "folder"]}
-        defaultSubject={subject}
-        folderArea="concepts"
-        spaceKey={spaceKey}
-        spaceBasePath="/concepts"
-        title={`${subject} storage`}
-      />
 
       <div className="flex flex-wrap gap-2">
         {(
@@ -261,6 +253,16 @@ function ConceptsContent() {
           )}
         </div>
       )}
+
+      <UploadAndShow
+        alsoShow={["concept", "document", "folder"]}
+        defaultSubject={subject}
+        folderArea="concepts"
+        spaceKey={spaceKey}
+        spaceBasePath="/concepts"
+        title={`${subject} storage`}
+        collapsedByDefault
+      />
     </div>
   );
 }
