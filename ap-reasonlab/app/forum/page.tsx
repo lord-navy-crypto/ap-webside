@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { saveLearningItem } from "@/lib/storage";
 import UploadAndShow from "@/components/UploadAndShow";
+import RichContent from "@/components/RichContent";
 
 type Post = {
   id: string;
@@ -99,7 +100,7 @@ export default function ForumPage() {
         />
         <textarea
           className="textarea min-h-[120px]"
-          placeholder="Write something..."
+          placeholder="Markdown + $math$ supported..."
           value={body}
           onChange={(e) => setBody(e.target.value)}
           required
@@ -123,7 +124,7 @@ export default function ForumPage() {
                     {p.author} · {new Date(p.createdAt).toLocaleString()}
                   </span>
                 </div>
-                <p className="whitespace-pre-wrap text-sm text-slate-700">{p.body}</p>
+                <RichContent className="text-sm text-slate-700">{p.body}</RichContent>
                 <div className="flex gap-3 text-xs">
                   <button
                     type="button"

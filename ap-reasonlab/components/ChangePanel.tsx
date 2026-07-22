@@ -264,7 +264,7 @@ export default function ChangePanel({
             <>
               <textarea
                 className="textarea min-h-[90px]"
-                placeholder="Summary (stays on top)"
+                placeholder="Summary (stays on top; Markdown + $math$ ok)"
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
               />
@@ -313,7 +313,7 @@ export default function ChangePanel({
               />
               <input
                 className="input"
-                placeholder="Expression (e.g. F = ma)"
+                placeholder="Expression (Unicode or LaTeX, e.g. v = v_0 + at)"
                 value={expression}
                 onChange={(e) => setExpression(e.target.value)}
                 required
@@ -337,7 +337,7 @@ export default function ChangePanel({
               />
               <textarea
                 className="textarea min-h-[120px]"
-                placeholder="Document text..."
+                placeholder="Document text (Markdown + $E=mc^2$ supported)..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required

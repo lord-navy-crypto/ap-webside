@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import { brand } from "@/data/brand";
