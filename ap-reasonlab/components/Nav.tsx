@@ -13,11 +13,27 @@ const primaryLinks = [
   { href: "/search", label: "Search" },
 ];
 
-const moreLinks = [
-  { href: "/manage", label: "Manage" },
-  { href: "/partners", label: "Partners" },
-  { href: "/about", label: "About" },
-];
+const moreGroups = [
+  {
+    label: "General",
+    links: [
+      { href: "/", label: "Home" },
+      { href: "/about", label: "About" },
+    ],
+  },
+  {
+    label: "Admin & developer",
+    links: [
+      { href: "/manage", label: "Manage content" },
+      { href: "/admin", label: "Admin guide" },
+      { href: "/partners", label: "Partners" },
+    ],
+  },
+] as const;
+
+const moreLinks: ReadonlyArray<{ href: string; label: string }> = moreGroups.reduce<
+  Array<{ href: string; label: string }>
+>((links, group) => [...links, ...group.links], []);
 
 function linkIsActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -63,7 +79,7 @@ export default function Nav() {
           <span className="text-lg font-bold text-slate-900">{brand.name}</span>
         </Link>
 
-        <nav className="flex items-center gap-1 overflow-x-auto" aria-label="Primary">
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
           {primaryLinks.map((link) => {
             const active = linkIsActive(pathname, link.href);
             return (
@@ -99,27 +115,37 @@ export default function Nav() {
             {moreOpen && (
               <div
                 role="menu"
-                className="absolute right-0 z-50 mt-2 min-w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+                className="absolute right-0 z-50 mt-2 min-w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
               >
-                {moreLinks.map((link) => {
-                  const active = linkIsActive(pathname, link.href);
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      role="menuitem"
-                      className={
-                        active
-                          ? "block rounded-lg bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700"
-                          : "block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                      }
-                      aria-current={active ? "page" : undefined}
-                      onClick={() => setMoreOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
-                  );
-                })}
+                {moreGroups.map((group, index) => (
+                  <div
+                    key={group.label}
+                    className={index > 0 ? "mt-2 border-t border-slate-100 pt-2" : undefined}
+                  >
+                    <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      {group.label}
+                    </p>
+                    {group.links.map((link) => {
+                      const active = linkIsActive(pathname, link.href);
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          role="menuitem"
+                          className={
+                            active
+                              ? "block rounded-lg bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700"
+                              : "block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          }
+                          aria-current={active ? "page" : undefined}
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
