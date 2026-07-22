@@ -161,20 +161,46 @@ export function looksLikeGithubPat(raw?: string | null): boolean {
 }
 
 /**
- * Resolve which token to use for GitHub API writes.
- * Prefer Vercel CONTENT_GITHUB_TOKEN. Only accept UI/cookie overrides that look like PATs
- * (so pasting the content change code cannot poison every save with 401).
+ * CONTENT_GITHUB_TOKEN is NOT an AI key.
+ * It is the GitHub Personal Access Token used to publish site content
+ * (managed-content.json) to the repo. AI uses GROQ_API_KEY / OPENROUTER_API_KEY / etc.
+ *
+ * Why the name: "token for publishing CONTENT to GitHub" — not "GitHub Models AI".
+ * Vercel often reserves GITHUB_TOKEN, so we prefer CONTENT_GITHUB_TOKEN, but we still
+ * try GITHUB_TOKEN / GH_TOKEN if the first one fails with 401.
  */
-export function resolveGithubAuth(override?: string | null): string {
-  const envToken = sanitizeGithubToken(
-    process.env.CONTENT_GITHUB_TOKEN ||
-      process.env.GITHUB_TOKEN ||
-      process.env.GH_TOKEN ||
-      ""
-  );
+export function githubAuthCandidates(override?: string | null): string[] {
   const fromClient = sanitizeGithubToken(override);
-  if (fromClient && looksLikeGithubPat(fromClient)) return fromClient;
-  return envToken;
+  const envOnes = [
+    process.env.CONTENT_GITHUB_TOKEN,
+    process.env.GITHUB_TOKEN,
+    process.env.GH_TOKEN,
+  ].map(sanitizeGithubToken);
+
+  const ordered: string[] = [];
+  const push = (t: string) => {
+    if (!t) return;
+    // Prefer real PATs; skip obvious non-tokens (change codes, AI keys without ghp_ prefix)
+    if (!looksLikeGithubPat(t) && fromClient !== t) {
+      // Still allow env values that don't match prefix (some enterprise tokens), but deprioritize
+    }
+    if (!ordered.includes(t)) ordered.push(t);
+  };
+
+  if (fromClient && looksLikeGithubPat(fromClient)) push(fromClient);
+  for (const t of envOnes) {
+    if (t && looksLikeGithubPat(t)) push(t);
+  }
+  // Last resort: non-PAT-shaped env values (legacy), after real PATs
+  for (const t of envOnes) {
+    if (t) push(t);
+  }
+  return ordered;
+}
+
+/** First usable GitHub auth token (UI override → CONTENT_GITHUB_TOKEN → GITHUB_TOKEN → GH_TOKEN). */
+export function resolveGithubAuth(override?: string | null): string {
+  return githubAuthCandidates(override)[0] || "";
 }
 
 function repoSettings() {
@@ -203,23 +229,27 @@ async function githubGet(
   token?: string
 ): Promise<{ text: string; sha: string } | null> {
   const { repo, branch } = repoSettings();
-  const auth = resolveGithubAuth(token);
-  if (!auth) return null;
+  const candidates = githubAuthCandidates(token);
+  if (candidates.length === 0) return null;
 
   const apiPath = filePathInRepo.replace(/^\/+/, "");
   const url = `https://api.github.com/repos/${repo}/contents/${apiPath}?ref=${encodeURIComponent(branch)}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${auth}`,
-      Accept: "application/vnd.github+json",
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  const body = await res.json();
-  if (!body.content || !body.sha) return null;
-  const text = Buffer.from(body.content.replace(/\n/g, ""), "base64").toString("utf8");
-  return { text, sha: body.sha };
+
+  for (const auth of candidates) {
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${auth}`,
+        Accept: "application/vnd.github+json",
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) continue;
+    const body = await res.json();
+    if (!body.content || !body.sha) continue;
+    const text = Buffer.from(body.content.replace(/\n/g, ""), "base64").toString("utf8");
+    return { text, sha: body.sha };
+  }
+  return null;
 }
 
 async function githubWrite(
@@ -229,24 +259,27 @@ async function githubWrite(
   token?: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const { repo, branch } = repoSettings();
-  const envToken = resolveGithubAuth();
-  let auth = resolveGithubAuth(token);
-  if (!auth) {
+  const candidates = githubAuthCandidates(token);
+  if (candidates.length === 0) {
     return {
       ok: false,
       error:
-        "No GitHub token. On Vercel set CONTENT_GITHUB_TOKEN (a GitHub PAT), Redeploy, then save. Leave the optional GitHub token field empty. Do not paste the content change code into the GitHub token field.",
+        "No GitHub write token. Set CONTENT_GITHUB_TOKEN or GITHUB_TOKEN on Vercel to a GitHub PAT (ghp_ / github_pat_), Redeploy, leave the optional GitHub field empty. AI keys (GROQ/OPENROUTER/…) are separate and do not publish content.",
     };
   }
 
   const apiPath = filePathInRepo.replace(/^\/+/, "");
   const url = `https://api.github.com/repos/${repo}/contents/${apiPath}`;
 
-  async function putWith(authToken: string, sha?: string) {
-    return fetch(url, {
+  let lastStatus = 0;
+  let lastText = "";
+
+  for (const auth of candidates) {
+    const existing = await githubGet(apiPath, auth);
+    const putRes = await fetch(url, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${authToken}`,
+        Authorization: `Bearer ${auth}`,
         Accept: "application/vnd.github+json",
         "Content-Type": "application/json",
       },
@@ -254,45 +287,28 @@ async function githubWrite(
         message,
         content: Buffer.from(content, "utf8").toString("base64"),
         branch,
-        sha,
+        sha: existing?.sha,
       }),
     });
+    if (putRes.ok) return { ok: true };
+    lastStatus = putRes.status;
+    lastText = await putRes.text();
+    // Try next candidate on bad credentials; stop on other errors (403/422/…)
+    if (putRes.status !== 401) break;
   }
 
-  let sha: string | undefined;
-  const existing = await githubGet(apiPath, auth);
-  if (existing) sha = existing.sha;
-
-  let putRes = await putWith(auth, sha);
-
-  // If a pasted/cookie override is bad, fall back to Vercel env token once.
-  if (
-    putRes.status === 401 &&
-    envToken &&
-    auth !== envToken
-  ) {
-    auth = envToken;
-    const existingEnv = await githubGet(apiPath, auth);
-    sha = existingEnv?.sha;
-    putRes = await putWith(auth, sha);
+  let hint = "";
+  if (lastStatus === 401) {
+    hint =
+      " Bad credentials: none of CONTENT_GITHUB_TOKEN / GITHUB_TOKEN worked. Put your real GitHub PAT (for repo write) into CONTENT_GITHUB_TOKEN OR GITHUB_TOKEN on Vercel, Redeploy. Do NOT put AI keys (OpenRouter/Groq/DeepSeek) or the content change code into those variables. AI and GitHub write are different.";
+  } else if (lastStatus === 403) {
+    hint =
+      " Token was accepted but lacks write access. Fine-grained PAT: repo ap-webside + Contents: Read and write. Classic PAT: repo scope.";
   }
-
-  if (!putRes.ok) {
-    const errText = await putRes.text();
-    let hint = "";
-    if (putRes.status === 401) {
-      hint =
-        " Bad credentials = CONTENT_GITHUB_TOKEN on Vercel is wrong/expired/revoked, or a bad value was pasted in the optional GitHub token box. Fix: create a new PAT → set Vercel CONTENT_GITHUB_TOKEN to the raw token (starts with ghp_ or github_pat_) → Redeploy → leave the optional GitHub field empty → Save. The content change code only unlocks edit; it is not a GitHub token.";
-    } else if (putRes.status === 403) {
-      hint =
-        " Token was accepted but lacks write access. Fine-grained PAT: resource owner + repo ap-webside + Contents: Read and write. Classic PAT: enable the repo scope.";
-    }
-    return {
-      ok: false,
-      error: `GitHub write failed (${putRes.status}): ${errText.slice(0, 300)}${hint}`,
-    };
-  }
-  return { ok: true };
+  return {
+    ok: false,
+    error: `GitHub write failed (${lastStatus}): ${lastText.slice(0, 300)}${hint}`,
+  };
 }
 
 export async function loadManagedContent(token?: string): Promise<ManagedContent> {
