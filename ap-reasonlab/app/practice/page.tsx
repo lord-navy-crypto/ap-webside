@@ -8,6 +8,7 @@ import {
   getSubjectsFromQuestionnaires,
   questionnaires,
 } from "@/data/questionnaires";
+import EthicsBanner from "@/components/EthicsBanner";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
 import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
@@ -58,6 +59,7 @@ function PracticeContent() {
             Open a subject folder first. Use + to add a document or upload a practice file (change code required).
           </p>
         </div>
+        <EthicsBanner />
         <UploadAndShow
           alsoShow={["folder"]}
           folderArea="practice"
@@ -84,6 +86,8 @@ function PracticeContent() {
           Practice for this subject — hints only, no final answer keys.
         </p>
       </div>
+
+      <EthicsBanner />
 
       <UploadAndShow
         alsoShow={["document", "folder"]}

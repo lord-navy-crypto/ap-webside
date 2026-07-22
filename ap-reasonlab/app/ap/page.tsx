@@ -45,7 +45,16 @@ export default function ApHubPage() {
       .sort((a, b) => a.order - b.order);
   }, [group, managedSubjects, query]);
 
-  const recentSubjects = recent.map((slug) => [...AP_CATALOG, ...managedSubjects].find((subject) => subject.slug === slug)).filter(Boolean) as SubjectDefinition[];
+  const catalog = useMemo(
+    () => [...AP_CATALOG, ...managedSubjects.filter((managed) => !AP_CATALOG.some((builtIn) => builtIn.slug === managed.slug))],
+    [managedSubjects]
+  );
+  const recentSubjects = recent
+    .map((slug) => catalog.find((subject) => subject.slug === slug))
+    .filter(Boolean) as SubjectDefinition[];
+  const favoriteSubjects = favorites
+    .map((slug) => catalog.find((subject) => subject.slug === slug))
+    .filter(Boolean) as SubjectDefinition[];
 
   function toggleFavorite(slug: string) {
     const next = favorites.includes(slug) ? favorites.filter((item) => item !== slug) : [slug, ...favorites];
@@ -56,15 +65,25 @@ export default function ApHubPage() {
   return (
     <div className="space-y-8">
       <section className="hero-gradient rounded-3xl px-6 py-9 text-white shadow-lg md:px-9">
-        <div className="flex flex-wrap items-end justify-between gap-5">
-          <div>
-            <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">AP SUBJECT LIBRARY</span>
-            <h1 className="mt-3 text-3xl font-bold md:text-4xl">Choose your AP subject first</h1>
-            <p className="mt-2 max-w-2xl text-blue-100">Then open units, concepts, formulas, practice, documents, or the AI Hint Coach inside that subject.</p>
-          </div>
-          <Link href="/manage" className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow">Manage content</Link>
+        <div>
+          <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">AP SUBJECT LIBRARY</span>
+          <h1 className="mt-3 text-3xl font-bold md:text-4xl">Choose your AP subject first</h1>
+          <p className="mt-2 max-w-2xl text-blue-100">Then open units, concepts, formulas, practice, documents, or the AI Hint Coach inside that subject.</p>
         </div>
       </section>
+
+      {favoriteSubjects.length > 0 && (
+        <section>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Favorites</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {favoriteSubjects.map((subject) => (
+              <Link key={subject.slug} href={`/ap/${subject.slug}`} className="badge">
+                ★ {subject.icon} {subject.shortName}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {recentSubjects.length > 0 && (
         <section>
