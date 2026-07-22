@@ -58,7 +58,7 @@ export default function ForumPage() {
       content: `${post.body}\n\n— ${post.author}`,
       category: "Forum",
     });
-    alert("Saved to Learning Box (this browser).");
+    alert("Saved to Private Learning Box (this browser).");
   }
 
   function handleDelete(id: string) {
@@ -131,7 +131,7 @@ export default function ForumPage() {
                     onClick={() => saveToLearningBox(p)}
                     className="text-brand-600 hover:underline"
                   >
-                    Save to Learning Box
+                    Save to Private Learning Box
                   </button>
                   <button
                     type="button"

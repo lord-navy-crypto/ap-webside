@@ -16,6 +16,8 @@ type Props = {
   label?: string;
   /** Called after successful save; receives latest managed content when available */
   onSaved?: (content?: unknown) => void;
+  /** Allows anonymous additions only in the public Sharing Materials bucket. */
+  allowPublicContribution?: boolean;
 };
 
 /**
@@ -29,6 +31,7 @@ export default function ChangePanel({
   spaceKey = ROOT_SPACE,
   label,
   onSaved,
+  allowPublicContribution = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [changeCode, setChangeCode] = useState("");
@@ -178,6 +181,7 @@ export default function ChangePanel({
           item,
           changeCode: changeCode.trim(),
           githubToken: githubToken.trim() || undefined,
+          publicContribution: allowPublicContribution,
         }),
       });
       const data = await res.json();
@@ -371,7 +375,7 @@ export default function ChangePanel({
             />
           )}
 
-          <div className="space-y-2 rounded-xl bg-amber-50 px-3 py-3">
+          {!allowPublicContribution && <div className="space-y-2 rounded-xl bg-amber-50 px-3 py-3">
             <label className="block text-sm font-medium text-amber-950">
               Change code (required to save)
             </label>
@@ -386,7 +390,13 @@ export default function ChangePanel({
             <p className="text-xs text-amber-900">
               Content code can add content/files. Master code can also add members.
             </p>
-          </div>
+          </div>}
+
+          {allowPublicContribution && (
+            <p className="rounded-xl bg-emerald-50 px-3 py-3 text-xs text-emerald-900">
+              Public contribution: no change code is needed. Do not upload private, sensitive, or copyrighted material you cannot share.
+            </p>
+          )}
 
           <details className="text-sm text-slate-600">
             <summary className="cursor-pointer font-medium">
@@ -406,7 +416,7 @@ export default function ChangePanel({
 
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Saving..." : "Save with change code"}
+              {loading ? "Saving..." : allowPublicContribution ? "Publish publicly" : "Save with change code"}
             </button>
             <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>
               Cancel

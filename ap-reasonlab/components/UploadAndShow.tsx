@@ -32,6 +32,8 @@ type Props = {
   title?: string;
   /** Keep uploads collapsed so study content stays first */
   collapsedByDefault?: boolean;
+  /** Anonymous users may add to Sharing Materials; deletion still requires a code. */
+  allowPublicContributions?: boolean;
 };
 
 /**
@@ -47,6 +49,7 @@ export default function UploadAndShow({
   spaceBasePath,
   title = "This folder’s storage",
   collapsedByDefault = false,
+  allowPublicContributions = false,
 }: Props) {
   const [allFiles, setAllFiles] = useState<ManagedFile[]>([]);
   const [allDocuments, setAllDocuments] = useState<ManagedDocument[]>([]);
@@ -223,6 +226,7 @@ export default function UploadAndShow({
                   folderArea={folderArea}
                   spaceKey={scopedSpace}
                   onSaved={onSaved}
+                  allowPublicContribution={allowPublicContributions}
                 />
                 {alsoShow.includes("document") && (
                   <ChangePanel
@@ -231,6 +235,7 @@ export default function UploadAndShow({
                     folderArea={folderArea}
                     spaceKey={scopedSpace}
                     onSaved={onSaved}
+                    allowPublicContribution={allowPublicContributions}
                   />
                 )}
                 {alsoShow.includes("concept") && (
@@ -241,6 +246,7 @@ export default function UploadAndShow({
                     folderArea={folderArea}
                     spaceKey={scopedSpace}
                     onSaved={onSaved}
+                    allowPublicContribution={allowPublicContributions}
                   />
                 )}
                 {alsoShow.includes("formula") && (
@@ -263,6 +269,7 @@ export default function UploadAndShow({
                     folderArea={folderArea}
                     spaceKey={scopedSpace}
                     onSaved={onSaved}
+                    allowPublicContribution={allowPublicContributions}
                   />
                 )}
               </div>
@@ -484,9 +491,9 @@ export default function UploadAndShow({
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-medium">{d.title}</p>
                               <p className="text-xs text-slate-500">{d.category}</p>
-                              <RichContent clampLines={4} className="mt-1 text-sm text-slate-600">
-                                {d.content}
-                              </RichContent>
+                              <div className="mt-2 max-h-72 overflow-y-auto overscroll-contain rounded-lg border border-slate-100 bg-slate-50 p-3 pr-2">
+                                <RichContent className="text-sm text-slate-600">{d.content}</RichContent>
+                              </div>
                             </div>
                             <button
                               type="button"

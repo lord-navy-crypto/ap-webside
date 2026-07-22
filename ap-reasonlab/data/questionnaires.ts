@@ -2,6 +2,7 @@ import { Questionnaire } from "@/lib/types";
 import { macroQuestionnaires } from "@/data/ap-macro";
 import { microQuestionnaires } from "@/data/ap-micro";
 import { physics2Questionnaires } from "@/data/ap-physics2";
+import { statsQuestionnaires } from "@/data/ap-stats";
 
 /**
  * Generated question sets only.
@@ -514,6 +515,7 @@ export const questionnaires: Questionnaire[] = [
   ...microQuestionnaires,
   ...macroQuestionnaires,
   ...physics2Questionnaires,
+  ...statsQuestionnaires,
 ];
 
 export function getQuestionnaireById(id: string): Questionnaire | undefined {
