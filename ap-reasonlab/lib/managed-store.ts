@@ -37,6 +37,46 @@ export type ManagedFolder = {
   space?: string;
 };
 
+export type ManagedSubject = {
+  id: string;
+  slug: string;
+  name: string;
+  shortName?: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  order: number;
+  enabled: boolean;
+  createdAt: number;
+};
+
+export type ManagedUnit = {
+  id: string;
+  subjectId: string;
+  title: string;
+  description?: string;
+  order: number;
+  enabled: boolean;
+  createdAt: number;
+};
+
+export type ManagedContentItem = {
+  id: string;
+  subjectId: string;
+  unitId?: string;
+  type: "concept" | "formula" | "practice" | "document" | "file" | "folder";
+  title: string;
+  content: string;
+  tags: string[];
+  difficulty?: "intro" | "standard" | "challenge";
+  source?: string;
+  status: "draft" | "published";
+  order: number;
+  createdAt: number;
+  updatedAt: number;
+  deletedAt?: number;
+};
+
 export type ManagedContent = {
   concepts: Concept[];
   formulas: Formula[];
@@ -44,6 +84,9 @@ export type ManagedContent = {
   files: ManagedFile[];
   members: { id: string; name: string; note?: string; addedAt: number }[];
   folders: ManagedFolder[];
+  subjects: ManagedSubject[];
+  units: ManagedUnit[];
+  contentItems: ManagedContentItem[];
   updatedAt: number;
 };
 
@@ -70,6 +113,9 @@ const emptyContent = (): ManagedContent => ({
   files: [],
   members: [],
   folders: [],
+  subjects: [],
+  units: [],
+  contentItems: [],
   updatedAt: 0,
 });
 
@@ -180,6 +226,9 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
       if (!parsed.documents) parsed.documents = [];
       if (!parsed.files) parsed.files = [];
       if (!parsed.folders) parsed.folders = [];
+      if (!parsed.subjects) parsed.subjects = [];
+      if (!parsed.units) parsed.units = [];
+      if (!parsed.contentItems) parsed.contentItems = [];
       return parsed;
     } catch {
       // fall through
@@ -188,6 +237,9 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
   const local = await readJsonFile(CONTENT_PATH, emptyContent());
   if (!local.members) local.members = [];
   if (!local.folders) local.folders = [];
+  if (!local.subjects) local.subjects = [];
+  if (!local.units) local.units = [];
+  if (!local.contentItems) local.contentItems = [];
   return local;
 }
 
