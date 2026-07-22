@@ -10,12 +10,15 @@ import {
 } from "@/data/questionnaires";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
+import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
 
 type Tab = "drills" | "sets";
 
 function PracticeContent() {
   const searchParams = useSearchParams();
   const subject = searchParams.get("subject");
+  const folderParam = searchParams.get("folder");
+  const spaceKey = spaceFromSearchParams({ subject, folder: folderParam });
   const [tab, setTab] = useState<Tab>("drills");
   const [mounted, setMounted] = useState(false);
 
@@ -54,7 +57,13 @@ function PracticeContent() {
             Open a subject folder first. Use + to add a document or upload a practice file (change code required).
           </p>
         </div>
-        <UploadAndShow alsoShow={["document", "folder"]} folderArea="practice" title="Uploaded files & notes" />
+        <UploadAndShow
+          alsoShow={["folder"]}
+          folderArea="practice"
+          spaceKey={ROOT_SPACE}
+          spaceBasePath="/practice"
+          title="Root practice storage"
+        />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -75,7 +84,13 @@ function PracticeContent() {
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["document", "folder"]} folderArea="practice" title="Uploaded files & notes" />
+      <UploadAndShow
+        alsoShow={["document", "folder"]}
+        folderArea="practice"
+        spaceKey={spaceKey}
+        spaceBasePath="/practice"
+        title={`${subject} storage`}
+      />
 
       <div className="card p-2">
         <div className="grid grid-cols-2 gap-2">

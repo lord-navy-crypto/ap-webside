@@ -39,6 +39,8 @@ export default function CodePage() {
       <UploadAndShow
         alsoShow={["document", "folder"]}
         folderArea="code"
+        spaceKey="_root"
+        spaceBasePath="/code"
         title="Uploaded files, docs & folders"
       />
 

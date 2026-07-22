@@ -40,7 +40,13 @@ export default function AcademicPlatformPage() {
         </p>
       </section>
 
-      <UploadAndShow alsoShow={["document", "folder"]} folderArea="academic" title="Uploaded files & notes" />
+      <UploadAndShow
+        alsoShow={["document", "folder"]}
+        folderArea="academic"
+        spaceKey="_root"
+        spaceBasePath="/academic"
+        title="Academic storage"
+      />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {academicTools.map((tool) => (

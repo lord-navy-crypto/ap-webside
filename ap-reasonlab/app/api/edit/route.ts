@@ -84,6 +84,8 @@ export async function POST(req: NextRequest) {
         content: String(item.content).slice(0, 200_000),
         category: String(item.category || "Uploaded"),
         updatedAt: Date.now(),
+        area: item.area ? String(item.area) : undefined,
+        space: item.space ? String(item.space) : undefined,
       });
     } else if (action === "add_file") {
       const item = body.item || {};
@@ -101,6 +103,8 @@ export async function POST(req: NextRequest) {
         note: item.note ? String(item.note) : undefined,
         uploadedAt: Date.now(),
         uploadedBy: "change-code",
+        area: item.area ? String(item.area) : undefined,
+        space: item.space ? String(item.space) : undefined,
       });
     } else if (action === "add_member") {
       if (!canManageMembers(level)) {
@@ -130,6 +134,7 @@ export async function POST(req: NextRequest) {
         area: String(item.area),
         note: item.note ? String(item.note) : undefined,
         createdAt: Date.now(),
+        space: item.space ? String(item.space) : "_root",
       });
     } else if (action === "delete") {
       const target = String(body.target || "");

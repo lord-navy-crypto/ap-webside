@@ -4,6 +4,7 @@ import { getConceptById } from "@/data/content";
 import { formulas } from "@/data/formulas";
 import { questionnaires } from "@/data/questionnaires";
 import type { Questionnaire } from "@/lib/types";
+import { loadManagedContent } from "@/lib/managed-store";
 
 export default async function ConceptDetailPage({
   params,
@@ -11,7 +12,11 @@ export default async function ConceptDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const concept = getConceptById(id);
+  let concept = getConceptById(id);
+  if (!concept) {
+    const managed = await loadManagedContent();
+    concept = (managed.concepts || []).find((c) => c.id === id);
+  }
 
   if (!concept) notFound();
 

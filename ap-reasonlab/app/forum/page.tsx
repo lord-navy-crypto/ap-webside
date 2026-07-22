@@ -74,7 +74,13 @@ export default function ForumPage() {
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["document", "folder"]} folderArea="forum" title="Uploaded files & notes" />
+      <UploadAndShow
+        alsoShow={["document", "folder"]}
+        folderArea="forum"
+        spaceKey="_root"
+        spaceBasePath="/forum"
+        title="Forum storage"
+      />
 
       <form onSubmit={handleSubmit} className="card space-y-3">
         <h2 className="text-lg font-semibold">New post</h2>

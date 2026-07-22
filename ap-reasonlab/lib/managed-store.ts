@@ -8,6 +8,10 @@ export type ManagedDocument = {
   content: string;
   category: string;
   updatedAt: number;
+  /** Page area: concepts | formulas | practice | … */
+  area?: string;
+  /** Isolated folder space: subject name, folder:{id}, or _root */
+  space?: string;
 };
 
 export type ManagedFile = {
@@ -18,6 +22,8 @@ export type ManagedFile = {
   note?: string;
   uploadedAt: number;
   uploadedBy?: string;
+  area?: string;
+  space?: string;
 };
 
 export type ManagedFolder = {
@@ -27,6 +33,8 @@ export type ManagedFolder = {
   area: string;
   note?: string;
   createdAt: number;
+  /** Parent storage space where this folder appears */
+  space?: string;
 };
 
 export type ManagedContent = {

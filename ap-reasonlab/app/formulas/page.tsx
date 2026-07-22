@@ -7,6 +7,7 @@ import { formulas, getFormulaSubjects } from "@/data/formulas";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
+import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
 
 function FormulasContent() {
   const searchParams = useSearchParams();
@@ -15,6 +16,8 @@ function FormulasContent() {
     return [...set].sort();
   }, []);
   const activeSubject = searchParams.get("subject");
+  const folderParam = searchParams.get("folder");
+  const spaceKey = spaceFromSearchParams({ subject: activeSubject, folder: folderParam });
   const [query, setQuery] = useState("");
   const [mounted, setMounted] = useState(false);
 
@@ -69,7 +72,13 @@ function FormulasContent() {
             Open a subject folder first. Use + to add a formula or upload a file (change code required).
           </p>
         </div>
-        <UploadAndShow alsoShow={["formula", "folder"]} folderArea="formulas" title="Uploaded files & notes" />
+        <UploadAndShow
+          alsoShow={["folder"]}
+          folderArea="formulas"
+          spaceKey={ROOT_SPACE}
+          spaceBasePath="/formulas"
+          title="Root formulas storage"
+        />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -87,7 +96,14 @@ function FormulasContent() {
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["formula", "folder"]} folderArea="formulas" defaultSubject={activeSubject || undefined} title="Uploaded files & notes" />
+      <UploadAndShow
+        alsoShow={["formula", "folder"]}
+        folderArea="formulas"
+        defaultSubject={activeSubject || undefined}
+        spaceKey={spaceKey}
+        spaceBasePath="/formulas"
+        title={`${activeSubject} storage`}
+      />
 
       <input
         type="text"

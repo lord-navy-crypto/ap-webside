@@ -37,6 +37,8 @@ export default function PartnersPage() {
       <UploadAndShow
         alsoShow={["member", "document", "folder"]}
         folderArea="partners"
+        spaceKey="_root"
+        spaceBasePath="/partners"
         title="Files, docs & folders"
       />
 

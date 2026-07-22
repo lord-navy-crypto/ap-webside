@@ -22,6 +22,8 @@ export default function CodePythonPage() {
       <UploadAndShow
         alsoShow={["document", "folder"]}
         folderArea="code-python"
+        spaceKey="_root"
+        spaceBasePath="/code/python"
         title="Python files & simulation notes"
       />
 

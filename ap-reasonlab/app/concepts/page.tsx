@@ -8,19 +8,55 @@ import { keyConceptGuides } from "@/data/key-concepts";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
+import {
+  ROOT_SPACE,
+  isFolderSpace,
+  spaceFromSearchParams,
+} from "@/lib/storage-space";
 
 type Filter = "all" | "concept" | "guide";
 
 function ConceptsContent() {
   const searchParams = useSearchParams();
   const subject = searchParams.get("subject");
+  const folderParam = searchParams.get("folder");
+  const spaceKey = spaceFromSearchParams({ subject, folder: folderParam });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [mounted, setMounted] = useState(false);
+  const [folderTitle, setFolderTitle] = useState<string | null>(null);
+  const [managedConcepts, setManagedConcepts] = useState<
+    Array<{ id: string; title: string; subject: string; summary: string }>
+  >([]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/edit", { cache: "no-store" });
+        const data = await res.json();
+        if (cancelled) return;
+        setManagedConcepts(Array.isArray(data.concepts) ? data.concepts : []);
+        if (folderParam) {
+          const found = (data.folders || []).find(
+            (f: { id: string }) => f.id === folderParam
+          );
+          setFolderTitle(found?.title || folderParam);
+        } else {
+          setFolderTitle(null);
+        }
+      } catch {
+        if (!cancelled && folderParam) setFolderTitle(folderParam);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [folderParam, spaceKey]);
 
   const subjects = useMemo(() => {
     const set = new Set<string>();
@@ -36,14 +72,14 @@ function ConceptsContent() {
     return {
       id: s,
       title: s,
-      subtitle: `${conceptCount} concepts · ${guideCount} guides`,
+      subtitle: `${conceptCount} concepts · ${guideCount} guides · private storage`,
       count: conceptCount + guideCount,
       href: `/concepts?subject=${encodeURIComponent(s)}`,
     };
   });
 
   const list = useMemo(() => {
-    if (!subject) return [];
+    if (!subject || isFolderSpace(spaceKey)) return [];
     const items: Array<{
       kind: "concept" | "guide";
       id: string;
@@ -53,8 +89,21 @@ function ConceptsContent() {
     }> = [];
 
     if (filter === "all" || filter === "concept") {
+      const seen = new Set<string>();
       concepts
         .filter((c) => c.subject === subject)
+        .forEach((c) => {
+          seen.add(c.id);
+          items.push({
+            kind: "concept",
+            id: c.id,
+            title: c.title,
+            summary: c.summary,
+            href: `/concepts/${c.id}`,
+          });
+        });
+      managedConcepts
+        .filter((c) => c.subject === subject && !seen.has(c.id))
         .forEach((c) =>
           items.push({
             kind: "concept",
@@ -79,7 +128,7 @@ function ConceptsContent() {
         );
     }
     return items;
-  }, [subject, filter]);
+  }, [subject, filter, spaceKey, managedConcepts]);
 
   const filtered = list.filter((item) => {
     if (!query.trim()) return true;
@@ -90,6 +139,35 @@ function ConceptsContent() {
     );
   });
 
+  // Custom nested folder view
+  if (folderParam && isFolderSpace(spaceKey)) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link
+            href={subject ? `/concepts?subject=${encodeURIComponent(subject)}` : "/concepts"}
+            className="text-sm text-brand-600 hover:underline"
+          >
+            ← Back
+          </Link>
+          <h1 className="mt-2 text-3xl font-bold">{folderTitle || "Folder"}</h1>
+          <p className="mt-2 text-slate-600">
+            Private storage for this folder only. Add a concept with area, name, and notes — AI
+            sorts into key points, common mistakes, and example.
+          </p>
+        </div>
+        <UploadAndShow
+          alsoShow={["concept", "document", "folder"]}
+          defaultSubject={subject || folderTitle || "Custom"}
+          folderArea="concepts"
+          spaceKey={spaceKey}
+          spaceBasePath="/concepts"
+          title="Folder storage"
+        />
+      </div>
+    );
+  }
+
   if (!subject) {
     return (
       <div className="space-y-6">
@@ -99,13 +177,16 @@ function ConceptsContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Concepts</h1>
           <p className="mt-2 text-slate-600">
-            Open a subject folder first. Upload files on the left — they show on the right immediately after a successful save.
+            Each subject folder has its own storage. Open a folder to add concepts and files —
+            they will not appear in other folders.
           </p>
         </div>
         <UploadAndShow
-          alsoShow={["concept", "folder"]}
+          alsoShow={["folder"]}
           folderArea="concepts"
-          title="Uploaded files & folders"
+          spaceKey={ROOT_SPACE}
+          spaceBasePath="/concepts"
+          title="Root concepts storage"
         />
         <FolderGrid folders={subjectFolders} />
       </div>
@@ -120,7 +201,8 @@ function ConceptsContent() {
         </Link>
         <h1 className="mt-2 text-3xl font-bold">{subject}</h1>
         <p className="mt-2 text-slate-600">
-          Concepts and key guides for this subject. Click a topic card to open it.
+          Private storage for {subject}. Type area, name, and paste notes — Auto-sort fills key
+          points, common mistakes, and examples.
         </p>
       </div>
 
@@ -128,7 +210,9 @@ function ConceptsContent() {
         alsoShow={["concept", "document", "folder"]}
         defaultSubject={subject}
         folderArea="concepts"
-        title="Uploaded files & folders"
+        spaceKey={spaceKey}
+        spaceBasePath="/concepts"
+        title={`${subject} storage`}
       />
 
       <div className="flex flex-wrap gap-2">
