@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getContentEditorSession, getSession } from "@/lib/auth";
 
 export async function GET() {
   const user = await getSession();
-  return NextResponse.json({ user });
+  const contentEditor = await getContentEditorSession();
+  return NextResponse.json({
+    user,
+    contentEditor,
+    canEditContent: Boolean(contentEditor),
+  });
 }

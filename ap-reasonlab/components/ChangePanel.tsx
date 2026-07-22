@@ -1,29 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
+import { useContentEditor } from "@/components/useContentEditor";
 
 type Mode = "concept" | "formula" | "document" | "file" | "member" | "folder";
 
 type Props = {
   mode: Mode;
-  /** Default subject / area name for concept/formula forms */
   defaultSubject?: string;
-  /** Page area for folder creation and file/doc scoping */
   folderArea?: string;
-  /** Isolated storage space key for this folder */
   spaceKey?: string;
   label?: string;
-  /** Called after successful save; receives latest managed content when available */
   onSaved?: (content?: unknown) => void;
-  /** Allows anonymous additions only in the public Sharing Materials bucket. */
   allowPublicContribution?: boolean;
 };
 
-/**
- * Plus-button editor: fill the form, then enter a change code to save.
- * Concepts: type area + name + paste notes → AI sorts into key points / mistakes / example.
- */
 export default function ChangePanel({
   mode,
   defaultSubject = "AP Physics 1",
@@ -33,6 +26,7 @@ export default function ChangePanel({
   onSaved,
   allowPublicContribution = false,
 }: Props) {
+  const { unlocked, editor, refresh } = useContentEditor();
   const [open, setOpen] = useState(false);
   const [changeCode, setChangeCode] = useState("");
   const [githubToken, setGithubToken] = useState("");
@@ -53,6 +47,7 @@ export default function ChangePanel({
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("Uploaded");
   const [memberNote, setMemberNote] = useState("");
+  const [githubUser, setGithubUser] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -64,11 +59,12 @@ export default function ChangePanel({
     formula: "Add formula",
     document: "Add document",
     file: "Upload file",
-    member: "Add member (master code only)",
+    member: "Add partner (any name + GitHub)",
     folder: "Add folder (own storage space)",
   };
 
   const scopedSpace = normalizeSpace(spaceKey);
+  const needsCodeField = !allowPublicContribution && !unlocked;
 
   function reset() {
     setTitle("");
@@ -80,6 +76,7 @@ export default function ChangePanel({
     setExpression("");
     setContent("");
     setMemberNote("");
+    setGithubUser("");
     setFile(null);
     setChangeCode("");
     setError("");
@@ -101,21 +98,19 @@ export default function ChangePanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: title.trim(),
-          area: subject.trim(),
-          summary: summary.trim(),
-          content: rawNotes.trim(),
+          name: title,
+          area: subject,
+          summary,
+          content: rawNotes,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "AI sort failed");
-      if (data.summary) setSummary(String(data.summary));
-      setKeyPointsText((data.keyPoints || []).join("\n"));
-      setMistakesText((data.commonMistakes || []).join("\n"));
-      setExample(String(data.example || ""));
-      setNote(
-        `${data.note || "Sorted."} ${data.aiMayBeWrong || ""}`.trim()
-      );
+      if (data.summary) setSummary(data.summary);
+      if (Array.isArray(data.keyPoints)) setKeyPointsText(data.keyPoints.join("\n"));
+      if (Array.isArray(data.commonMistakes)) setMistakesText(data.commonMistakes.join("\n"));
+      if (data.example) setExample(data.example);
+      setNote(data.note || "Sorted. Review fields, then save.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "AI sort failed");
     } finally {
@@ -129,6 +124,10 @@ export default function ChangePanel({
     setError("");
     setNote("");
     try {
+      if (needsCodeField && !changeCode.trim()) {
+        throw new Error("Enter the content change code, or unlock once at /login.");
+      }
+
       let action = "";
       let item: Record<string, unknown> = {};
 
@@ -144,31 +143,50 @@ export default function ChangePanel({
         };
       } else if (mode === "formula") {
         action = "add_formula";
-        item = { name: title, subject, unit, expression, variables: "", whenToUse: summary };
+        item = {
+          name: title,
+          subject,
+          unit,
+          expression,
+          variables: summary,
+          whenToUse: content,
+          sourceNote: "Managed upload",
+        };
       } else if (mode === "document") {
         action = "add_document";
-        item = { title, content, category, area: folderArea, space: scopedSpace };
+        item = {
+          title,
+          category,
+          content,
+          area: folderArea,
+          space: scopedSpace,
+        };
       } else if (mode === "file") {
-        if (!file) throw new Error("Choose a file first");
-        action = "add_file";
+        if (!file) throw new Error("Choose a file");
         const dataUrl = await readFileAsDataURL(file);
+        action = "add_file";
         item = {
           name: file.name,
-          mime: file.type,
+          mime: file.type || "application/octet-stream",
           dataUrl,
-          note: title || category,
+          note: memberNote || summary,
           area: folderArea,
           space: scopedSpace,
         };
       } else if (mode === "member") {
         action = "add_member";
-        item = { name: title, note: memberNote };
+        const handle = githubUser.trim().replace(/^@/, "");
+        const noteParts = [
+          memberNote.trim() || "TrueJet partner",
+          handle ? `github:${handle}` : "",
+        ].filter(Boolean);
+        item = { name: title.trim(), note: noteParts.join(" · ") };
       } else if (mode === "folder") {
         action = "add_folder";
         item = {
           title,
-          area: folderArea,
           note: memberNote || summary,
+          area: folderArea,
           space: scopedSpace,
         };
       }
@@ -179,21 +197,18 @@ export default function ChangePanel({
         body: JSON.stringify({
           action,
           item,
-          changeCode: changeCode.trim(),
+          changeCode: changeCode.trim() || undefined,
           githubToken: githubToken.trim() || undefined,
-          publicContribution: allowPublicContribution,
+          publicContribution: allowPublicContribution || undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
-
-      setNote(
-        data.mode === "github"
-          ? "Saved into this area/folder bucket. It should appear on the right now."
-          : "Saved into this area/folder bucket. It should appear on the right now."
-      );
+      setNote(data.note || "Saved.");
       reset();
+      setOpen(false);
       onSaved?.(data.content);
+      void refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -203,23 +218,12 @@ export default function ChangePanel({
 
   return (
     <div className="space-y-3">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-2 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-800 hover:bg-brand-100"
-      >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white">
-          +
-        </span>
+      <button type="button" className="btn-secondary" onClick={() => setOpen((v) => !v)}>
         {label || titles[mode]}
       </button>
-
       {open && (
-        <form onSubmit={handleSubmit} className="card space-y-3 border-brand-200">
-          <h3 className="font-semibold text-slate-900">{titles[mode]}</h3>
-          <p className="text-xs text-slate-500">
-            Saves only into this area + folder bucket — not mixed with other panels.
-          </p>
+        <form onSubmit={handleSubmit} className="card space-y-3">
+          <h3 className="font-semibold">{titles[mode]}</h3>
 
           {(mode === "concept" ||
             mode === "formula" ||
@@ -232,12 +236,10 @@ export default function ChangePanel({
                 mode === "formula"
                   ? "Formula name"
                   : mode === "member"
-                    ? "Member name"
+                    ? "Display name (anyone — type freely)"
                     : mode === "folder"
-                      ? "Folder name (becomes its own storage)"
-                      : mode === "concept"
-                        ? "Name (concept title)"
-                        : "Title"
+                      ? "Folder title"
+                      : "Title"
               }
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -245,19 +247,10 @@ export default function ChangePanel({
             />
           )}
 
-          {mode === "folder" && (
-            <input
-              className="input"
-              placeholder="Note (optional)"
-              value={memberNote}
-              onChange={(e) => setMemberNote(e.target.value)}
-            />
-          )}
-
           {(mode === "concept" || mode === "formula") && (
             <input
               className="input"
-              placeholder="Area (e.g. AP Physics 1)"
+              placeholder="Subject / area"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               required
@@ -267,13 +260,13 @@ export default function ChangePanel({
           {mode === "concept" && (
             <>
               <textarea
-                className="textarea min-h-[90px]"
-                placeholder="Summary (stays on top; Markdown + $math$ ok)"
+                className="textarea min-h-[80px]"
+                placeholder="Short summary (optional)"
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
               />
               <textarea
-                className="textarea min-h-[140px]"
+                className="textarea"
                 placeholder="Related notes / AI production content — paste here, then Auto-sort"
                 value={rawNotes}
                 onChange={(e) => setRawNotes(e.target.value)}
@@ -293,13 +286,13 @@ export default function ChangePanel({
                 onChange={(e) => setKeyPointsText(e.target.value)}
               />
               <textarea
-                className="textarea min-h-[90px]"
+                className="textarea min-h-[80px]"
                 placeholder="Common mistakes (one per line)"
                 value={mistakesText}
                 onChange={(e) => setMistakesText(e.target.value)}
               />
               <textarea
-                className="textarea min-h-[90px]"
+                className="textarea min-h-[80px]"
                 placeholder="Example"
                 value={example}
                 onChange={(e) => setExample(e.target.value)}
@@ -311,22 +304,28 @@ export default function ChangePanel({
             <>
               <input
                 className="input"
-                placeholder="Unit"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Expression (Unicode or LaTeX, e.g. v = v_0 + at)"
+                placeholder="Expression"
                 value={expression}
                 onChange={(e) => setExpression(e.target.value)}
                 required
               />
               <input
                 className="input"
-                placeholder="When to use (optional)"
+                placeholder="Unit / topic"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Variables"
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
+              />
+              <textarea
+                className="textarea min-h-[80px]"
+                placeholder="When to use"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
               />
             </>
           )}
@@ -340,8 +339,8 @@ export default function ChangePanel({
                 onChange={(e) => setCategory(e.target.value)}
               />
               <textarea
-                className="textarea min-h-[120px]"
-                placeholder="Document text (Markdown + $E=mc^2$ supported)..."
+                className="textarea"
+                placeholder="Document content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
@@ -353,9 +352,9 @@ export default function ChangePanel({
             <>
               <input
                 className="input"
-                placeholder="Note (optional)"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Optional note"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
               />
               <input
                 type="file"
@@ -367,6 +366,27 @@ export default function ChangePanel({
           )}
 
           {mode === "member" && (
+            <>
+              <input
+                className="input"
+                placeholder="GitHub username (e.g. octocat)"
+                value={githubUser}
+                onChange={(e) => setGithubUser(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Role / note (optional)"
+                value={memberNote}
+                onChange={(e) => setMemberNote(e.target.value)}
+              />
+              <p className="text-xs text-slate-500">
+                Type any person — you are not limited to one preset name. Prefer the Partners page
+                join form for the same fields.
+              </p>
+            </>
+          )}
+
+          {mode === "folder" && (
             <input
               className="input"
               placeholder="Note (optional)"
@@ -375,37 +395,54 @@ export default function ChangePanel({
             />
           )}
 
-          {!allowPublicContribution && <div className="space-y-2 rounded-xl bg-amber-50 px-3 py-3">
-            <label className="block text-sm font-medium text-amber-950">
-              Change code (required to save)
-            </label>
-            <input
-              type="password"
-              className="input"
-              placeholder="Enter change code"
-              value={changeCode}
-              onChange={(e) => setChangeCode(e.target.value)}
-              required
-            />
-            <p className="text-xs text-amber-900">
-              Content code can add content/files. Master code can also add members.
+          {!allowPublicContribution && unlocked && (
+            <p className="rounded-xl bg-emerald-50 px-3 py-3 text-xs text-emerald-900">
+              Editor unlocked ({editor?.level}). Saves use your login session — no change code
+              needed.{" "}
+              <Link href="/login" className="font-medium underline">
+                Manage login
+              </Link>
             </p>
-          </div>}
+          )}
+
+          {!allowPublicContribution && needsCodeField && (
+            <div className="space-y-2 rounded-xl bg-amber-50 px-3 py-3">
+              <label className="block text-sm font-medium text-amber-950">
+                Content change code
+              </label>
+              <input
+                type="password"
+                className="input"
+                placeholder="Content code"
+                value={changeCode}
+                onChange={(e) => setChangeCode(e.target.value)}
+                required={needsCodeField}
+              />
+              <p className="text-xs text-amber-900">
+                Prefer the edit circle on any page, or{" "}
+                <Link href="/login" className="font-medium underline">
+                  /login
+                </Link>{" "}
+                once — then this field stays hidden.
+              </p>
+            </div>
+          )}
 
           {allowPublicContribution && (
             <p className="rounded-xl bg-emerald-50 px-3 py-3 text-xs text-emerald-900">
-              Public contribution: no change code is needed. Do not upload private, sensitive, or copyrighted material you cannot share.
+              Public contribution: no change code is needed. Do not upload private, sensitive, or
+              copyrighted material you cannot share.
             </p>
           )}
 
           <details className="text-sm text-slate-600">
             <summary className="cursor-pointer font-medium">
-              GitHub publish token (for Vercel)
+              GitHub publish token (optional override)
             </summary>
             <input
               type="password"
               className="input mt-2"
-              placeholder="ghp_... optional if CONTENT_GITHUB_TOKEN is set on Vercel"
+              placeholder="optional if CONTENT_GITHUB_TOKEN is set on Vercel"
               value={githubToken}
               onChange={(e) => setGithubToken(e.target.value)}
             />
@@ -416,7 +453,7 @@ export default function ChangePanel({
 
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Saving..." : allowPublicContribution ? "Publish publicly" : "Save with change code"}
+              {loading ? "Saving..." : "Save"}
             </button>
             <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>
               Cancel

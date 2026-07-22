@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ChangePanel from "@/components/ChangePanel";
 import RichContent from "@/components/RichContent";
+import { useContentEditor } from "@/components/useContentEditor";
 import type {
   ManagedContent,
   ManagedDocument,
@@ -51,6 +52,7 @@ export default function UploadAndShow({
   collapsedByDefault = false,
   allowPublicContributions = false,
 }: Props) {
+  const { unlocked } = useContentEditor();
   const [allFiles, setAllFiles] = useState<ManagedFile[]>([]);
   const [allDocuments, setAllDocuments] = useState<ManagedDocument[]>([]);
   const [allFolders, setAllFolders] = useState<ManagedFolder[]>([]);
@@ -101,6 +103,15 @@ export default function UploadAndShow({
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    function onEditMode(event: Event) {
+      const detail = (event as CustomEvent<{ on?: boolean }>).detail;
+      if (detail?.on) setExpanded(true);
+    }
+    window.addEventListener("results-edit-mode", onEditMode);
+    return () => window.removeEventListener("results-edit-mode", onEditMode);
+  }, []);
+
   const onSaved = (content?: unknown) => {
     if (content) applyContent(content as ManagedContent);
     else void refresh();
@@ -110,8 +121,8 @@ export default function UploadAndShow({
     target: "file" | "document" | "folder" | "concept" | "formula",
     id: string
   ) {
-    if (!changeCode.trim()) {
-      setError("Enter a change code below, then press − to delete.");
+    if (!unlocked && !changeCode.trim()) {
+      setError("Unlock at /login with the content code, or enter it below, then press − to delete.");
       return;
     }
     if (!confirm("Delete this item from this folder’s storage?")) return;
@@ -125,7 +136,7 @@ export default function UploadAndShow({
           action: "delete",
           target,
           id,
-          changeCode: changeCode.trim(),
+          changeCode: changeCode.trim() || undefined,
           githubToken: githubToken.trim() || undefined,
         }),
       });
@@ -274,22 +285,33 @@ export default function UploadAndShow({
                 )}
               </div>
               <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <label className="block text-xs font-medium text-slate-600">
-                  Change code (needed to delete with −)
-                </label>
-                <input
-                  type="password"
-                  className="input"
-                  placeholder="Content or master change code"
-                  value={changeCode}
-                  onChange={(e) => setChangeCode(e.target.value)}
-                />
+                {unlocked ? (
+                  <p className="text-xs text-emerald-800">
+                    Editor unlocked — delete uses your login session.{" "}
+                    <Link href="/login" className="font-medium underline">
+                      /login
+                    </Link>
+                  </p>
+                ) : (
+                  <>
+                    <label className="block text-xs font-medium text-slate-600">
+                      Content code (needed to delete with −), or unlock once at /login
+                    </label>
+                    <input
+                      type="password"
+                      className="input"
+                      placeholder="Content change code"
+                      value={changeCode}
+                      onChange={(e) => setChangeCode(e.target.value)}
+                    />
+                  </>
+                )}
                 <details className="text-xs text-slate-500">
                   <summary className="cursor-pointer">GitHub token (optional)</summary>
                   <input
                     type="password"
                     className="input mt-2"
-                    placeholder="ghp_... if not set on Vercel"
+                    placeholder="optional if CONTENT_GITHUB_TOKEN is set on Vercel"
                     value={githubToken}
                     onChange={(e) => setGithubToken(e.target.value)}
                   />

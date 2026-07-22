@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   canEditContent,
-  canManageMembers,
   resolveChangeLevel,
 } from "@/lib/change-codes";
-import { getGithubTokenFromCookie, setGithubTokenCookie } from "@/lib/auth";
+import { getContentEditorLevel, getGithubTokenFromCookie, setGithubTokenCookie } from "@/lib/auth";
 import {
   loadManagedContent,
   saveManagedContent,
@@ -90,10 +89,15 @@ export async function POST(req: NextRequest) {
     if (publicForumContribution && forumRateLimited(req)) {
       return NextResponse.json({ error: "Please wait a few seconds before posting again" }, { status: 429 });
     }
-    const level = resolveChangeLevel(body.changeCode);
+    const levelFromCode = resolveChangeLevel(body.changeCode);
+    const levelFromSession = await getContentEditorLevel();
+    const level = levelFromCode || levelFromSession;
     if (!publicMaterialsContribution && !publicForumContribution && !canEditContent(level)) {
       return NextResponse.json(
-        { error: "Wrong or missing change code. Enter the content code or master code to save." },
+        {
+          error:
+            "Editor not unlocked. Open /login and enter the content change code once, then save again.",
+        },
         { status: 401 }
       );
     }
@@ -306,9 +310,10 @@ export async function POST(req: NextRequest) {
         space: item.space ? String(item.space) : undefined,
       });
     } else if (action === "add_member") {
-      if (!canManageMembers(level)) {
+      // Content-code editors can add partners; master still works too.
+      if (!canEditContent(level)) {
         return NextResponse.json(
-          { error: "Only the master change code can add members." },
+          { error: "Unlock with the content change code (or master) to add members." },
           { status: 403 }
         );
       }
@@ -338,9 +343,9 @@ export async function POST(req: NextRequest) {
     } else if (action === "delete") {
       const target = String(body.target || "");
       const id = String(body.id || "");
-      if (target === "member" && !canManageMembers(level)) {
+      if (target === "member" && !canEditContent(level)) {
         return NextResponse.json(
-          { error: "Only the master change code can remove members." },
+          { error: "Unlock with the content change code (or master) to remove members." },
           { status: 403 }
         );
       }

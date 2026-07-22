@@ -230,9 +230,14 @@ async function githubWrite(
 
   if (!putRes.ok) {
     const errText = await putRes.text();
+    let hint = "";
+    if (putRes.status === 403 || putRes.status === 401) {
+      hint =
+        " Check CONTENT_GITHUB_TOKEN on Vercel: Fine-grained PAT needs repo ap-webside + Contents Read and write. Classic PAT needs the repo scope.";
+    }
     return {
       ok: false,
-      error: `GitHub write failed (${putRes.status}): ${errText.slice(0, 300)}`,
+      error: `GitHub write failed (${putRes.status}): ${errText.slice(0, 300)}${hint}`,
     };
   }
   return { ok: true };
