@@ -1,7 +1,17 @@
 {
   "concepts": [],
   "formulas": [],
-  "documents": [],
+  "documents": [
+    {
+      "id": "m-doc-mrvrbswt-qawj4",
+      "title": "code",
+      "content": "public class Person {\n\n    // instance variables\n    String name;\n    int age;\n    String gender;\n\n    // constructor 构造器\n    public Person(String name, int age, String gender) {\n        this.name = name;\n        this.age = age;\n        this.gender = gender;\n    }\n\n    // method 方法\n    public void speak() {\n        System.out.println(\"nihao\");\n    }\n\n    public static void main(String[] args) {\n        Person p1 = new Person(\"zhangsan\", 18, \"male\"); // 创建对象 p1\n        p1.speak();  // 调用方法\n\n        System.out.println(p1.name);\n        System.out.println(p1.age);\n        System.out.println(p1.gender);\n\n        System.out.println(p1); // 打印对象引用地址（内存中的地址）\n    }\n}",
+      "category": "Java",
+      "updatedAt": 1784705084957,
+      "area": "code-java",
+      "space": "_root"
+    }
+  ],
   "files": [
     {
       "id": "m-file-mrvofuf0-dy78s",
@@ -60,6 +70,9 @@
     }
   ],
   "members": [],
-  "updatedAt": 1784700234684,
-  "folders": []
+  "updatedAt": 1784705084957,
+  "folders": [],
+  "subjects": [],
+  "units": [],
+  "contentItems": []
 }
