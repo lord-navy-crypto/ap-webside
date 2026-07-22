@@ -47,6 +47,7 @@ export default function ChangePanel({
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("Uploaded");
   const [memberNote, setMemberNote] = useState("");
+  const [githubUser, setGithubUser] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export default function ChangePanel({
     formula: "Add formula",
     document: "Add document",
     file: "Upload file",
-    member: "Add member (master code only)",
+    member: "Add partner (any name + GitHub)",
     folder: "Add folder (own storage space)",
   };
 
@@ -75,6 +76,7 @@ export default function ChangePanel({
     setExpression("");
     setContent("");
     setMemberNote("");
+    setGithubUser("");
     setFile(null);
     setChangeCode("");
     setError("");
@@ -122,9 +124,6 @@ export default function ChangePanel({
     setError("");
     setNote("");
     try {
-      if (mode === "member" && editor?.level === "content" && !changeCode.trim()) {
-        throw new Error("Adding members still needs a master code (content login is not enough).");
-      }
       if (needsCodeField && !changeCode.trim()) {
         throw new Error("Enter the content change code, or unlock once at /login.");
       }
@@ -176,7 +175,12 @@ export default function ChangePanel({
         };
       } else if (mode === "member") {
         action = "add_member";
-        item = { name: title, note: memberNote };
+        const handle = githubUser.trim().replace(/^@/, "");
+        const noteParts = [
+          memberNote.trim() || "TrueJet partner",
+          handle ? `github:${handle}` : "",
+        ].filter(Boolean);
+        item = { name: title.trim(), note: noteParts.join(" · ") };
       } else if (mode === "folder") {
         action = "add_folder";
         item = {
@@ -232,7 +236,7 @@ export default function ChangePanel({
                 mode === "formula"
                   ? "Formula name"
                   : mode === "member"
-                    ? "Member name"
+                    ? "Display name (anyone — type freely)"
                     : mode === "folder"
                       ? "Folder title"
                       : "Title"
@@ -362,12 +366,24 @@ export default function ChangePanel({
           )}
 
           {mode === "member" && (
-            <input
-              className="input"
-              placeholder="Note (optional)"
-              value={memberNote}
-              onChange={(e) => setMemberNote(e.target.value)}
-            />
+            <>
+              <input
+                className="input"
+                placeholder="GitHub username (e.g. octocat)"
+                value={githubUser}
+                onChange={(e) => setGithubUser(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Role / note (optional)"
+                value={memberNote}
+                onChange={(e) => setMemberNote(e.target.value)}
+              />
+              <p className="text-xs text-slate-500">
+                Type any person — you are not limited to one preset name. Prefer the Partners page
+                join form for the same fields.
+              </p>
+            </>
           )}
 
           {mode === "folder" && (
@@ -379,7 +395,7 @@ export default function ChangePanel({
             />
           )}
 
-          {!allowPublicContribution && unlocked && mode !== "member" && (
+          {!allowPublicContribution && unlocked && (
             <p className="rounded-xl bg-emerald-50 px-3 py-3 text-xs text-emerald-900">
               Editor unlocked ({editor?.level}). Saves use your login session — no change code
               needed.{" "}
@@ -389,27 +405,25 @@ export default function ChangePanel({
             </p>
           )}
 
-          {!allowPublicContribution && (needsCodeField || mode === "member") && (
+          {!allowPublicContribution && needsCodeField && (
             <div className="space-y-2 rounded-xl bg-amber-50 px-3 py-3">
               <label className="block text-sm font-medium text-amber-950">
-                {mode === "member"
-                  ? "Master change code (required for members)"
-                  : "Content change code"}
+                Content change code
               </label>
               <input
                 type="password"
                 className="input"
-                placeholder={mode === "member" ? "Master code" : "Content code"}
+                placeholder="Content code"
                 value={changeCode}
                 onChange={(e) => setChangeCode(e.target.value)}
-                required={needsCodeField || mode === "member"}
+                required={needsCodeField}
               />
               <p className="text-xs text-amber-900">
-                Prefer{" "}
+                Prefer the edit circle on any page, or{" "}
                 <Link href="/login" className="font-medium underline">
                   /login
                 </Link>{" "}
-                once with the content code — then this field stays hidden for normal saves.
+                once — then this field stays hidden.
               </p>
             </div>
           )}

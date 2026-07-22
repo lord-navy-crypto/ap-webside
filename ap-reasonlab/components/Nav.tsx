@@ -9,6 +9,7 @@ const primaryLinks = [
   { href: "/ap", label: "AP" },
   { href: "/academic", label: "Academic" },
   { href: "/code", label: "Code" },
+  { href: "/hints", label: "AI Toolbox" },
   { href: "/forum", label: "Forum" },
   { href: "/search", label: "Search" },
 ];
@@ -19,6 +20,7 @@ const moreGroups = [
     links: [
       { href: "/", label: "Home" },
       { href: "/about", label: "About" },
+      { href: "/hints", label: "AI Toolbox" },
     ],
   },
   {

@@ -103,6 +103,15 @@ export default function UploadAndShow({
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    function onEditMode(event: Event) {
+      const detail = (event as CustomEvent<{ on?: boolean }>).detail;
+      if (detail?.on) setExpanded(true);
+    }
+    window.addEventListener("results-edit-mode", onEditMode);
+    return () => window.removeEventListener("results-edit-mode", onEditMode);
+  }, []);
+
   const onSaved = (content?: unknown) => {
     if (content) applyContent(content as ManagedContent);
     else void refresh();

@@ -8,19 +8,20 @@ Main areas:
 - Academic Platform (/academic): Private Learning Box, Shared Materials, Picture, Image Gen.
 - Code (/code): Python, Java, web resource folders.
 - Forum (/forum): public discussions and replies; a display name is required to post. Shared Materials is the separate public file library.
-- Partners (/partners): members (master change code to add).
-- Manage (/manage): no-code content manager (editors; needs change code).
+- Partners (/partners): TrueJet roster with GitHub links; add any person by display name + GitHub username (content change code / edit circle).
+- Manage (/manage): no-code content manager (editors; needs change code or content-login session).
 - Search (/search): find concepts, formulas, practice across subjects.
 - About (/about): brand, ethics, how change codes work (codes themselves are not published on the page — ask an admin).
-AI Toolbox (/hints): three tools — (1) Hint & Process for problems, (2) Concept Explainer, (3) Site Guide (this tool).
-Editing: No login required for browsing. Saving content uses a change code (content code for uploads/edits; master code can also add members). Set codes on Vercel as CONTENT_CHANGE_CODE and MASTER_CHANGE_CODE.
+AI Toolbox (/hints): listed in desktop nav and home. Three tools — (1) Hint & Process for problems, (2) Concept Explainer, (3) Site Guide (this tool).
+Editing: Browse freely. Click the edit circle (bottom-right) on any page or open /login, enter the content change code once, then edit without re-typing. Master code still works.
 Publishing: CONTENT_GITHUB_TOKEN on Vercel lets Manage/+ saves publish to GitHub.
-Authors / collaborators (public):
-- lord-navy-crypto — Founder / Full Admin (GitHub).
-- shulai-ui — Partner with GitHub write access.
-- Open partner seats via Partners / register flow.
+TrueJet / authors (public GitHub):
+- lord-navy-crypto — Founder / Full Admin (https://github.com/lord-navy-crypto).
+- shulai-ui — Partner with GitHub write access (https://github.com/shulai-ui).
+- Additional people: add via Partners join form (free name + GitHub), not a single fixed choice.
 Ethics: Learning only. Do not use on graded exams unless a teacher allows it. AI may be wrong — always verify with textbook/teacher.
 Random button: bottom-left control jumps to a random study page for exploration (not Manage/Admin).
+Edit circle: bottom-right ✎ control unlocks content editing and can expand edit panels on the current page.
 `.trim();
 
 export const HINT_PROCESS_SYSTEM = `You are an AP tutor for a non-profit learning site. Rules:

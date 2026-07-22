@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   canEditContent,
-  canManageMembers,
   resolveChangeLevel,
 } from "@/lib/change-codes";
 import { getContentEditorLevel, getGithubTokenFromCookie, setGithubTokenCookie } from "@/lib/auth";
@@ -311,9 +310,10 @@ export async function POST(req: NextRequest) {
         space: item.space ? String(item.space) : undefined,
       });
     } else if (action === "add_member") {
-      if (!canManageMembers(level)) {
+      // Content-code editors can add partners; master still works too.
+      if (!canEditContent(level)) {
         return NextResponse.json(
-          { error: "Only the master change code can add members." },
+          { error: "Unlock with the content change code (or master) to add members." },
           { status: 403 }
         );
       }
@@ -343,9 +343,9 @@ export async function POST(req: NextRequest) {
     } else if (action === "delete") {
       const target = String(body.target || "");
       const id = String(body.id || "");
-      if (target === "member" && !canManageMembers(level)) {
+      if (target === "member" && !canEditContent(level)) {
         return NextResponse.json(
-          { error: "Only the master change code can remove members." },
+          { error: "Unlock with the content change code (or master) to remove members." },
           { status: 403 }
         );
       }

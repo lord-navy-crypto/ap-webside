@@ -1,6 +1,6 @@
 import Link from "next/link";
 import EthicsBanner from "@/components/EthicsBanner";
-import { brand, collaborators } from "@/data/brand";
+import { brand, trueJetMembers } from "@/data/brand";
 
 export default function AboutPage() {
   return (
@@ -13,8 +13,9 @@ export default function AboutPage() {
           <Link href="/login" className="font-medium text-brand-700 hover:underline">
             /login
           </Link>{" "}
-          with the <strong>content change code</strong>. After that, saving content in this browser
-          does not ask for the code again.
+          or via the <strong>edit circle</strong> on any page with the{" "}
+          <strong>content change code</strong>. After that, saving in this browser does not ask for
+          the code again.
         </p>
       </section>
 
@@ -24,12 +25,12 @@ export default function AboutPage() {
         <h2 className="text-lg font-semibold">Content change code</h2>
         <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
           <li>
-            <strong>Content code</strong> — unlock editor login, then add/edit content and upload
-            files.
+            <strong>Content code</strong> — unlock editor login, then add/edit content, partners,
+            and upload files.
           </li>
           <li>
-            <strong>Master code</strong> — still exists for special actions (e.g. members), but
-            normal editing only needs the content code.
+            <strong>Master code</strong> — still works for the same edits when needed; normal
+            monthly page updates only need the content code.
           </li>
         </ul>
         <p className="text-sm text-slate-600">
@@ -42,9 +43,9 @@ export default function AboutPage() {
       </section>
 
       <section className="card space-y-3">
-        <h2 className="text-lg font-semibold">GitHub collaborators</h2>
+        <h2 className="text-lg font-semibold">TrueJet members</h2>
         <ul className="space-y-2 text-sm text-slate-700">
-          {collaborators.map((c) => (
+          {trueJetMembers.map((c) => (
             <li key={c.name}>
               <a
                 href={c.github}
@@ -54,7 +55,7 @@ export default function AboutPage() {
               >
                 {c.name}
               </a>{" "}
-              — {c.role}
+              — {c.role} · @{c.github.replace(/^https?:\/\/github\.com\//i, "")}
             </li>
           ))}
         </ul>

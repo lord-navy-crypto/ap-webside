@@ -11,6 +11,7 @@ const moreGroups = [
       { href: "/", label: "Home" },
       { href: "/academic", label: "Academic" },
       { href: "/code", label: "Code" },
+      { href: "/hints", label: "AI Toolbox" },
       { href: "/forum", label: "Forum" },
     ],
   },
