@@ -1,7 +1,15 @@
 {
   "concepts": [],
   "formulas": [],
-  "documents": [],
+  "documents": [
+    {
+      "id": "m-doc-mrvmj1ry-csr7r",
+      "title": "ap csa sum",
+      "content": "AP Computer Science A 以 Java 为核心，重点考查面向对象编程、程序逻辑、数组与算法分析。\n1. 基础语法与数据类型\n基本类型：int、double、boolean\n引用类型：对象、数组、String\n整数除法：5 / 2 得到 2\n类型转换：(double) a / b\n常用运算符：+ - * / %\n比较运算符：== != < <= > >=\n逻辑运算符：&& || !\n运算优先级与短路求值\n易错点：== 比较对象引用；字符串内容通常用 .equals()。\n2. 条件与循环\nif、else if、else\nwhile 循环\nfor 循环\n增强 for 循环\n嵌套循环\nDe Morgan 定律：!(A && B) 等价于 !A || !B\n!(A || B) 等价于 !A && !B\n\n重点掌握：循环次数、边界条件、变量最终值和数组越界问题。\n3. 类与对象\n类是模板，对象是类的实例\n实例变量保存对象状态\n构造方法初始化对象\n方法定义对象行为\nprivate 实现封装\npublic 提供外部访问\nthis 表示当前对象\nGetter 和 Setter\n方法重载：名称相同、参数列表不同\npublic class Student {\n    private String name;\n    private int score;\n\n    public Student(String name, int score) {\n        this.name = name;\n        this.score = score;\n    }\n\n    public int getScore() {\n        return score;\n    }\n}\n易错点：构造方法没有返回类型；局部变量可能遮蔽实例变量。\n4. 方法与参数传递\nJava 使用值传递\n基本类型传递数值副本\n对象参数传递引用值的副本\n方法能够修改对象内部状态\n重新给形参赋值不会改变调用方保存的引用\nreturn 立即结束当前方法\nvoid 方法不返回结果\n5. String\n常用方法：\nlength()\nsubstring(start)\nsubstring(start, end)\nindexOf(str)\nequals(str)\ncompareTo(str)\n注意：substring 的结束位置不包含在结果中；字符串不可变，方法通常返回新字符串。\n6. Math 类\nMath.abs(x)\nMath.pow(a, b)\nMath.sqrt(x)\nMath.random()\n生成 [a, b] 范围内的随机整数：\n(int) (Math.random() * (b - a + 1)) + a\n7. 一维数组\n创建：new int[length]\n长度：arr.length\n下标范围：0 到 arr.length - 1\n遍历、求和、计数、最大值和查找\n增强 for 循环适合读取元素\nint sum = 0;\nfor (int value : arr) {\n    sum += value;\n}\n增强 for 循环中的循环变量是副本，直接修改它通常不会修改数组元素。\n8. ArrayList\nadd(value)\nadd(index, value)\nget(index)\nset(index, value)\nremove(index)\nsize()\n删除元素时，后面的元素会向左移动。循环删除时通常从后向前遍历：\nfor (int i = list.size() - 1; i >= 0; i--) {\n    if (list.get(i) < 0) {\n        list.remove(i);\n    }\n}\n9. 二维数组\n创建：new int[rows][cols]\n行数：matrix.length\n列数：matrix[row].length\n通常使用嵌套循环按行遍历\nfor (int row = 0; row < matrix.length; row++) {\n    for (int col = 0; col < matrix[row].length; col++) {\n        System.out.println(matrix[row][col]);\n    }\n}",
+      "category": "Shared learning materials",
+      "updatedAt": 1784697024958
+    }
+  ],
   "files": [
     {
       "id": "m-file-mrvlncn8-af4dr",
@@ -14,6 +22,6 @@
     }
   ],
   "members": [],
-  "updatedAt": 1784695546052,
+  "updatedAt": 1784697024958,
   "folders": []
 }
