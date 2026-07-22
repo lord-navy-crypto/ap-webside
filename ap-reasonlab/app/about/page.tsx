@@ -30,7 +30,8 @@ export default function AboutPage() {
         </p>
         <p className="text-xs text-slate-500">
           Admins set them on Vercel with <code>CONTENT_CHANGE_CODE</code> and{" "}
-          <code>MASTER_CHANGE_CODE</code>. Also set <code>GITHUB_TOKEN</code> so saves publish.
+          <code>MASTER_CHANGE_CODE</code>. Also set <code>CONTENT_GITHUB_TOKEN</code> so saves
+          publish.
         </p>
       </section>
 

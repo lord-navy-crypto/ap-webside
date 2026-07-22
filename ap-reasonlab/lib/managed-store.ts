@@ -141,7 +141,12 @@ const emptyUsers = (): UsersFile => ({ users: [], updatedAt: 0 });
 
 function repoSettings() {
   return {
-    token: process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "",
+    // Prefer CONTENT_GITHUB_TOKEN — avoids clashing with platform-reserved GITHUB_TOKEN.
+    token:
+      process.env.CONTENT_GITHUB_TOKEN ||
+      process.env.GITHUB_TOKEN ||
+      process.env.GH_TOKEN ||
+      "",
     repo: process.env.GITHUB_REPO || "lord-navy-crypto/ap-webside",
     branch: process.env.GITHUB_BRANCH || "main",
   };
@@ -196,7 +201,7 @@ async function githubWrite(
     return {
       ok: false,
       error:
-        "No GitHub token. On Vercel the disk is read-only, so Manager saves need GITHUB_TOKEN (env) or a token pasted in Manager UI.",
+        "No GitHub token. On Vercel the disk is read-only, so Manager saves need CONTENT_GITHUB_TOKEN (env) or a token pasted in Manager UI.",
     };
   }
 

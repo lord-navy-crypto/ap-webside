@@ -94,7 +94,7 @@ export default function ManagePage() {
 
       <section className="card grid gap-3 md:grid-cols-2">
         <label className="text-sm font-medium">Change code<input type="password" className="input mt-1" value={changeCode} onChange={(event) => setChangeCode(event.target.value)} placeholder="Required for manager actions" /></label>
-        <label className="text-sm font-medium">GitHub token <span className="font-normal text-slate-400">(optional)</span><input type="password" className="input mt-1" value={githubToken} onChange={(event) => setGithubToken(event.target.value)} placeholder="Uses Vercel GITHUB_TOKEN when empty" /></label>
+        <label className="text-sm font-medium">GitHub token <span className="font-normal text-slate-400">(optional)</span><input type="password" className="input mt-1" value={githubToken} onChange={(event) => setGithubToken(event.target.value)} placeholder="Uses Vercel CONTENT_GITHUB_TOKEN when empty" /></label>
         {message && <p role="status" className="text-sm text-brand-700 md:col-span-2">{message}</p>}
       </section>
 
