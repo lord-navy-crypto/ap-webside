@@ -44,6 +44,9 @@ export async function POST(req: NextRequest) {
           files: body.files || [],
           members: body.members || current.members || [],
           folders: body.folders || current.folders || [],
+          subjects: body.subjects || current.subjects || [],
+          units: body.units || current.units || [],
+          contentItems: body.contentItems || current.contentItems || [],
           updatedAt: Date.now(),
         }
       : {
@@ -53,6 +56,9 @@ export async function POST(req: NextRequest) {
           files: body.files ?? current.files,
           members: body.members ?? current.members ?? [],
           folders: body.folders ?? current.folders ?? [],
+          subjects: body.subjects ?? current.subjects ?? [],
+          units: body.units ?? current.units ?? [],
+          contentItems: body.contentItems ?? current.contentItems ?? [],
           updatedAt: Date.now(),
         };
 
