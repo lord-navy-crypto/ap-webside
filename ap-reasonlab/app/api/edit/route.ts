@@ -21,10 +21,46 @@ async function tokenFrom(body: { githubToken?: string }) {
   return getGithubTokenFromCookie();
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const token = await getGithubTokenFromCookie();
   const content = await loadManagedContent(token);
-  return NextResponse.json(content);
+  const code = req.nextUrl.searchParams.get("changeCode")?.trim() || "";
+  const level = resolveChangeLevel(code);
+
+  // Without a valid change code, never expose file binaries (dataUrl) to the public.
+  if (!canEditContent(level)) {
+    return NextResponse.json({
+      concepts: content.concepts || [],
+      formulas: content.formulas || [],
+      documents: (content.documents || []).map((d) => ({
+        ...d,
+        content: d.content?.slice(0, 500) || "",
+        truncated: (d.content?.length || 0) > 500,
+      })),
+      files: (content.files || []).map((f) => ({
+        id: f.id,
+        name: f.name,
+        mime: f.mime,
+        note: f.note,
+        uploadedAt: f.uploadedAt,
+        area: f.area,
+        space: f.space,
+        hasFile: Boolean(f.dataUrl),
+      })),
+      members: (content.members || []).map((m) => ({
+        id: m.id,
+        name: m.name,
+        note: m.note,
+        addedAt: m.addedAt,
+      })),
+      folders: content.folders || [],
+      updatedAt: content.updatedAt,
+      access: "public-redacted",
+      hint: "Shared file downloads need a change code. Use /my-files for private storage on this device.",
+    });
+  }
+
+  return NextResponse.json({ ...content, access: "full" });
 }
 
 export async function POST(req: NextRequest) {

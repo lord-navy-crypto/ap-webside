@@ -1,11 +1,11 @@
 /**
  * Client-side persistence using IndexedDB.
- * Used by /picture, /image-gen, and /learning-box pages.
- * All data stays in the user's browser — nothing is uploaded to a server.
+ * Used by /picture, /image-gen, /learning-box, and /my-files (private file manager).
+ * Private files never leave this browser unless the user explicitly publishes with a change code.
  */
 
 const DB_NAME = "ap-reasonlab";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export type ImageKind = "uploaded" | "generated";
 
@@ -36,6 +36,34 @@ export interface LearningBoxItem {
   createdAt: number;
 }
 
+/** Private file manager entry — stays in this browser only. */
+export interface PrivateFile {
+  id: string;
+  name: string;
+  mime: string;
+  dataUrl?: string;
+  note?: string;
+  /** Logical folder path, e.g. concepts/AP Physics 1 or my/notes */
+  folder: string;
+  createdAt: number;
+}
+
+export interface PrivateDoc {
+  id: string;
+  title: string;
+  content: string;
+  folder: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface PrivateFolder {
+  id: string;
+  title: string;
+  parent: string;
+  createdAt: number;
+}
+
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function openDB(): Promise<IDBDatabase> {
@@ -59,6 +87,19 @@ function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains("learningBox")) {
         const store = db.createObjectStore("learningBox", { keyPath: "id" });
         store.createIndex("category", "category", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("privateFiles")) {
+        const store = db.createObjectStore("privateFiles", { keyPath: "id" });
+        store.createIndex("folder", "folder", { unique: false });
+        store.createIndex("createdAt", "createdAt", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("privateDocs")) {
+        const store = db.createObjectStore("privateDocs", { keyPath: "id" });
+        store.createIndex("folder", "folder", { unique: false });
+      }
+      if (!db.objectStoreNames.contains("privateFolders")) {
+        const store = db.createObjectStore("privateFolders", { keyPath: "id" });
+        store.createIndex("parent", "parent", { unique: false });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -168,4 +209,96 @@ export async function getRandomLearningItem(excludeId?: string): Promise<Learnin
   const pool = excludeId ? all.filter((i) => i.id !== excludeId) : all;
   if (pool.length === 0) return null;
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ── Private file manager (this device only) ──
+export async function savePrivateFile(
+  file: Omit<PrivateFile, "id" | "createdAt"> & { id?: string }
+): Promise<PrivateFile> {
+  const record: PrivateFile = {
+    id: file.id ?? uid(),
+    name: file.name,
+    mime: file.mime,
+    dataUrl: file.dataUrl,
+    note: file.note,
+    folder: file.folder || "root",
+    createdAt: Date.now(),
+  };
+  await tx("privateFiles", "readwrite", (s) => s.put(record));
+  return record;
+}
+
+export async function getPrivateFiles(folder?: string): Promise<PrivateFile[]> {
+  const all = await tx<PrivateFile[]>("privateFiles", "readonly", (s) => s.getAll());
+  return all
+    .filter((f) => !folder || f.folder === folder)
+    .sort((a, b) => b.createdAt - a.createdAt);
+}
+
+export async function deletePrivateFile(id: string): Promise<void> {
+  await tx("privateFiles", "readwrite", (s) => s.delete(id));
+}
+
+export async function savePrivateDoc(
+  doc: Omit<PrivateDoc, "id" | "createdAt" | "updatedAt"> & { id?: string }
+): Promise<PrivateDoc> {
+  const now = Date.now();
+  if (doc.id) {
+    const existing = await tx<PrivateDoc | undefined>("privateDocs", "readonly", (s) => s.get(doc.id!));
+    if (existing) {
+      const updated: PrivateDoc = { ...existing, ...doc, id: doc.id, updatedAt: now };
+      await tx("privateDocs", "readwrite", (s) => s.put(updated));
+      return updated;
+    }
+  }
+  const record: PrivateDoc = {
+    id: doc.id ?? uid(),
+    title: doc.title,
+    content: doc.content,
+    folder: doc.folder || "root",
+    createdAt: now,
+    updatedAt: now,
+  };
+  await tx("privateDocs", "readwrite", (s) => s.add(record));
+  return record;
+}
+
+export async function getPrivateDocs(folder?: string): Promise<PrivateDoc[]> {
+  const all = await tx<PrivateDoc[]>("privateDocs", "readonly", (s) => s.getAll());
+  return all
+    .filter((d) => !folder || d.folder === folder)
+    .sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
+export async function deletePrivateDoc(id: string): Promise<void> {
+  await tx("privateDocs", "readwrite", (s) => s.delete(id));
+}
+
+export async function savePrivateFolder(
+  folder: Omit<PrivateFolder, "id" | "createdAt"> & { id?: string }
+): Promise<PrivateFolder> {
+  const record: PrivateFolder = {
+    id: folder.id ?? uid(),
+    title: folder.title,
+    parent: folder.parent || "root",
+    createdAt: Date.now(),
+  };
+  await tx("privateFolders", "readwrite", (s) => s.put(record));
+  return record;
+}
+
+export async function getPrivateFolders(parent?: string): Promise<PrivateFolder[]> {
+  const all = await tx<PrivateFolder[]>("privateFolders", "readonly", (s) => s.getAll());
+  return all
+    .filter((f) => !parent || f.parent === parent)
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
+
+export async function deletePrivateFolder(id: string): Promise<void> {
+  await tx("privateFolders", "readwrite", (s) => s.delete(id));
+}
+
+export async function listAllPrivateFolders(): Promise<PrivateFolder[]> {
+  const all = await tx<PrivateFolder[]>("privateFolders", "readonly", (s) => s.getAll());
+  return all.sort((a, b) => a.title.localeCompare(b.title));
 }

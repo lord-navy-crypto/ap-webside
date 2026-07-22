@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ChangePanel from "@/components/ChangePanel";
+import PrivateFileManager from "@/components/PrivateFileManager";
 import RichContent from "@/components/RichContent";
 import type {
   ManagedContent,
@@ -30,6 +31,8 @@ type Props = {
   /** Base path for opening nested folders, e.g. /concepts */
   spaceBasePath?: string;
   title?: string;
+  /** Show private IndexedDB manager above shared publish tools */
+  showPrivateManager?: boolean;
 };
 
 export default function UploadAndShow({
@@ -39,6 +42,7 @@ export default function UploadAndShow({
   spaceKey = ROOT_SPACE,
   spaceBasePath,
   title = "This folder’s storage",
+  showPrivateManager = true,
 }: Props) {
   const [allFiles, setAllFiles] = useState<ManagedFile[]>([]);
   const [allDocuments, setAllDocuments] = useState<ManagedDocument[]>([]);
@@ -47,11 +51,13 @@ export default function UploadAndShow({
   const [allFormulas, setAllFormulas] = useState<Formula[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [accessHint, setAccessHint] = useState("");
   const [changeCode, setChangeCode] = useState("");
   const [githubToken, setGithubToken] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const scopedSpace = normalizeSpace(spaceKey);
+  const privateFolderKey = `${folderArea}::${scopedSpace}`;
   const subjectForForms =
     defaultSubject ||
     (scopedSpace !== ROOT_SPACE && !scopedSpace.startsWith("folder:")
@@ -70,16 +76,25 @@ export default function UploadAndShow({
   const refresh = useCallback(async () => {
     setError("");
     try {
-      const res = await fetch("/api/edit", { cache: "no-store" });
+      const q = changeCode.trim()
+        ? `?changeCode=${encodeURIComponent(changeCode.trim())}`
+        : "";
+      const res = await fetch(`/api/edit${q}`, { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load files");
       applyContent(data);
+      setAccessHint(
+        data.access === "full"
+          ? "Shared library unlocked (change code)."
+          : data.hint ||
+              "Shared file downloads are locked. Enter a change code below, or use private My Files."
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load files");
     } finally {
       setLoading(false);
     }
-  }, [applyContent]);
+  }, [applyContent, changeCode]);
 
   useEffect(() => {
     refresh();
@@ -172,10 +187,35 @@ export default function UploadAndShow({
   )}`;
 
   return (
+    <div className="space-y-6">
+      {showPrivateManager && (
+        <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm md:p-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-emerald-900">
+              Private files for this folder (this device)
+            </p>
+            <Link href="/my-files" className="text-xs font-medium text-brand-600 hover:underline">
+              Open full My Files →
+            </Link>
+          </div>
+          <PrivateFileManager
+            defaultFolder={privateFolderKey}
+            title="Private folder storage"
+            compact
+          />
+        </div>
+      )}
+
+      <div className="rounded-2xl border border-amber-200 bg-amber-50/40 px-4 py-3 text-sm text-amber-950">
+        <strong>Shared site library (below)</strong> is separate. Publishing with a change code can
+        make content visible on the site. Prefer <Link href="/my-files" className="underline">My Files</Link>{" "}
+        for personal material.
+      </div>
+
     <div className="grid gap-4 lg:grid-cols-2">
       <div className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Add / upload in this folder only
+          Publish to shared site (optional)
         </h2>
         <div className="flex flex-col gap-3">
           <ChangePanel
@@ -266,10 +306,11 @@ export default function UploadAndShow({
         ) : (
           <div className="card max-h-[28rem] space-y-4 overflow-y-auto overscroll-contain pr-1">
             {error && <p className="whitespace-pre-wrap text-sm text-red-600">{error}</p>}
+            {accessHint && <p className="text-xs text-slate-500">{accessHint}</p>}
 
             <p className="text-xs text-slate-500">
-              Isolated storage for this folder only. Other subject/custom folders do not share these
-              files.
+              Shared library for this folder space. File binaries stay locked until you enter a
+              change code. Personal work belongs in My Files (private).
             </p>
 
             {folders.length > 0 && (
@@ -459,6 +500,7 @@ export default function UploadAndShow({
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
