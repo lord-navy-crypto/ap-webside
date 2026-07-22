@@ -6,6 +6,7 @@ import { questionnaires } from "@/data/questionnaires";
 import type { Questionnaire } from "@/lib/types";
 import { loadManagedContent } from "@/lib/managed-store";
 import RichContent, { FormulaMath } from "@/components/RichContent";
+import ConceptAskAi from "@/components/ConceptAskAi";
 
 export default async function ConceptDetailPage({
   params,
@@ -33,7 +34,7 @@ export default async function ConceptDetailPage({
           ← Back to concepts
         </Link>
         <Link href="/hints" className="text-sm text-brand-600 hover:underline">
-          Ask Hint Coach →
+          Open AI Toolbox →
         </Link>
       </div>
 
@@ -104,13 +105,12 @@ export default async function ConceptDetailPage({
         </section>
       )}
 
-      <section className="card border-dashed">
-        <h2 className="text-lg font-semibold">Ask AI (coming next)</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          This section will let you ask follow-up questions about this concept. The AI will
-          explain ideas without giving exam-style final answers.
-        </p>
-      </section>
+      <ConceptAskAi
+        defaultSubject={concept.subject}
+        conceptTitle={concept.title}
+        conceptSummary={concept.summary}
+        lockToConcept
+      />
     </div>
   );
 }
