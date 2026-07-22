@@ -129,7 +129,15 @@ export async function clearContentEditorCookie() {
 /** Optional GitHub PAT for publishing Manager saves (BYOK). */
 export async function setGithubTokenCookie(token: string) {
   const jar = await cookies();
-  jar.set(GH_COOKIE, token, {
+  // Lazy import avoided — sanitize inline for cookie safety
+  let t = token.trim();
+  if (
+    (t.startsWith('"') && t.endsWith('"')) ||
+    (t.startsWith("'") && t.endsWith("'"))
+  ) {
+    t = t.slice(1, -1).trim();
+  }
+  jar.set(GH_COOKIE, t, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -140,7 +148,14 @@ export async function setGithubTokenCookie(token: string) {
 
 export async function getGithubTokenFromCookie(): Promise<string | undefined> {
   const jar = await cookies();
-  const v = jar.get(GH_COOKIE)?.value?.trim();
+  let v = jar.get(GH_COOKIE)?.value?.trim();
+  if (!v) return undefined;
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
+    v = v.slice(1, -1).trim();
+  }
   return v || undefined;
 }
 

@@ -139,14 +139,30 @@ const emptyContent = (): ManagedContent => ({
 
 const emptyUsers = (): UsersFile => ({ users: [], updatedAt: 0 });
 
+/** Strip paste/env accidents that cause GitHub "Bad credentials" (401). */
+export function sanitizeGithubToken(raw?: string | null): string {
+  if (!raw) return "";
+  let t = String(raw).trim();
+  // Common Vercel/UI mistakes: wrapping quotes or accidental Bearer prefix
+  if (
+    (t.startsWith('"') && t.endsWith('"')) ||
+    (t.startsWith("'") && t.endsWith("'"))
+  ) {
+    t = t.slice(1, -1).trim();
+  }
+  if (/^bearer\s+/i.test(t)) t = t.replace(/^bearer\s+/i, "").trim();
+  return t;
+}
+
 function repoSettings() {
   return {
     // Prefer CONTENT_GITHUB_TOKEN — avoids clashing with platform-reserved GITHUB_TOKEN.
-    token:
+    token: sanitizeGithubToken(
       process.env.CONTENT_GITHUB_TOKEN ||
-      process.env.GITHUB_TOKEN ||
-      process.env.GH_TOKEN ||
-      "",
+        process.env.GITHUB_TOKEN ||
+        process.env.GH_TOKEN ||
+        ""
+    ),
     repo: process.env.GITHUB_REPO || "lord-navy-crypto/ap-webside",
     branch: process.env.GITHUB_BRANCH || "main",
   };
@@ -170,7 +186,7 @@ async function githubGet(
   token?: string
 ): Promise<{ text: string; sha: string } | null> {
   const { token: envToken, repo, branch } = repoSettings();
-  const auth = token || envToken;
+  const auth = sanitizeGithubToken(token) || envToken;
   if (!auth) return null;
 
   const apiPath = filePathInRepo.replace(/^\/+/, "");
@@ -196,7 +212,7 @@ async function githubWrite(
   token?: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const { token: envToken, repo, branch } = repoSettings();
-  const auth = token || envToken;
+  const auth = sanitizeGithubToken(token) || envToken;
   if (!auth) {
     return {
       ok: false,
@@ -231,9 +247,12 @@ async function githubWrite(
   if (!putRes.ok) {
     const errText = await putRes.text();
     let hint = "";
-    if (putRes.status === 403 || putRes.status === 401) {
+    if (putRes.status === 401) {
       hint =
-        " Check CONTENT_GITHUB_TOKEN on Vercel: Fine-grained PAT needs repo ap-webside + Contents Read and write. Classic PAT needs the repo scope.";
+        " Bad credentials = the token value is wrong, expired, or revoked (not a permissions issue). Create a new PAT at https://github.com/settings/tokens , set Vercel env CONTENT_GITHUB_TOKEN to the raw token only (no quotes), Redeploy, then save again. Do not paste the content change code here — that unlocks the UI only.";
+    } else if (putRes.status === 403) {
+      hint =
+        " Token was accepted but lacks write access. Fine-grained PAT: resource owner + repo ap-webside + Contents: Read and write. Classic PAT: enable the repo scope.";
     }
     return {
       ok: false,

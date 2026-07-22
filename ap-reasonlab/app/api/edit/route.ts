@@ -7,6 +7,7 @@ import { getContentEditorLevel, getGithubTokenFromCookie, setGithubTokenCookie }
 import {
   loadManagedContent,
   saveManagedContent,
+  sanitizeGithubToken,
   uid,
   type ManagedContent,
 } from "@/lib/managed-store";
@@ -23,7 +24,7 @@ function forumRateLimited(req: NextRequest): boolean {
 }
 
 async function tokenFrom(body: { githubToken?: string }) {
-  const t = body.githubToken?.trim();
+  const t = sanitizeGithubToken(body.githubToken);
   if (t) {
     await setGithubTokenCookie(t);
     return t;
