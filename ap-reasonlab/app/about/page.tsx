@@ -37,7 +37,8 @@ export default function AboutPage() {
           Ask a site admin for the content code. It is not published on this page.
         </p>
         <p className="text-xs text-slate-500">
-          Admins set <code>CONTENT_CHANGE_CODE</code> on Vercel. Publishing uses{" "}
+          Admins set <code>CONTENT_CHANGE_CODE</code> (and optional{" "}
+          <code>MASTER_CHANGE_CODE</code>) on Vercel. Publishing uses{" "}
           <code>CONTENT_GITHUB_TOKEN</code> (GitHub PAT with Contents write on this repo).
         </p>
       </section>
