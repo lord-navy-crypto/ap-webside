@@ -13,6 +13,16 @@ import {
 } from "@/lib/managed-store";
 import { subjectSlug } from "@/data/ap-catalog";
 
+const forumWriteTimes = new Map<string, number>();
+
+function forumRateLimited(req: NextRequest): boolean {
+  const client = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const now = Date.now();
+  const previous = forumWriteTimes.get(client) || 0;
+  forumWriteTimes.set(client, now);
+  return now - previous < 8_000;
+}
+
 async function tokenFrom(body: { githubToken?: string }) {
   const t = body.githubToken?.trim();
   if (t) {
@@ -58,6 +68,7 @@ export async function GET(req: NextRequest) {
         (f) => f.area === area && (f.space || "_root") === spaceKey
       ),
       members: content.members || [],
+      forumPosts: area === "forum" ? content.forumPosts || [] : undefined,
       updatedAt: content.updatedAt,
       scoped: { area, space: spaceKey },
     });
@@ -75,8 +86,12 @@ export async function POST(req: NextRequest) {
       body.publicContribution === true &&
       ["add_document", "add_file", "add_folder"].includes(action) &&
       String(item.area || "") === "materials";
+    const publicForumContribution = ["add_forum_post", "add_forum_reply"].includes(action);
+    if (publicForumContribution && forumRateLimited(req)) {
+      return NextResponse.json({ error: "Please wait a few seconds before posting again" }, { status: 429 });
+    }
     const level = resolveChangeLevel(body.changeCode);
-    if (!publicMaterialsContribution && !canEditContent(level)) {
+    if (!publicMaterialsContribution && !publicForumContribution && !canEditContent(level)) {
       return NextResponse.json(
         { error: "Wrong or missing change code. Enter the content code or master code to save." },
         { status: 401 }
@@ -90,8 +105,43 @@ export async function POST(req: NextRequest) {
     if (!current.subjects) current.subjects = [];
     if (!current.units) current.units = [];
     if (!current.contentItems) current.contentItems = [];
+    if (!current.forumPosts) current.forumPosts = [];
 
-    if (action === "add_subject") {
+    if (action === "add_forum_post") {
+      const author = String(item.author || "").trim();
+      const title = String(item.title || "").trim();
+      const postBody = String(item.body || "").trim();
+      if (author.length < 2 || author.length > 40) {
+        return NextResponse.json({ error: "Display name must be 2–40 characters" }, { status: 400 });
+      }
+      if (!title || title.length > 120) {
+        return NextResponse.json({ error: "Title must be 1–120 characters" }, { status: 400 });
+      }
+      if (!postBody || postBody.length > 8_000) {
+        return NextResponse.json({ error: "Post must be 1–8,000 characters" }, { status: 400 });
+      }
+      current.forumPosts.unshift({
+        id: uid("forum-post"),
+        author,
+        title,
+        body: postBody,
+        createdAt: Date.now(),
+        replies: [],
+      });
+    } else if (action === "add_forum_reply") {
+      const author = String(item.author || "").trim();
+      const replyBody = String(item.body || "").trim();
+      const post = current.forumPosts.find((entry) => entry.id === String(item.postId || ""));
+      if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      if (author.length < 2 || author.length > 40) {
+        return NextResponse.json({ error: "Display name must be 2–40 characters" }, { status: 400 });
+      }
+      if (!replyBody || replyBody.length > 4_000) {
+        return NextResponse.json({ error: "Reply must be 1–4,000 characters" }, { status: 400 });
+      }
+      if (!Array.isArray(post.replies)) post.replies = [];
+      post.replies.push({ id: uid("forum-reply"), author, body: replyBody, createdAt: Date.now() });
+    } else if (action === "add_subject") {
       const item = body.item || {};
       const name = String(item.name || "").trim();
       if (!name) return NextResponse.json({ error: "subject name required" }, { status: 400 });
@@ -307,6 +357,12 @@ export async function POST(req: NextRequest) {
       else if (target === "file") current.files = current.files.filter((f) => f.id !== id);
       else if (target === "member") current.members = current.members.filter((m) => m.id !== id);
       else if (target === "folder") current.folders = current.folders.filter((f) => f.id !== id);
+      else if (target === "forum_post") current.forumPosts = current.forumPosts.filter((post) => post.id !== id);
+      else if (target === "forum_reply") {
+        const post = current.forumPosts.find((entry) => entry.id === String(body.postId || ""));
+        if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });
+        post.replies = (post.replies || []).filter((reply) => reply.id !== id);
+      }
       else return NextResponse.json({ error: "Unknown delete target" }, { status: 400 });
     } else if (action === "set_github_token") {
       const t = String(body.githubToken || "").trim();

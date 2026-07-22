@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
           subjects: body.subjects || current.subjects || [],
           units: body.units || current.units || [],
           contentItems: body.contentItems || current.contentItems || [],
+          forumPosts: body.forumPosts || current.forumPosts || [],
           updatedAt: Date.now(),
         }
       : {
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
           subjects: body.subjects ?? current.subjects ?? [],
           units: body.units ?? current.units ?? [],
           contentItems: body.contentItems ?? current.contentItems ?? [],
+          forumPosts: body.forumPosts ?? current.forumPosts ?? [],
           updatedAt: Date.now(),
         };
 
