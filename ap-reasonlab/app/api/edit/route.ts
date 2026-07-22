@@ -11,6 +11,7 @@ import {
   uid,
   type ManagedContent,
 } from "@/lib/managed-store";
+import { subjectSlug } from "@/data/ap-catalog";
 
 async function tokenFrom(body: { githubToken?: string }) {
   const t = body.githubToken?.trim();
@@ -81,8 +82,109 @@ export async function POST(req: NextRequest) {
     const current: ManagedContent = await loadManagedContent(token);
     if (!current.members) current.members = [];
     if (!current.folders) current.folders = [];
+    if (!current.subjects) current.subjects = [];
+    if (!current.units) current.units = [];
+    if (!current.contentItems) current.contentItems = [];
 
-    if (action === "add_concept") {
+    if (action === "add_subject") {
+      const item = body.item || {};
+      const name = String(item.name || "").trim();
+      if (!name) return NextResponse.json({ error: "subject name required" }, { status: 400 });
+      const slug = subjectSlug(String(item.slug || name));
+      if (current.subjects.some((subject) => subject.slug === slug)) {
+        return NextResponse.json({ error: "A subject with this URL already exists" }, { status: 409 });
+      }
+      current.subjects.push({
+        id: uid("subject"),
+        slug,
+        name,
+        shortName: String(item.shortName || name.replace(/^AP /, "")),
+        description: String(item.description || ""),
+        icon: String(item.icon || "◇"),
+        color: String(item.color || "blue"),
+        order: Number.isFinite(Number(item.order)) ? Number(item.order) : current.subjects.length,
+        enabled: item.enabled !== false,
+        createdAt: Date.now(),
+      });
+    } else if (action === "add_unit") {
+      const item = body.item || {};
+      if (!item.subjectId || !item.title) {
+        return NextResponse.json({ error: "subject and unit title required" }, { status: 400 });
+      }
+      current.units.push({
+        id: uid("unit"),
+        subjectId: String(item.subjectId),
+        title: String(item.title),
+        description: item.description ? String(item.description) : undefined,
+        order: Number.isFinite(Number(item.order)) ? Number(item.order) : current.units.length,
+        enabled: item.enabled !== false,
+        createdAt: Date.now(),
+      });
+    } else if (action === "add_content_item") {
+      const item = body.item || {};
+      if (!item.subjectId || !item.title || !item.type) {
+        return NextResponse.json({ error: "subject, type, and title required" }, { status: 400 });
+      }
+      const allowedTypes = ["concept", "formula", "practice", "document", "file", "folder"];
+      if (!allowedTypes.includes(String(item.type))) {
+        return NextResponse.json({ error: "Unknown content type" }, { status: 400 });
+      }
+      current.contentItems.unshift({
+        id: uid("content"),
+        subjectId: String(item.subjectId),
+        unitId: item.unitId ? String(item.unitId) : undefined,
+        type: String(item.type) as "concept" | "formula" | "practice" | "document" | "file" | "folder",
+        title: String(item.title),
+        content: String(item.content || "").slice(0, 200_000),
+        tags: Array.isArray(item.tags)
+          ? item.tags.map(String)
+          : String(item.tags || "").split(",").map((tag) => tag.trim()).filter(Boolean),
+        difficulty: ["intro", "standard", "challenge"].includes(String(item.difficulty))
+          ? item.difficulty
+          : "standard",
+        source: item.source ? String(item.source) : undefined,
+        status: item.status === "draft" ? "draft" : "published",
+        order: Number.isFinite(Number(item.order)) ? Number(item.order) : 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+    } else if (action === "set_content_status") {
+      const target = current.contentItems.find((item) => item.id === String(body.id || ""));
+      if (!target) return NextResponse.json({ error: "Content item not found" }, { status: 404 });
+      target.status = body.status === "draft" ? "draft" : "published";
+      target.updatedAt = Date.now();
+    } else if (action === "restore_content_item") {
+      const target = current.contentItems.find((item) => item.id === String(body.id || ""));
+      if (!target) return NextResponse.json({ error: "Content item not found" }, { status: 404 });
+      delete target.deletedAt;
+      target.updatedAt = Date.now();
+    } else if (action === "move_content_item") {
+      const target = current.contentItems.find((item) => item.id === String(body.id || ""));
+      if (!target) return NextResponse.json({ error: "Content item not found" }, { status: 404 });
+      target.order = Number(body.order || 0);
+      target.updatedAt = Date.now();
+    } else if (action === "add_files") {
+      const files = Array.isArray(body.items) ? body.items : [];
+      if (files.length === 0 || files.length > 10) {
+        return NextResponse.json({ error: "Choose between 1 and 10 files" }, { status: 400 });
+      }
+      for (const item of files) {
+        if (!item.name || !item.dataUrl || String(item.dataUrl).length > 1_500_000) {
+          return NextResponse.json({ error: "Each file needs a name and must stay under ~1MB" }, { status: 400 });
+        }
+        current.files.unshift({
+          id: uid("m-file"),
+          name: String(item.name),
+          mime: String(item.mime || "application/octet-stream"),
+          dataUrl: String(item.dataUrl),
+          note: item.note ? String(item.note) : undefined,
+          uploadedAt: Date.now(),
+          uploadedBy: "change-code",
+          area: item.area ? String(item.area) : undefined,
+          space: item.space ? String(item.space) : undefined,
+        });
+      }
+    } else if (action === "add_concept") {
       const item = body.item || {};
       if (!item.title || !item.subject) {
         return NextResponse.json({ error: "title and subject required" }, { status: 400 });
@@ -183,7 +285,14 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
-      if (target === "concept") current.concepts = current.concepts.filter((c) => c.id !== id);
+      if (target === "content_item") {
+        const item = current.contentItems.find((entry) => entry.id === id);
+        if (item) {
+          item.deletedAt = Date.now();
+          item.updatedAt = Date.now();
+        }
+      }
+      else if (target === "concept") current.concepts = current.concepts.filter((c) => c.id !== id);
       else if (target === "formula") current.formulas = current.formulas.filter((f) => f.id !== id);
       else if (target === "document") current.documents = current.documents.filter((d) => d.id !== id);
       else if (target === "file") current.files = current.files.filter((f) => f.id !== id);

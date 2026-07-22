@@ -4,6 +4,8 @@ import { brand } from "@/data/brand";
 const links = [
   { href: "/", label: "Home" },
   { href: "/ap", label: "AP" },
+  { href: "/search", label: "Search" },
+  { href: "/manage", label: "Manage" },
   { href: "/academic", label: "Academic Platform" },
   { href: "/code", label: "Code" },
   { href: "/forum", label: "Forum" },
