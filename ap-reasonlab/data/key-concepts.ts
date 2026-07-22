@@ -2,6 +2,7 @@ import { KeyConceptGuide } from "@/lib/types";
 import { macroGuides } from "@/data/ap-macro";
 import { microGuides } from "@/data/ap-micro";
 import { physics2Guides } from "@/data/ap-physics2";
+import { statsGuides } from "@/data/ap-stats";
 
 /**
  * Key concept introductions + concept-check questions
@@ -314,6 +315,7 @@ export const keyConceptGuides: KeyConceptGuide[] = [
   ...microGuides,
   ...macroGuides,
   ...physics2Guides,
+  ...statsGuides,
 ];
 
 export function getGuideById(id: string): KeyConceptGuide | undefined {

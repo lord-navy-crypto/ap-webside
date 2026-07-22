@@ -10,7 +10,7 @@ const boxes = [
   },
   {
     title: "Academic Platform",
-    description: "Learning Box, shared materials, Picture, Image Gen.",
+    description: "Private Learning Box, shared materials, Picture, Image Gen.",
     href: "/academic",
   },
   {

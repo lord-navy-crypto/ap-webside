@@ -124,7 +124,7 @@ export default function LearningBoxPage() {
     try {
       const pick = await getRandomLearningItem(randomPick?.id);
       setRandomPick(pick);
-      if (!pick) setError("Your Learning Box is empty. Add some items first.");
+      if (!pick) setError("Your Private Learning Box is empty. Add some items first.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Draw failed");
     } finally {
@@ -135,8 +135,9 @@ export default function LearningBoxPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Learning Box</h1>
+        <h1 className="text-3xl font-bold">Private Learning Box</h1>
         <p className="mt-2 text-slate-600">
+          Your private folder stored only in this browser on this device—no change code required.
           Store your own study notes, summaries, and self-developed learning materials.
           Upload text files (.txt, .md) or paste content. Use Random Draw for spaced review
           of knowledge that is not tied to the AP curriculum.
@@ -244,9 +245,9 @@ export default function LearningBoxPage() {
                       <h3 className="font-semibold text-slate-900">{item.title}</h3>
                       <span className="badge">{item.category}</span>
                     </div>
-                    <RichContent clampLines={4} className="text-sm text-slate-700">
-                      {item.content}
-                    </RichContent>
+                    <div className="max-h-72 overflow-y-auto overscroll-contain rounded-lg bg-slate-50 p-3">
+                      <RichContent className="text-sm text-slate-700">{item.content}</RichContent>
+                    </div>
                     <div className="flex gap-3 text-xs">
                       <button
                         type="button"
@@ -276,7 +277,7 @@ export default function LearningBoxPage() {
           <div className="card space-y-4 text-center">
             <h2 className="text-lg font-semibold">Random Knowledge Draw</h2>
             <p className="text-sm text-slate-600">
-              Pulls a random item from your Learning Box — anything you stored that is not tied to
+              Pulls a random item from your Private Learning Box — anything you stored that is not tied to
               the AP curriculum. Use it for spaced review or a quick study break.
             </p>
             <button

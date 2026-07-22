@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import RichContent from "@/components/RichContent";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
+import UploadAndShow from "@/components/UploadAndShow";
 import { concepts } from "@/data/content";
 import { formulas } from "@/data/formulas";
 import { questionnaires } from "@/data/questionnaires";
@@ -18,6 +19,7 @@ const sectionConfig = [
   { key: "formula", label: "Formulas", icon: "∑" },
   { key: "practice", label: "Practice", icon: "✓" },
   { key: "document", label: "Documents", icon: "▤" },
+  { key: "past-papers", label: "Released Exams", icon: "▧" },
   { key: "hints", label: "AI Coach", icon: "✦" },
 ] as const;
 
@@ -161,6 +163,7 @@ function SubjectWorkspaceContent() {
       items.filter((item) => item.type === "practice").length,
     document: items.filter((item) => item.type === "document").length,
     hints: 1,
+    "past-papers": 0,
   };
 
   const hrefFor = (key: string) => {
@@ -169,6 +172,7 @@ function SubjectWorkspaceContent() {
     if (key === "practice") return `/practice?subject=${encodeURIComponent(subjectName)}`;
     if (key === "hints") return `/hints?subject=${encodeURIComponent(subjectName)}`;
     if (key === "document") return `?type=document#subject-content`;
+    if (key === "past-papers") return "#past-papers";
     return `#${key}`;
   };
 
@@ -197,7 +201,9 @@ function SubjectWorkspaceContent() {
             </span>
             <div>
               <h2 className="font-semibold">{section.label}</h2>
-              <p className="text-sm text-slate-500">{counts[section.key]} available</p>
+              <p className="text-sm text-slate-500">
+                {section.key === "past-papers" ? "Upload area" : `${counts[section.key]} available`}
+              </p>
             </div>
           </Link>
         ))}
@@ -293,6 +299,26 @@ function SubjectWorkspaceContent() {
             through the section cards above.
           </div>
         )}
+      </section>
+
+      <section id="past-papers" className="space-y-3 scroll-mt-24">
+        <div>
+          <h2 className="section-title">Released exams & past papers</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Upload downloadable exam files or add a text document for {subject.name}. A change code is required.
+          </p>
+          <p className="mt-1 text-xs text-amber-800">
+            Upload only officially released, public-domain, original, or authorized material. Link to restricted exams instead of redistributing them.
+          </p>
+        </div>
+        <UploadAndShow
+          alsoShow={["document"]}
+          defaultSubject={subjectName}
+          folderArea="past-papers"
+          spaceKey={params.subject}
+          title={`${subject.shortName} exam archive`}
+          collapsedByDefault
+        />
       </section>
 
       <section className="card flex flex-wrap items-center justify-between gap-3">

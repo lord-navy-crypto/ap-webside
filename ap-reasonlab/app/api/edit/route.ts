@@ -69,15 +69,20 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const action = String(body.action || "");
+    const item = body.item || {};
+    const publicMaterialsContribution =
+      body.publicContribution === true &&
+      ["add_document", "add_file", "add_folder"].includes(action) &&
+      String(item.area || "") === "materials";
     const level = resolveChangeLevel(body.changeCode);
-    if (!canEditContent(level)) {
+    if (!publicMaterialsContribution && !canEditContent(level)) {
       return NextResponse.json(
         { error: "Wrong or missing change code. Enter the content code or master code to save." },
         { status: 401 }
       );
     }
 
-    const action = String(body.action || "");
     const token = await tokenFrom(body);
     const current: ManagedContent = await loadManagedContent(token);
     if (!current.members) current.members = [];
@@ -218,11 +223,14 @@ export async function POST(req: NextRequest) {
       if (!item.title || !item.content) {
         return NextResponse.json({ error: "title and content required" }, { status: 400 });
       }
+      if (publicMaterialsContribution && String(item.content).length > 50_000) {
+        return NextResponse.json({ error: "Public documents must stay under 50,000 characters" }, { status: 400 });
+      }
       current.documents.push({
         id: uid("m-doc"),
-        title: String(item.title),
+        title: String(item.title).slice(0, 160),
         content: String(item.content).slice(0, 200_000),
-        category: String(item.category || "Uploaded"),
+        category: String(item.category || "Uploaded").slice(0, 80),
         updatedAt: Date.now(),
         area: item.area ? String(item.area) : undefined,
         space: item.space ? String(item.space) : undefined,
@@ -232,17 +240,18 @@ export async function POST(req: NextRequest) {
       if (!item.name || !item.dataUrl) {
         return NextResponse.json({ error: "file name and data required" }, { status: 400 });
       }
-      if (String(item.dataUrl).length > 1_500_000) {
+      const publicFileLimit = publicMaterialsContribution ? 1_000_000 : 1_500_000;
+      if (String(item.dataUrl).length > publicFileLimit) {
         return NextResponse.json({ error: "File too large (keep under ~1MB)" }, { status: 400 });
       }
       current.files.unshift({
         id: uid("m-file"),
-        name: String(item.name),
+        name: String(item.name).slice(0, 200),
         mime: String(item.mime || "application/octet-stream"),
         dataUrl: String(item.dataUrl),
         note: item.note ? String(item.note) : undefined,
         uploadedAt: Date.now(),
-        uploadedBy: "change-code",
+        uploadedBy: publicMaterialsContribution ? "public-contributor" : "change-code",
         area: item.area ? String(item.area) : undefined,
         space: item.space ? String(item.space) : undefined,
       });
@@ -270,9 +279,9 @@ export async function POST(req: NextRequest) {
       }
       current.folders.push({
         id: uid("folder"),
-        title: String(item.title),
+        title: String(item.title).slice(0, 160),
         area: String(item.area),
-        note: item.note ? String(item.note) : undefined,
+        note: item.note ? String(item.note).slice(0, 500) : undefined,
         createdAt: Date.now(),
         space: item.space ? String(item.space) : "_root",
       });
