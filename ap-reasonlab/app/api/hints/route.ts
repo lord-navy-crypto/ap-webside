@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { asStringList, runChatJson } from "@/lib/ai-client";
+import { asStringList, parseAiProvider, runChatJson } from "@/lib/ai-client";
 import { HINT_PROCESS_SYSTEM } from "@/lib/ai-prompts";
 
 function mockHints(question: string, subject: string) {
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const subject = String(body.subject || "AP Physics 1");
     const notes = String(body.notes || "").trim();
     const userApiKey = String(body.userApiKey || "").trim();
-    const provider = (body.provider === "gemini" ? "gemini" : "groq") as "groq" | "gemini";
+    const provider = parseAiProvider(body.provider);
 
     if (!question) {
       return NextResponse.json({ error: "Question is required" }, { status: 400 });

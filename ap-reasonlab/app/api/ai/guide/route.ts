@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runChatJson } from "@/lib/ai-client";
+import { parseAiProvider, runChatJson } from "@/lib/ai-client";
 import { SITE_GUIDE_FACTS, SITE_GUIDE_SYSTEM } from "@/lib/ai-prompts";
 
 export async function POST(req: NextRequest) {
@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const question = String(body.question || "").trim();
     const userApiKey = String(body.userApiKey || "").trim();
-    const provider = (body.provider === "gemini" ? "gemini" : "groq") as "groq" | "gemini";
+    const provider = parseAiProvider(body.provider);
 
     if (!question) {
       return NextResponse.json({ error: "Question is required" }, { status: 400 });

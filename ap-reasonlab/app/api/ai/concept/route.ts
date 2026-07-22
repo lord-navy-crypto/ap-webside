@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runChatJson } from "@/lib/ai-client";
+import { parseAiProvider, runChatJson } from "@/lib/ai-client";
 import { CONCEPT_EXPLAIN_SYSTEM } from "@/lib/ai-prompts";
 
 export async function POST(req: NextRequest) {
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const mode = String(body.mode || "explain") as "explain" | "quiz" | "ask";
     const question = String(body.question || "").trim();
     const userApiKey = String(body.userApiKey || "").trim();
-    const provider = (body.provider === "gemini" ? "gemini" : "groq") as "groq" | "gemini";
+    const provider = parseAiProvider(body.provider);
     const lockToConcept = Boolean(body.lockToConcept);
 
     if (!conceptTitle && !question) {
