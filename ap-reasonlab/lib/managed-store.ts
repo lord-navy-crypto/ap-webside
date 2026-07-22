@@ -77,6 +77,22 @@ export type ManagedContentItem = {
   deletedAt?: number;
 };
 
+export type ManagedForumReply = {
+  id: string;
+  author: string;
+  body: string;
+  createdAt: number;
+};
+
+export type ManagedForumPost = {
+  id: string;
+  title: string;
+  body: string;
+  author: string;
+  createdAt: number;
+  replies: ManagedForumReply[];
+};
+
 export type ManagedContent = {
   concepts: Concept[];
   formulas: Formula[];
@@ -87,6 +103,7 @@ export type ManagedContent = {
   subjects: ManagedSubject[];
   units: ManagedUnit[];
   contentItems: ManagedContentItem[];
+  forumPosts: ManagedForumPost[];
   updatedAt: number;
 };
 
@@ -116,6 +133,7 @@ const emptyContent = (): ManagedContent => ({
   subjects: [],
   units: [],
   contentItems: [],
+  forumPosts: [],
   updatedAt: 0,
 });
 
@@ -229,6 +247,7 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
       if (!parsed.subjects) parsed.subjects = [];
       if (!parsed.units) parsed.units = [];
       if (!parsed.contentItems) parsed.contentItems = [];
+      if (!parsed.forumPosts) parsed.forumPosts = [];
       return parsed;
     } catch {
       // fall through
@@ -240,6 +259,7 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
   if (!local.subjects) local.subjects = [];
   if (!local.units) local.units = [];
   if (!local.contentItems) local.contentItems = [];
+  if (!local.forumPosts) local.forumPosts = [];
   return local;
 }
 
