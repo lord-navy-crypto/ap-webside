@@ -7,6 +7,7 @@ import { getContentEditorLevel, getGithubTokenFromCookie, setGithubTokenCookie }
 import {
   loadManagedContent,
   saveManagedContent,
+  looksLikeGithubPat,
   sanitizeGithubToken,
   uid,
   type ManagedContent,
@@ -26,10 +27,16 @@ function forumRateLimited(req: NextRequest): boolean {
 async function tokenFrom(body: { githubToken?: string }) {
   const t = sanitizeGithubToken(body.githubToken);
   if (t) {
+    if (!looksLikeGithubPat(t)) {
+      // Ignore content-change-code / junk pasted into the GitHub token field.
+      return undefined;
+    }
     await setGithubTokenCookie(t);
     return t;
   }
-  return getGithubTokenFromCookie();
+  const fromCookie = await getGithubTokenFromCookie();
+  if (fromCookie && looksLikeGithubPat(fromCookie)) return fromCookie;
+  return undefined;
 }
 
 export async function GET(req: NextRequest) {

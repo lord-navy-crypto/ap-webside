@@ -126,14 +126,18 @@ export default function ManagePage() {
           </label>
         )}
         <label className={`text-sm font-medium ${unlocked ? "md:col-span-2" : ""}`}>
-          GitHub token <span className="font-normal text-slate-400">(optional)</span>
+          GitHub token <span className="font-normal text-slate-400">(optional — leave empty)</span>
           <input
             type="password"
             className="input mt-1"
             value={githubToken}
             onChange={(event) => setGithubToken(event.target.value)}
-            placeholder="Uses Vercel CONTENT_GITHUB_TOKEN when empty"
+            placeholder="Leave empty — uses Vercel CONTENT_GITHUB_TOKEN"
           />
+          <span className="mt-1 block text-xs text-slate-500">
+            Only paste a GitHub PAT (<code>ghp_</code> / <code>github_pat_</code>). Never paste the
+            content change code here.
+          </span>
         </label>
         {message && <p role="status" className="text-sm text-brand-700 md:col-span-2">{message}</p>}
       </section>
