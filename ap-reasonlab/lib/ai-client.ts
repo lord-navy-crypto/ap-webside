@@ -1,6 +1,10 @@
 /**
- * Shared AI client — Instant-class cascade only (no Versatile by default).
- * Site order: Groq Instant (+ Groq supported replacement) → Gemini Flash → OpenRouter → DeepSeek.
+ * Shared AI client — Instant-class cascade.
+ * Site order: Groq → Gemini → GitHub Models (CONTENT_GITHUB_TOKEN) → OpenRouter → DeepSeek.
+ *
+ * Owner setup:
+ * - CONTENT_GITHUB_TOKEN → GitHub Models AI API
+ * - GITHUB_TOKEN → repo Save/publish only (see lib/managed-store.ts)
  */
 
 export const GROQ_INSTANT_MODEL = "llama-3.1-8b-instant";
@@ -10,8 +14,10 @@ export const OPENROUTER_DEFAULT_MODEL =
   process.env.OPENROUTER_MODEL?.trim() || "meta-llama/llama-3.1-8b-instruct";
 export const DEEPSEEK_DEFAULT_MODEL =
   process.env.DEEPSEEK_MODEL?.trim() || "deepseek-chat";
+export const GITHUB_MODELS_DEFAULT_MODEL =
+  process.env.GITHUB_MODELS_MODEL?.trim() || "openai/gpt-4o-mini";
 
-export type AiProvider = "groq" | "gemini" | "openrouter" | "deepseek";
+export type AiProvider = "groq" | "gemini" | "githubmodels" | "openrouter" | "deepseek";
 
 export type ChatJsonResult = {
   data: Record<string, unknown>;
@@ -30,7 +36,21 @@ async function callOpenAiCompatibleJson(options: {
   provider: AiProvider;
   extraHeaders?: Record<string, string>;
   note: string;
+  includeResponseFormat?: boolean;
 }): Promise<ChatJsonResult> {
+  const body: Record<string, unknown> = {
+    model: options.model,
+    messages: [
+      { role: "system", content: options.system },
+      { role: "user", content: options.user },
+    ],
+    temperature: 0.35,
+    max_tokens: options.maxTokens,
+  };
+  if (options.includeResponseFormat !== false) {
+    body.response_format = { type: "json_object" };
+  }
+
   const res = await fetch(options.url, {
     method: "POST",
     headers: {
@@ -38,16 +58,7 @@ async function callOpenAiCompatibleJson(options: {
       Authorization: `Bearer ${options.apiKey}`,
       ...options.extraHeaders,
     },
-    body: JSON.stringify({
-      model: options.model,
-      messages: [
-        { role: "system", content: options.system },
-        { role: "user", content: options.user },
-      ],
-      temperature: 0.35,
-      max_tokens: options.maxTokens,
-      response_format: { type: "json_object" },
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -61,7 +72,12 @@ async function callOpenAiCompatibleJson(options: {
   try {
     data = JSON.parse(text);
   } catch {
-    data = { raw: text };
+    const jsonMatch = String(text).match(/\{[\s\S]*\}/);
+    try {
+      data = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    } catch {
+      data = { raw: text };
+    }
   }
 
   return {
@@ -103,6 +119,50 @@ async function callGroqWithFallback(
     const message = error instanceof Error ? error.message : "";
     if (!/groq API error (400|404|410)/i.test(message)) throw error;
     return callGroqJson(apiKey, system, user, maxTokens, GROQ_FALLBACK_MODEL);
+  }
+}
+
+async function callGithubModelsJson(
+  apiKey: string,
+  system: string,
+  user: string,
+  maxTokens: number
+): Promise<ChatJsonResult> {
+  try {
+    return await callOpenAiCompatibleJson({
+      url: "https://models.github.ai/inference/chat/completions",
+      apiKey,
+      model: GITHUB_MODELS_DEFAULT_MODEL,
+      system,
+      user,
+      maxTokens,
+      provider: "githubmodels",
+      extraHeaders: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      note: `Powered by GitHub Models (${GITHUB_MODELS_DEFAULT_MODEL}).`,
+      includeResponseFormat: true,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    // Some GitHub Models deployments reject response_format — retry without it.
+    if (!/githubmodels API error (400|422)/i.test(message)) throw error;
+    return callOpenAiCompatibleJson({
+      url: "https://models.github.ai/inference/chat/completions",
+      apiKey,
+      model: GITHUB_MODELS_DEFAULT_MODEL,
+      system,
+      user,
+      maxTokens,
+      provider: "githubmodels",
+      extraHeaders: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      note: `Powered by GitHub Models (${GITHUB_MODELS_DEFAULT_MODEL}).`,
+      includeResponseFormat: false,
+    });
   }
 }
 
@@ -191,8 +251,8 @@ async function callGeminiJson(
 }
 
 /**
- * Site default: Groq → Gemini → OpenRouter → DeepSeek.
- * BYOK: only the provider the user selected (Instant-class models).
+ * Site default: Groq → Gemini → GitHub Models → OpenRouter → DeepSeek.
+ * BYOK: only the provider the user selected.
  */
 export async function runChatJson(options: {
   system: string;
@@ -211,6 +271,13 @@ export async function runChatJson(options: {
       return {
         ...result,
         note: `Your own Gemini key · Flash (${GEMINI_FLASH_MODEL}) — usually stronger quota and fewer shared limits.`,
+      };
+    }
+    if (provider === "githubmodels") {
+      const result = await callGithubModelsJson(userKey, options.system, options.user, maxTokens);
+      return {
+        ...result,
+        note: `Your own GitHub Models token · ${GITHUB_MODELS_DEFAULT_MODEL}.`,
       };
     }
     if (provider === "openrouter") {
@@ -237,6 +304,7 @@ export async function runChatJson(options: {
   const channels: Array<{ name: string; run: () => Promise<ChatJsonResult> }> = [];
   const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
+  const githubModelsKey = process.env.CONTENT_GITHUB_TOKEN;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const deepSeekKey = process.env.DEEPSEEK_API_KEY;
 
@@ -255,6 +323,23 @@ export async function runChatJson(options: {
       run: async () => {
         const result = await callGeminiJson(geminiKey, options.system, options.user);
         return { ...result, note: `Site fallback · Gemini Flash (${GEMINI_FLASH_MODEL}).` };
+      },
+    });
+  }
+  if (githubModelsKey) {
+    channels.push({
+      name: "githubmodels",
+      run: async () => {
+        const result = await callGithubModelsJson(
+          githubModelsKey,
+          options.system,
+          options.user,
+          maxTokens
+        );
+        return {
+          ...result,
+          note: `Site · GitHub Models via CONTENT_GITHUB_TOKEN (${GITHUB_MODELS_DEFAULT_MODEL}).`,
+        };
       },
     });
   }
@@ -300,7 +385,7 @@ export async function runChatJson(options: {
   throw new Error(
     errors.length
       ? `All AI channels failed: ${errors.join(" | ")}`
-      : "No site AI keys configured (GROQ_API_KEY / GEMINI_API_KEY / OPENROUTER_API_KEY / DEEPSEEK_API_KEY)."
+      : "No site AI keys configured (CONTENT_GITHUB_TOKEN for GitHub Models, or GROQ/GEMINI/OPENROUTER/DEEPSEEK)."
   );
 }
 
@@ -310,7 +395,13 @@ export function asStringList(value: unknown): string[] {
 }
 
 export function parseAiProvider(value: unknown): AiProvider {
-  if (value === "gemini" || value === "openrouter" || value === "deepseek" || value === "groq") {
+  if (
+    value === "gemini" ||
+    value === "githubmodels" ||
+    value === "openrouter" ||
+    value === "deepseek" ||
+    value === "groq"
+  ) {
     return value;
   }
   return "groq";

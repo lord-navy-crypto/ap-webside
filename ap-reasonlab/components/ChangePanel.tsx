@@ -442,7 +442,7 @@ export default function ChangePanel({
             <input
               type="password"
               className="input mt-2"
-              placeholder="Leave empty — uses Vercel CONTENT_GITHUB_TOKEN (ghp_ / github_pat_ only)"
+              placeholder="Leave empty — uses Vercel GITHUB_TOKEN (repo write)"
               value={githubToken}
               onChange={(e) => setGithubToken(e.target.value)}
             />

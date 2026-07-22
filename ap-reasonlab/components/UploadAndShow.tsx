@@ -311,7 +311,7 @@ export default function UploadAndShow({
                   <input
                     type="password"
                     className="input mt-2"
-                    placeholder="optional if CONTENT_GITHUB_TOKEN is set on Vercel"
+                    placeholder="optional if GITHUB_TOKEN is set on Vercel"
                     value={githubToken}
                     onChange={(e) => setGithubToken(e.target.value)}
                   />

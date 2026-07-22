@@ -102,8 +102,9 @@ function LoginForm() {
       </form>
 
       <p className="text-xs text-slate-500">
-        Publishing still uses Vercel <code>CONTENT_GITHUB_TOKEN</code> (GitHub PAT with Contents
-        write on this repo). That is separate from the content change code.
+        Publishing uses Vercel <code>GITHUB_TOKEN</code> (repo Contents write).{" "}
+        <code>CONTENT_GITHUB_TOKEN</code> is for GitHub Models AI, not Save. That is separate from
+        the content change code.
       </p>
     </div>
   );

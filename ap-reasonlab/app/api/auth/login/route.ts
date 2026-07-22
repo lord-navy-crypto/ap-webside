@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         const message =
           err instanceof Error
             ? err.message
-            : "Could not save user. Set CONTENT_GITHUB_TOKEN on Vercel for registration.";
+            : "Could not save user. Set GITHUB_TOKEN on Vercel for registration.";
         return NextResponse.json({ error: message }, { status: 500 });
       }
       await setSessionCookie({ id: user.id, name: user.name, role: user.role });

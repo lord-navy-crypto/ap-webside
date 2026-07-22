@@ -38,8 +38,9 @@ export default function AboutPage() {
         </p>
         <p className="text-xs text-slate-500">
           Admins set <code>CONTENT_CHANGE_CODE</code> (and optional{" "}
-          <code>MASTER_CHANGE_CODE</code>) on Vercel. Publishing uses{" "}
-          <code>CONTENT_GITHUB_TOKEN</code> (GitHub PAT with Contents write on this repo).
+          <code>MASTER_CHANGE_CODE</code>) on Vercel. Publishing / Save uses{" "}
+          <code>GITHUB_TOKEN</code>. AI Toolbox GitHub Models uses{" "}
+          <code>CONTENT_GITHUB_TOKEN</code>.
         </p>
       </section>
 

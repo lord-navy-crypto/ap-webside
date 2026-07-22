@@ -161,44 +161,32 @@ export function looksLikeGithubPat(raw?: string | null): boolean {
 }
 
 /**
- * CONTENT_GITHUB_TOKEN is NOT an AI key.
- * It is the GitHub Personal Access Token used to publish site content
- * (managed-content.json) to the repo. AI uses GROQ_API_KEY / OPENROUTER_API_KEY / etc.
+ * Repo Save / publish tokens ONLY.
  *
- * Why the name: "token for publishing CONTENT to GitHub" — not "GitHub Models AI".
- * Vercel often reserves GITHUB_TOKEN, so we prefer CONTENT_GITHUB_TOKEN, but we still
- * try GITHUB_TOKEN / GH_TOKEN if the first one fails with 401.
+ * Owner setup:
+ * - GITHUB_TOKEN = real GitHub PAT for writing managed-content.json to the repo
+ * - CONTENT_GITHUB_TOKEN = GitHub Models AI key (see lib/ai-client.ts) — NOT used here
  */
 export function githubAuthCandidates(override?: string | null): string[] {
   const fromClient = sanitizeGithubToken(override);
-  const envOnes = [
-    process.env.CONTENT_GITHUB_TOKEN,
-    process.env.GITHUB_TOKEN,
-    process.env.GH_TOKEN,
-  ].map(sanitizeGithubToken);
+  const envOnes = [process.env.GITHUB_TOKEN, process.env.GH_TOKEN].map(sanitizeGithubToken);
 
   const ordered: string[] = [];
   const push = (t: string) => {
-    if (!t) return;
-    // Prefer real PATs; skip obvious non-tokens (change codes, AI keys without ghp_ prefix)
-    if (!looksLikeGithubPat(t) && fromClient !== t) {
-      // Still allow env values that don't match prefix (some enterprise tokens), but deprioritize
-    }
-    if (!ordered.includes(t)) ordered.push(t);
+    if (t && !ordered.includes(t)) ordered.push(t);
   };
 
   if (fromClient && looksLikeGithubPat(fromClient)) push(fromClient);
   for (const t of envOnes) {
     if (t && looksLikeGithubPat(t)) push(t);
   }
-  // Last resort: non-PAT-shaped env values (legacy), after real PATs
   for (const t of envOnes) {
     if (t) push(t);
   }
   return ordered;
 }
 
-/** First usable GitHub auth token (UI override → CONTENT_GITHUB_TOKEN → GITHUB_TOKEN → GH_TOKEN). */
+/** First usable write token (UI override → GITHUB_TOKEN → GH_TOKEN). */
 export function resolveGithubAuth(override?: string | null): string {
   return githubAuthCandidates(override)[0] || "";
 }
@@ -264,7 +252,7 @@ async function githubWrite(
     return {
       ok: false,
       error:
-        "No GitHub write token. Set CONTENT_GITHUB_TOKEN or GITHUB_TOKEN on Vercel to a GitHub PAT (ghp_ / github_pat_), Redeploy, leave the optional GitHub field empty. AI keys (GROQ/OPENROUTER/…) are separate and do not publish content.",
+        "No GitHub write token. Set GITHUB_TOKEN on Vercel to your real repo-write PAT (ghp_ / github_pat_), Redeploy, leave the optional GitHub field empty. CONTENT_GITHUB_TOKEN is for GitHub Models AI only — it is not used for Save.",
     };
   }
 
@@ -300,7 +288,7 @@ async function githubWrite(
   let hint = "";
   if (lastStatus === 401) {
     hint =
-      " Bad credentials: none of CONTENT_GITHUB_TOKEN / GITHUB_TOKEN worked. Put your real GitHub PAT (for repo write) into CONTENT_GITHUB_TOKEN OR GITHUB_TOKEN on Vercel, Redeploy. Do NOT put AI keys (OpenRouter/Groq/DeepSeek) or the content change code into those variables. AI and GitHub write are different.";
+      " Bad credentials: GITHUB_TOKEN on Vercel is wrong/expired/revoked. Put your real repo-write PAT into GITHUB_TOKEN, Redeploy. CONTENT_GITHUB_TOKEN is for GitHub Models AI (not Save). Do not paste the content change code into the GitHub token field.";
   } else if (lastStatus === 403) {
     hint =
       " Token was accepted but lacks write access. Fine-grained PAT: repo ap-webside + Contents: Read and write. Classic PAT: repo scope.";
