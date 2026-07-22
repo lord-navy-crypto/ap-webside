@@ -68,7 +68,7 @@ export default function ApHubPage() {
         <div>
           <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">AP SUBJECT LIBRARY</span>
           <h1 className="mt-3 text-3xl font-bold md:text-4xl">Choose your AP subject first</h1>
-          <p className="mt-2 max-w-2xl text-blue-100">Then open units, concepts, formulas, practice, documents, or the AI Hint Coach inside that subject.</p>
+          <p className="mt-2 max-w-2xl text-blue-100">Then open units, concepts, formulas, practice, documents, or the AI Toolbox inside that subject.</p>
         </div>
       </section>
 

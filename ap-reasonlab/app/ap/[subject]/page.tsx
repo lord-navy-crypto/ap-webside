@@ -20,7 +20,7 @@ const sectionConfig = [
   { key: "practice", label: "Practice", icon: "✓" },
   { key: "document", label: "Documents", icon: "▤" },
   { key: "past-papers", label: "Released Exams", icon: "▧" },
-  { key: "hints", label: "AI Coach", icon: "✦" },
+  { key: "hints", label: "AI Toolbox", icon: "✦" },
 ] as const;
 
 function SubjectWorkspaceContent() {

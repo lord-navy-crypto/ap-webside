@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { asStringList, runChatJson } from "@/lib/ai-client";
 
 const SYSTEM_PROMPT = `You are helping build an AP study concept card for a non-profit learning site.
 Rules:
@@ -47,62 +48,11 @@ function mockStructure(name: string, area: string, summary: string, raw: string)
   };
 }
 
-async function callGroq(apiKey: string, prompt: string) {
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.3,
-      max_tokens: 900,
-      response_format: { type: "json_object" },
-    }),
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Groq API error ${res.status}: ${errText}`);
-  }
-  const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content || "";
-  return JSON.parse(text);
-}
-
-async function callGemini(apiKey: string, prompt: string) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\n${prompt}` }] }],
-      }),
-    }
-  );
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${errText}`);
-  }
-  const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("Gemini returned no JSON");
-  return JSON.parse(jsonMatch[0]);
-}
-
 function normalizeResult(raw: Record<string, unknown>, fallbackNote: string) {
-  const asList = (v: unknown) =>
-    Array.isArray(v) ? v.map(String).filter((s) => s.trim()) : [];
   return {
     summary: String(raw.summary || "").trim(),
-    keyPoints: asList(raw.keyPoints),
-    commonMistakes: asList(raw.commonMistakes),
+    keyPoints: asStringList(raw.keyPoints),
+    commonMistakes: asStringList(raw.commonMistakes),
     example: String(raw.example || "").trim(),
     note: fallbackNote,
     aiMayBeWrong:
@@ -136,27 +86,17 @@ ${summary || "(none — invent a short summary from notes)"}
 Related notes / AI production content to sort into key points, common mistakes, and example:
 ${rawContent || summary}`;
 
-    const groqKey = process.env.GROQ_API_KEY;
-    const geminiKey = process.env.GEMINI_API_KEY;
-
-    if (groqKey) {
-      try {
-        const result = await callGroq(groqKey, userPrompt);
-        return NextResponse.json(normalizeResult(result, "Sorted with Groq (site key)."));
-      } catch (e) {
-        console.error(e);
-      }
+    try {
+      const result = await runChatJson({
+        system: SYSTEM_PROMPT,
+        user: userPrompt,
+        maxTokens: 900,
+      });
+      return NextResponse.json(normalizeResult(result.data, result.note));
+    } catch (e) {
+      console.error(e);
+      return NextResponse.json(mockStructure(name, area, summary, rawContent));
     }
-    if (geminiKey) {
-      try {
-        const result = await callGemini(geminiKey, userPrompt);
-        return NextResponse.json(normalizeResult(result, "Sorted with Gemini (site key)."));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    return NextResponse.json(mockStructure(name, area, summary, rawContent));
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
