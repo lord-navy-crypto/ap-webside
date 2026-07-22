@@ -7,6 +7,8 @@ import { formulas, getFormulaSubjects } from "@/data/formulas";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
+import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
+import RichContent, { FormulaMath } from "@/components/RichContent";
 
 function FormulasContent() {
   const searchParams = useSearchParams();
@@ -15,6 +17,8 @@ function FormulasContent() {
     return [...set].sort();
   }, []);
   const activeSubject = searchParams.get("subject");
+  const folderParam = searchParams.get("folder");
+  const spaceKey = spaceFromSearchParams({ subject: activeSubject, folder: folderParam });
   const [query, setQuery] = useState("");
   const [mounted, setMounted] = useState(false);
 
@@ -69,7 +73,13 @@ function FormulasContent() {
             Open a subject folder first. Use + to add a formula or upload a file (change code required).
           </p>
         </div>
-        <UploadAndShow alsoShow={["formula", "folder"]} folderArea="formulas" title="Uploaded files & notes" />
+        <UploadAndShow
+          alsoShow={["folder"]}
+          folderArea="formulas"
+          spaceKey={ROOT_SPACE}
+          spaceBasePath="/formulas"
+          title="Root formulas storage"
+        />
         <FolderGrid folders={subjectFolders} />
       </div>
     );
@@ -87,7 +97,14 @@ function FormulasContent() {
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["formula", "folder"]} folderArea="formulas" defaultSubject={activeSubject || undefined} title="Uploaded files & notes" />
+      <UploadAndShow
+        alsoShow={["formula", "folder"]}
+        folderArea="formulas"
+        defaultSubject={activeSubject || undefined}
+        spaceKey={spaceKey}
+        spaceBasePath="/formulas"
+        title={`${activeSubject} storage`}
+      />
 
       <input
         type="text"
@@ -119,15 +136,15 @@ function FormulasContent() {
                           </Link>
                         )}
                       </div>
-                      <p className="rounded-lg bg-slate-50 px-4 py-3 font-mono text-lg text-slate-900">
-                        {f.expression}
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        <span className="font-medium">Variables:</span> {f.variables}
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        <span className="font-medium">When to use:</span> {f.whenToUse}
-                      </p>
+                      <FormulaMath expression={f.expression} />
+                      <div className="text-sm text-slate-600">
+                        <span className="font-medium">Variables:</span>{" "}
+                        <RichContent className="inline [&>p]:inline">{f.variables}</RichContent>
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        <span className="font-medium">When to use:</span>{" "}
+                        <RichContent className="inline [&>p]:inline">{f.whenToUse}</RichContent>
+                      </div>
                       <p className="text-xs text-slate-400">{f.sourceNote}</p>
                     </article>
                   ))}

@@ -16,7 +16,13 @@ export default function ManagedMaterialsPage() {
         </p>
       </div>
 
-      <UploadAndShow alsoShow={["document", "folder"]} folderArea="materials" title="All shared files & documents" />
+      <UploadAndShow
+        alsoShow={["document", "folder"]}
+        folderArea="materials"
+        spaceKey="_root"
+        spaceBasePath="/academic/materials"
+        title="Materials storage"
+      />
     </div>
   );
 }

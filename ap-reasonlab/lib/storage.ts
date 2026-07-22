@@ -5,7 +5,7 @@
  */
 
 const DB_NAME = "ap-reasonlab";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export type ImageKind = "uploaded" | "generated";
 
@@ -59,6 +59,16 @@ function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains("learningBox")) {
         const store = db.createObjectStore("learningBox", { keyPath: "id" });
         store.createIndex("category", "category", { unique: false });
+      }
+      // Keep empty private* stores if created in v2 so existing browsers don't break.
+      if (!db.objectStoreNames.contains("privateFiles")) {
+        db.createObjectStore("privateFiles", { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains("privateDocs")) {
+        db.createObjectStore("privateDocs", { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains("privateFolders")) {
+        db.createObjectStore("privateFolders", { keyPath: "id" });
       }
     };
     req.onsuccess = () => resolve(req.result);

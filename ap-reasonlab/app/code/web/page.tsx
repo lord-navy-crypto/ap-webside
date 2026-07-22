@@ -22,6 +22,8 @@ export default function CodeWebPage() {
       <UploadAndShow
         alsoShow={["document", "folder"]}
         folderArea="code-web"
+        spaceKey="_root"
+        spaceBasePath="/code/web"
         title="Web files & simulation docs"
       />
 

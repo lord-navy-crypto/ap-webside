@@ -21,9 +21,47 @@ async function tokenFrom(body: { githubToken?: string }) {
   return getGithubTokenFromCookie();
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const token = await getGithubTokenFromCookie();
   const content = await loadManagedContent(token);
+  const area = req.nextUrl.searchParams.get("area")?.trim() || "";
+  const space = req.nextUrl.searchParams.get("space")?.trim() || "";
+
+  // Optional scope: return only one area+folder bucket so panels stay separate.
+  if (area) {
+    const spaceKey = space || "_root";
+    const inBucket = (item: { area?: string; space?: string }) => {
+      if (!item.area && !item.space) {
+        // Legacy unscoped rows only surface under materials/_root
+        return area === "materials" && spaceKey === "_root";
+      }
+      return item.area === area && (item.space || "_root") === spaceKey;
+    };
+
+    return NextResponse.json({
+      concepts:
+        spaceKey === "_root"
+          ? (content.concepts || []).filter((c) => !c.subject || c.subject === "_root")
+          : spaceKey.startsWith("folder:")
+            ? (content.concepts || []).filter(
+                (c) => c.subject === spaceKey || c.subject === space
+              )
+            : (content.concepts || []).filter((c) => c.subject === spaceKey),
+      formulas:
+        spaceKey === "_root"
+          ? []
+          : (content.formulas || []).filter((f) => f.subject === spaceKey),
+      documents: (content.documents || []).filter(inBucket),
+      files: (content.files || []).filter(inBucket),
+      folders: (content.folders || []).filter(
+        (f) => f.area === area && (f.space || "_root") === spaceKey
+      ),
+      members: content.members || [],
+      updatedAt: content.updatedAt,
+      scoped: { area, space: spaceKey },
+    });
+  }
+
   return NextResponse.json(content);
 }
 
@@ -84,6 +122,8 @@ export async function POST(req: NextRequest) {
         content: String(item.content).slice(0, 200_000),
         category: String(item.category || "Uploaded"),
         updatedAt: Date.now(),
+        area: item.area ? String(item.area) : undefined,
+        space: item.space ? String(item.space) : undefined,
       });
     } else if (action === "add_file") {
       const item = body.item || {};
@@ -101,6 +141,8 @@ export async function POST(req: NextRequest) {
         note: item.note ? String(item.note) : undefined,
         uploadedAt: Date.now(),
         uploadedBy: "change-code",
+        area: item.area ? String(item.area) : undefined,
+        space: item.space ? String(item.space) : undefined,
       });
     } else if (action === "add_member") {
       if (!canManageMembers(level)) {
@@ -130,6 +172,7 @@ export async function POST(req: NextRequest) {
         area: String(item.area),
         note: item.note ? String(item.note) : undefined,
         createdAt: Date.now(),
+        space: item.space ? String(item.space) : "_root",
       });
     } else if (action === "delete") {
       const target = String(body.target || "");

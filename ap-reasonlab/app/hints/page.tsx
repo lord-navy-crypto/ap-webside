@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import EthicsBanner from "@/components/EthicsBanner";
+import RichContent from "@/components/RichContent";
 
 type Provider = "groq" | "gemini";
 type Mode = "default" | "bring-your-own";
@@ -234,7 +235,9 @@ export default function HintsPage() {
           <h2 className="text-lg font-semibold">Hints</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
             {result.hints.map((hint) => (
-              <li key={hint}>{hint}</li>
+              <li key={hint}>
+                <RichContent>{hint}</RichContent>
+              </li>
             ))}
           </ul>
           <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">

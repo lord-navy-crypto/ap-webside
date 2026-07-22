@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { QuestionnaireItem } from "@/lib/types";
+import RichContent from "@/components/RichContent";
 
 export default function QuestionnaireItemCard({
   item,
@@ -20,11 +21,11 @@ export default function QuestionnaireItemCard({
       {item.conceptIntro && (
         <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
           <strong>Key concept intro: </strong>
-          {item.conceptIntro}
+          <RichContent className="mt-1">{item.conceptIntro}</RichContent>
         </div>
       )}
 
-      <p className="font-medium text-slate-900">{item.prompt}</p>
+      <RichContent className="font-medium text-slate-900">{item.prompt}</RichContent>
 
       {item.choices && (
         <ul className="space-y-2 text-sm text-slate-700">
@@ -33,7 +34,7 @@ export default function QuestionnaireItemCard({
               key={c}
               className="rounded-xl border border-slate-200 px-4 py-2"
             >
-              {c}
+              <RichContent>{c}</RichContent>
             </li>
           ))}
         </ul>
@@ -46,7 +47,9 @@ export default function QuestionnaireItemCard({
           </h3>
           <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-slate-700">
             {item.visibleSteps.map((s) => (
-              <li key={s}>{s}</li>
+              <li key={s}>
+                <RichContent>{s}</RichContent>
+              </li>
             ))}
           </ol>
         </div>
@@ -63,7 +66,7 @@ export default function QuestionnaireItemCard({
                 key={s}
                 className="rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-3 text-sm"
               >
-                {s}
+                <RichContent>{s}</RichContent>
               </li>
             ))}
           </ul>
@@ -76,7 +79,9 @@ export default function QuestionnaireItemCard({
         </h3>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
           {item.hints.map((h) => (
-            <li key={h}>{h}</li>
+            <li key={h}>
+              <RichContent>{h}</RichContent>
+            </li>
           ))}
         </ul>
       </div>

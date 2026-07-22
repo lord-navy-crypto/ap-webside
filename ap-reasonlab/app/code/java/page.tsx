@@ -22,6 +22,8 @@ export default function CodeJavaPage() {
       <UploadAndShow
         alsoShow={["document", "folder"]}
         folderArea="code-java"
+        spaceKey="_root"
+        spaceBasePath="/code/java"
         title="Java files & notes"
       />
 

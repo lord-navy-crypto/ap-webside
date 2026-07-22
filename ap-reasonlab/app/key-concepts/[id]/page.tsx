@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getGuideById } from "@/data/key-concepts";
+import RichContent from "@/components/RichContent";
 
 const categoryLabel = {
   ap_content: "AP Content",
@@ -33,14 +34,18 @@ export default async function KeyConceptDetailPage({
 
       <section className="card space-y-3">
         <h2 className="text-lg font-semibold">Introduction</h2>
-        <p className="text-sm leading-relaxed text-slate-700">{guide.introduction}</p>
+        <RichContent className="text-sm leading-relaxed text-slate-700">
+          {guide.introduction}
+        </RichContent>
       </section>
 
       <section className="card space-y-3">
         <h2 className="text-lg font-semibold">How to use AI with this concept</h2>
         <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
           {guide.howToUseAI.map((tip) => (
-            <li key={tip}>{tip}</li>
+            <li key={tip}>
+              <RichContent>{tip}</RichContent>
+            </li>
           ))}
         </ul>
       </section>
@@ -50,14 +55,16 @@ export default async function KeyConceptDetailPage({
         {guide.conceptQuestions.map((q, i) => (
           <article key={q.id} className="card space-y-3">
             <span className="badge">Concept Q{i + 1}</span>
-            <p className="font-medium">{q.prompt}</p>
+            <RichContent className="font-medium">{q.prompt}</RichContent>
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
                 Hints
               </h3>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
                 {q.hints.map((h) => (
-                  <li key={h}>{h}</li>
+                  <li key={h}>
+                    <RichContent>{h}</RichContent>
+                  </li>
                 ))}
               </ul>
             </div>
