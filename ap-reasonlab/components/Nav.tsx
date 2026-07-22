@@ -24,6 +24,7 @@ const moreGroups = [
   {
     label: "Admin & developer",
     links: [
+      { href: "/login", label: "Editor login" },
       { href: "/manage", label: "Manage content" },
       { href: "/admin", label: "Admin guide" },
       { href: "/partners", label: "Partners" },

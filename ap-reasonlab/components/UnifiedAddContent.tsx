@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { ManagedUnit } from "@/lib/managed-store";
 import RichContent from "@/components/RichContent";
+import { useContentEditor } from "@/components/useContentEditor";
 
 type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "folder";
 
@@ -30,6 +32,7 @@ export default function UnifiedAddContent({
   onSaved,
   label = "+ Add content",
 }: Props) {
+  const { unlocked } = useContentEditor();
   const storageKey = useMemo(() => `results-content-draft:${subjectId || "general"}`, [subjectId]);
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<ContentType>("concept");
@@ -120,7 +123,7 @@ export default function UnifiedAddContent({
           action,
           item,
           items,
-          changeCode: changeCode.trim(),
+          changeCode: changeCode.trim() || undefined,
           githubToken: githubToken.trim() || undefined,
         }),
       });
@@ -193,10 +196,41 @@ export default function UnifiedAddContent({
             )}
 
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input type="password" className="input" placeholder="Change code" value={changeCode} onChange={(event) => setChangeCode(event.target.value)} required />
-                <input type="password" className="input" placeholder="GitHub token (optional)" value={githubToken} onChange={(event) => setGithubToken(event.target.value)} />
-              </div>
+              {unlocked ? (
+                <p className="text-sm text-emerald-800">
+                  Editor unlocked — publish uses your login session.{" "}
+                  <Link href="/login" className="font-medium underline">
+                    /login
+                  </Link>
+                </p>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    type="password"
+                    className="input"
+                    placeholder="Content change code (or unlock at /login)"
+                    value={changeCode}
+                    onChange={(event) => setChangeCode(event.target.value)}
+                    required
+                  />
+                  <input
+                    type="password"
+                    className="input"
+                    placeholder="GitHub token (optional)"
+                    value={githubToken}
+                    onChange={(event) => setGithubToken(event.target.value)}
+                  />
+                </div>
+              )}
+              {unlocked && (
+                <input
+                  type="password"
+                  className="input mt-3"
+                  placeholder="GitHub token (optional)"
+                  value={githubToken}
+                  onChange={(event) => setGithubToken(event.target.value)}
+                />
+              )}
             </div>
 
             {message && <p role="status" className={/failed|Wrong|Choose/.test(message) ? "text-sm text-red-600" : "text-sm text-emerald-700"}>{message}</p>}

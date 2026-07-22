@@ -4,7 +4,7 @@ import {
   canManageMembers,
   resolveChangeLevel,
 } from "@/lib/change-codes";
-import { getGithubTokenFromCookie, setGithubTokenCookie } from "@/lib/auth";
+import { getContentEditorLevel, getGithubTokenFromCookie, setGithubTokenCookie } from "@/lib/auth";
 import {
   loadManagedContent,
   saveManagedContent,
@@ -90,10 +90,15 @@ export async function POST(req: NextRequest) {
     if (publicForumContribution && forumRateLimited(req)) {
       return NextResponse.json({ error: "Please wait a few seconds before posting again" }, { status: 429 });
     }
-    const level = resolveChangeLevel(body.changeCode);
+    const levelFromCode = resolveChangeLevel(body.changeCode);
+    const levelFromSession = await getContentEditorLevel();
+    const level = levelFromCode || levelFromSession;
     if (!publicMaterialsContribution && !publicForumContribution && !canEditContent(level)) {
       return NextResponse.json(
-        { error: "Wrong or missing change code. Enter the content code or master code to save." },
+        {
+          error:
+            "Editor not unlocked. Open /login and enter the content change code once, then save again.",
+        },
         { status: 401 }
       );
     }

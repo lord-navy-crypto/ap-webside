@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
+import { useContentEditor } from "@/components/useContentEditor";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
 import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-store";
 
 type Tab = "content" | "subjects" | "units" | "trash";
 
 export default function ManagePage() {
+  const { unlocked, editor, refresh: refreshEditor } = useContentEditor();
   const [data, setData] = useState<Partial<ManagedContent>>({});
   const [tab, setTab] = useState<Tab>("content");
   const [query, setQuery] = useState("");
@@ -53,10 +55,19 @@ export default function ManagePage() {
 
   async function mutate(action: string, extra: Record<string, unknown>) {
     setMessage("");
+    if (!unlocked && !changeCode.trim()) {
+      setMessage("Unlock at /login with the content code first (or paste it here once).");
+      return false;
+    }
     const response = await fetch("/api/edit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, changeCode, githubToken: githubToken || undefined, ...extra }),
+      body: JSON.stringify({
+        action,
+        changeCode: changeCode.trim() || undefined,
+        githubToken: githubToken || undefined,
+        ...extra,
+      }),
     });
     const result = await response.json();
     if (!response.ok) {
@@ -65,6 +76,7 @@ export default function ManagePage() {
     }
     setMessage("Saved. GitHub/Vercel may take a moment to refresh.");
     setData(result.content || {});
+    void refreshEditor();
     return true;
   }
 
@@ -93,8 +105,36 @@ export default function ManagePage() {
       </section>
 
       <section className="card grid gap-3 md:grid-cols-2">
-        <label className="text-sm font-medium">Change code<input type="password" className="input mt-1" value={changeCode} onChange={(event) => setChangeCode(event.target.value)} placeholder="Required for manager actions" /></label>
-        <label className="text-sm font-medium">GitHub token <span className="font-normal text-slate-400">(optional)</span><input type="password" className="input mt-1" value={githubToken} onChange={(event) => setGithubToken(event.target.value)} placeholder="Uses Vercel CONTENT_GITHUB_TOKEN when empty" /></label>
+        {unlocked ? (
+          <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 md:col-span-2">
+            Editor unlocked ({editor?.level}). Manage actions use your session — no content code
+            each time.{" "}
+            <Link href="/login" className="font-medium underline">
+              Lock / re-login
+            </Link>
+          </div>
+        ) : (
+          <label className="text-sm font-medium">
+            Content change code
+            <input
+              type="password"
+              className="input mt-1"
+              value={changeCode}
+              onChange={(event) => setChangeCode(event.target.value)}
+              placeholder="Or unlock once at /login"
+            />
+          </label>
+        )}
+        <label className={`text-sm font-medium ${unlocked ? "md:col-span-2" : ""}`}>
+          GitHub token <span className="font-normal text-slate-400">(optional)</span>
+          <input
+            type="password"
+            className="input mt-1"
+            value={githubToken}
+            onChange={(event) => setGithubToken(event.target.value)}
+            placeholder="Uses Vercel CONTENT_GITHUB_TOKEN when empty"
+          />
+        </label>
         {message && <p role="status" className="text-sm text-brand-700 md:col-span-2">{message}</p>}
       </section>
 

@@ -9,29 +9,35 @@ export default function AboutPage() {
         <h1 className="text-3xl font-bold">About {brand.name}</h1>
         <p className="text-slate-600">{brand.description}</p>
         <p className="text-slate-600">
-          No login. Every page has a <strong>+</strong> button. Saving asks for a change code.
+          Editors unlock once at{" "}
+          <Link href="/login" className="font-medium text-brand-700 hover:underline">
+            /login
+          </Link>{" "}
+          with the <strong>content change code</strong>. After that, saving content in this browser
+          does not ask for the code again.
         </p>
       </section>
 
       <EthicsBanner />
 
       <section className="card space-y-3">
-        <h2 className="text-lg font-semibold">Change codes</h2>
+        <h2 className="text-lg font-semibold">Content change code</h2>
         <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
           <li>
-            <strong>Content code</strong> — add/edit content and upload files. Cannot add members.
+            <strong>Content code</strong> — unlock editor login, then add/edit content and upload
+            files.
           </li>
           <li>
-            <strong>Master code</strong> — can do everything, including members on Partners.
+            <strong>Master code</strong> — still exists for special actions (e.g. members), but
+            normal editing only needs the content code.
           </li>
         </ul>
         <p className="text-sm text-slate-600">
-          Ask a site admin for the current codes. They are not published on this page.
+          Ask a site admin for the content code. It is not published on this page.
         </p>
         <p className="text-xs text-slate-500">
-          Admins set them on Vercel with <code>CONTENT_CHANGE_CODE</code> and{" "}
-          <code>MASTER_CHANGE_CODE</code>. Also set <code>CONTENT_GITHUB_TOKEN</code> so saves
-          publish.
+          Admins set <code>CONTENT_CHANGE_CODE</code> on Vercel. Publishing uses{" "}
+          <code>CONTENT_GITHUB_TOKEN</code> (GitHub PAT with Contents write on this repo).
         </p>
       </section>
 
