@@ -10,6 +10,7 @@ import {
 } from "@/data/questionnaires";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
+import RichContent from "@/components/RichContent";
 
 type Tab = "drills" | "sets";
 
@@ -114,14 +115,16 @@ function PracticeContent() {
                 <div className="flex flex-wrap gap-2">
                   <span className="badge">{q.topic}</span>
                 </div>
-                <p className="font-medium text-slate-900">{q.question}</p>
+                <RichContent className="font-medium text-slate-900">{q.question}</RichContent>
                 <div>
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
                     Visible steps
                   </h2>
                   <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-slate-700">
                     {q.visibleSteps.map((step) => (
-                      <li key={step}>{step}</li>
+                      <li key={step}>
+                        <RichContent>{step}</RichContent>
+                      </li>
                     ))}
                   </ol>
                 </div>
@@ -135,7 +138,7 @@ function PracticeContent() {
                         key={step}
                         className="rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-3 text-sm text-slate-700"
                       >
-                        {step}
+                        <RichContent>{step}</RichContent>
                       </li>
                     ))}
                   </ul>
@@ -146,7 +149,9 @@ function PracticeContent() {
                   </h2>
                   <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
                     {q.hints.map((hint) => (
-                      <li key={hint}>{hint}</li>
+                      <li key={hint}>
+                        <RichContent>{hint}</RichContent>
+                      </li>
                     ))}
                   </ul>
                 </div>

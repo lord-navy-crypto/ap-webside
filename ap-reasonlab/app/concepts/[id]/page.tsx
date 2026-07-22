@@ -4,6 +4,7 @@ import { getConceptById } from "@/data/content";
 import { formulas } from "@/data/formulas";
 import { questionnaires } from "@/data/questionnaires";
 import type { Questionnaire } from "@/lib/types";
+import RichContent, { FormulaMath } from "@/components/RichContent";
 
 export default async function ConceptDetailPage({
   params,
@@ -34,14 +35,16 @@ export default async function ConceptDetailPage({
       <section className="card space-y-4">
         <span className="badge">{concept.subject}</span>
         <h1 className="text-3xl font-bold">{concept.title}</h1>
-        <p className="text-slate-600">{concept.summary}</p>
+        <RichContent className="text-slate-600">{concept.summary}</RichContent>
       </section>
 
       <section className="card">
         <h2 className="text-lg font-semibold">Key points</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700">
           {concept.keyPoints.map((point) => (
-            <li key={point}>{point}</li>
+            <li key={point}>
+              <RichContent>{point}</RichContent>
+            </li>
           ))}
         </ul>
       </section>
@@ -50,14 +53,16 @@ export default async function ConceptDetailPage({
         <h2 className="text-lg font-semibold">Common mistakes</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700">
           {concept.commonMistakes.map((mistake) => (
-            <li key={mistake}>{mistake}</li>
+            <li key={mistake}>
+              <RichContent>{mistake}</RichContent>
+            </li>
           ))}
         </ul>
       </section>
 
       <section className="card">
         <h2 className="text-lg font-semibold">Example</h2>
-        <p className="mt-3 text-sm text-slate-700">{concept.example}</p>
+        <RichContent className="mt-3 text-sm text-slate-700">{concept.example}</RichContent>
       </section>
 
       {relatedFormulas.length > 0 && (
@@ -69,7 +74,7 @@ export default async function ConceptDetailPage({
                 <Link href="/formulas" className="font-medium text-brand-700 hover:underline">
                   {f.name}
                 </Link>
-                <p className="mt-1 font-mono text-slate-700">{f.expression}</p>
+                <FormulaMath expression={f.expression} className="mt-1 bg-transparent px-0 py-1 text-sm" />
               </li>
             ))}
           </ul>
