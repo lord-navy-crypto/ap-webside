@@ -5,12 +5,6 @@ import UploadAndShow from "@/components/UploadAndShow";
 
 const academicTools = [
   {
-    href: "/my-files",
-    title: "My Files (private)",
-    description:
-      "Your own file manager on this device. Not visible to other visitors or the public site.",
-  },
-  {
     href: "/learning-box",
     title: "Learning Box",
     description:
@@ -20,7 +14,7 @@ const academicTools = [
     href: "/academic/materials",
     title: "Shared materials",
     description:
-      "Optional shared library (change code). File downloads stay locked without a code.",
+      "Site materials for the materials area — separate from AP / Code / Forum folders.",
   },
   {
     href: "/picture",

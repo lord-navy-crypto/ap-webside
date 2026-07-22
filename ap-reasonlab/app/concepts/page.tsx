@@ -72,7 +72,7 @@ function ConceptsContent() {
     return {
       id: s,
       title: s,
-      subtitle: `${conceptCount} concepts · ${guideCount} guides · private storage`,
+      subtitle: `${conceptCount} concepts · ${guideCount} guides · own storage`,
       count: conceptCount + guideCount,
       href: `/concepts?subject=${encodeURIComponent(s)}`,
     };
@@ -152,8 +152,8 @@ function ConceptsContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">{folderTitle || "Folder"}</h1>
           <p className="mt-2 text-slate-600">
-            Private storage for this folder only. Add a concept with area, name, and notes — AI
-            sorts into key points, common mistakes, and example.
+            Storage for this folder only. Add a concept with area, name, and notes — AI sorts into
+            key points, common mistakes, and example.
           </p>
         </div>
         <UploadAndShow
@@ -178,7 +178,7 @@ function ConceptsContent() {
           <h1 className="mt-2 text-3xl font-bold">Concepts</h1>
           <p className="mt-2 text-slate-600">
             Each subject folder has its own storage. Open a folder to add concepts and files —
-            they will not appear in other folders.
+            they stay in that folder and do not mix with other subjects.
           </p>
         </div>
         <UploadAndShow
@@ -201,7 +201,7 @@ function ConceptsContent() {
         </Link>
         <h1 className="mt-2 text-3xl font-bold">{subject}</h1>
         <p className="mt-2 text-slate-600">
-          Private storage for {subject}. Type area, name, and paste notes — Auto-sort fills key
+          Storage for {subject} only. Type area, name, and paste notes — Auto-sort fills key
           points, common mistakes, and examples.
         </p>
       </div>

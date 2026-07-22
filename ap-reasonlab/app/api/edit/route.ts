@@ -24,43 +24,45 @@ async function tokenFrom(body: { githubToken?: string }) {
 export async function GET(req: NextRequest) {
   const token = await getGithubTokenFromCookie();
   const content = await loadManagedContent(token);
-  const code = req.nextUrl.searchParams.get("changeCode")?.trim() || "";
-  const level = resolveChangeLevel(code);
+  const area = req.nextUrl.searchParams.get("area")?.trim() || "";
+  const space = req.nextUrl.searchParams.get("space")?.trim() || "";
 
-  // Without a valid change code, never expose file binaries (dataUrl) to the public.
-  if (!canEditContent(level)) {
+  // Optional scope: return only one area+folder bucket so panels stay separate.
+  if (area) {
+    const spaceKey = space || "_root";
+    const inBucket = (item: { area?: string; space?: string }) => {
+      if (!item.area && !item.space) {
+        // Legacy unscoped rows only surface under materials/_root
+        return area === "materials" && spaceKey === "_root";
+      }
+      return item.area === area && (item.space || "_root") === spaceKey;
+    };
+
     return NextResponse.json({
-      concepts: content.concepts || [],
-      formulas: content.formulas || [],
-      documents: (content.documents || []).map((d) => ({
-        ...d,
-        content: d.content?.slice(0, 500) || "",
-        truncated: (d.content?.length || 0) > 500,
-      })),
-      files: (content.files || []).map((f) => ({
-        id: f.id,
-        name: f.name,
-        mime: f.mime,
-        note: f.note,
-        uploadedAt: f.uploadedAt,
-        area: f.area,
-        space: f.space,
-        hasFile: Boolean(f.dataUrl),
-      })),
-      members: (content.members || []).map((m) => ({
-        id: m.id,
-        name: m.name,
-        note: m.note,
-        addedAt: m.addedAt,
-      })),
-      folders: content.folders || [],
+      concepts:
+        spaceKey === "_root"
+          ? (content.concepts || []).filter((c) => !c.subject || c.subject === "_root")
+          : spaceKey.startsWith("folder:")
+            ? (content.concepts || []).filter(
+                (c) => c.subject === spaceKey || c.subject === space
+              )
+            : (content.concepts || []).filter((c) => c.subject === spaceKey),
+      formulas:
+        spaceKey === "_root"
+          ? []
+          : (content.formulas || []).filter((f) => f.subject === spaceKey),
+      documents: (content.documents || []).filter(inBucket),
+      files: (content.files || []).filter(inBucket),
+      folders: (content.folders || []).filter(
+        (f) => f.area === area && (f.space || "_root") === spaceKey
+      ),
+      members: content.members || [],
       updatedAt: content.updatedAt,
-      access: "public-redacted",
-      hint: "Shared file downloads need a change code. Use /my-files for private storage on this device.",
+      scoped: { area, space: spaceKey },
     });
   }
 
-  return NextResponse.json({ ...content, access: "full" });
+  return NextResponse.json(content);
 }
 
 export async function POST(req: NextRequest) {

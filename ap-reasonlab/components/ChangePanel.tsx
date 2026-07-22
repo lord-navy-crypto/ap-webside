@@ -185,8 +185,8 @@ export default function ChangePanel({
 
       setNote(
         data.mode === "github"
-          ? "Saved into this folder’s storage. It should appear on the right now."
-          : "Saved into this folder’s storage. It should appear on the right now."
+          ? "Saved into this area/folder bucket. It should appear on the right now."
+          : "Saved into this area/folder bucket. It should appear on the right now."
       );
       reset();
       onSaved?.(data.content);
@@ -214,7 +214,7 @@ export default function ChangePanel({
         <form onSubmit={handleSubmit} className="card space-y-3 border-brand-200">
           <h3 className="font-semibold text-slate-900">{titles[mode]}</h3>
           <p className="text-xs text-slate-500">
-            Saves only into this folder space — not shared with other folders.
+            Saves only into this area + folder bucket — not mixed with other panels.
           </p>
 
           {(mode === "concept" ||

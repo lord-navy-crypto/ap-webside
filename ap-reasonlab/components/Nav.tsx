@@ -5,7 +5,6 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/ap", label: "AP" },
   { href: "/academic", label: "Academic Platform" },
-  { href: "/my-files", label: "My Files" },
   { href: "/code", label: "Code" },
   { href: "/forum", label: "Forum" },
   { href: "/partners", label: "Partners" },
