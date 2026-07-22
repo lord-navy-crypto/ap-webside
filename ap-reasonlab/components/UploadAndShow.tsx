@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import ChangePanel from "@/components/ChangePanel";
+import RichContent from "@/components/RichContent";
 import type {
   ManagedContent,
   ManagedDocument,
@@ -269,9 +270,9 @@ export default function UploadAndShow({
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium">{d.title}</p>
                         <p className="text-xs text-slate-500">{d.category}</p>
-                        <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-sm text-slate-600">
+                        <RichContent clampLines={4} className="mt-1 text-sm text-slate-600">
                           {d.content}
-                        </p>
+                        </RichContent>
                       </div>
                       <button
                         type="button"

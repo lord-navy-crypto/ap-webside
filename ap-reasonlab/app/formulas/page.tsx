@@ -7,6 +7,7 @@ import { formulas, getFormulaSubjects } from "@/data/formulas";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
+import RichContent, { FormulaMath } from "@/components/RichContent";
 
 function FormulasContent() {
   const searchParams = useSearchParams();
@@ -119,15 +120,15 @@ function FormulasContent() {
                           </Link>
                         )}
                       </div>
-                      <p className="rounded-lg bg-slate-50 px-4 py-3 font-mono text-lg text-slate-900">
-                        {f.expression}
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        <span className="font-medium">Variables:</span> {f.variables}
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        <span className="font-medium">When to use:</span> {f.whenToUse}
-                      </p>
+                      <FormulaMath expression={f.expression} />
+                      <div className="text-sm text-slate-600">
+                        <span className="font-medium">Variables:</span>{" "}
+                        <RichContent className="inline [&>p]:inline">{f.variables}</RichContent>
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        <span className="font-medium">When to use:</span>{" "}
+                        <RichContent className="inline [&>p]:inline">{f.whenToUse}</RichContent>
+                      </div>
                       <p className="text-xs text-slate-400">{f.sourceNote}</p>
                     </article>
                   ))}

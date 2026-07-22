@@ -10,6 +10,7 @@ import {
   type LearningBoxItem,
 } from "@/lib/storage";
 import { starterLearningMaterials } from "@/data/starter-learning";
+import RichContent from "@/components/RichContent";
 
 type Tab = "library" | "random";
 
@@ -243,9 +244,9 @@ export default function LearningBoxPage() {
                       <h3 className="font-semibold text-slate-900">{item.title}</h3>
                       <span className="badge">{item.category}</span>
                     </div>
-                    <p className="whitespace-pre-wrap text-sm text-slate-700 line-clamp-4">
+                    <RichContent clampLines={4} className="text-sm text-slate-700">
                       {item.content}
-                    </p>
+                    </RichContent>
                     <div className="flex gap-3 text-xs">
                       <button
                         type="button"
@@ -295,7 +296,7 @@ export default function LearningBoxPage() {
                 <h3 className="text-xl font-bold text-slate-900">{randomPick.title}</h3>
                 <span className="badge">{randomPick.category}</span>
               </div>
-              <p className="whitespace-pre-wrap text-sm text-slate-700">{randomPick.content}</p>
+              <RichContent className="text-sm text-slate-700">{randomPick.content}</RichContent>
             </article>
           )}
         </section>

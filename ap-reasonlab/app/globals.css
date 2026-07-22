@@ -155,3 +155,78 @@ body {
 .guide-faq[open] summary::after {
   content: "−";
 }
+
+/* ── Markdown + KaTeX (RichContent) ── */
+.rich-content {
+  @apply text-slate-700;
+}
+
+.rich-content.rich-math {
+  @apply text-slate-900;
+}
+
+.rich-content .katex-display {
+  @apply my-2 overflow-x-auto overflow-y-hidden;
+}
+
+.prose-study > :first-child {
+  margin-top: 0;
+}
+
+.prose-study > :last-child {
+  margin-bottom: 0;
+}
+
+.prose-study p {
+  @apply my-2 leading-relaxed;
+}
+
+.prose-study ul {
+  @apply my-2 list-disc space-y-1 pl-5;
+}
+
+.prose-study ol {
+  @apply my-2 list-decimal space-y-1 pl-5;
+}
+
+.prose-study strong {
+  @apply font-semibold text-slate-900;
+}
+
+.prose-study a {
+  @apply font-medium text-brand-600 underline-offset-2 hover:underline;
+}
+
+.prose-study code {
+  @apply rounded bg-slate-100 px-1.5 py-0.5 text-[0.9em] text-slate-800;
+}
+
+.prose-study pre {
+  @apply my-3 overflow-x-auto rounded-xl bg-slate-900 p-4 text-sm text-slate-100;
+}
+
+.prose-study pre code {
+  @apply bg-transparent p-0 text-inherit;
+}
+
+.prose-study blockquote {
+  @apply my-2 border-l-4 border-slate-300 pl-4 text-slate-600;
+}
+
+.prose-study h1,
+.prose-study h2,
+.prose-study h3 {
+  @apply font-semibold text-slate-900;
+}
+
+.prose-study h1 {
+  @apply mt-4 mb-2 text-xl;
+}
+
+.prose-study h2 {
+  @apply mt-3 mb-2 text-lg;
+}
+
+.prose-study h3 {
+  @apply mt-3 mb-1 text-base;
+}
