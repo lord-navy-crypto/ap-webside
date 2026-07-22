@@ -17,6 +17,11 @@ const providerOptions: Array<{ value: AiProvider; label: string; placeholder: st
   { value: "groq", label: "Groq Instant (llama-3.1-8b-instant)", placeholder: "gsk_..." },
   { value: "gemini", label: "Gemini Flash (gemini-2.0-flash)", placeholder: "AIza..." },
   {
+    value: "githubmodels",
+    label: "GitHub Models (CONTENT_GITHUB_TOKEN / PAT)",
+    placeholder: "ghp_... or github_pat_...",
+  },
+  {
     value: "openrouter",
     label: "OpenRouter (llama-3.1-8b via OpenRouter)",
     placeholder: "sk-or-v1-...",

@@ -132,11 +132,12 @@ export default function ManagePage() {
             className="input mt-1"
             value={githubToken}
             onChange={(event) => setGithubToken(event.target.value)}
-            placeholder="Leave empty — uses Vercel CONTENT_GITHUB_TOKEN"
+            placeholder="Leave empty — uses Vercel GITHUB_TOKEN"
           />
           <span className="mt-1 block text-xs text-slate-500">
-            Only paste a GitHub PAT (<code>ghp_</code> / <code>github_pat_</code>). Never paste the
-            content change code here.
+            Only paste a repo-write GitHub PAT (<code>ghp_</code> / <code>github_pat_</code>)
+            if overriding. Prefer Vercel <code>GITHUB_TOKEN</code>. Never paste the content
+            change code or the GitHub Models (<code>CONTENT_GITHUB_TOKEN</code>) AI key here.
           </span>
         </label>
         {message && <p role="status" className="text-sm text-brand-700 md:col-span-2">{message}</p>}

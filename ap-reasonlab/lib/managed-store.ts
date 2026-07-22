@@ -161,20 +161,34 @@ export function looksLikeGithubPat(raw?: string | null): boolean {
 }
 
 /**
- * Resolve which token to use for GitHub API writes.
- * Prefer Vercel CONTENT_GITHUB_TOKEN. Only accept UI/cookie overrides that look like PATs
- * (so pasting the content change code cannot poison every save with 401).
+ * Repo Save / publish tokens ONLY.
+ *
+ * Owner setup:
+ * - GITHUB_TOKEN = real GitHub PAT for writing managed-content.json to the repo
+ * - CONTENT_GITHUB_TOKEN = GitHub Models AI key (see lib/ai-client.ts) — NOT used here
  */
-export function resolveGithubAuth(override?: string | null): string {
-  const envToken = sanitizeGithubToken(
-    process.env.CONTENT_GITHUB_TOKEN ||
-      process.env.GITHUB_TOKEN ||
-      process.env.GH_TOKEN ||
-      ""
-  );
+export function githubAuthCandidates(override?: string | null): string[] {
   const fromClient = sanitizeGithubToken(override);
-  if (fromClient && looksLikeGithubPat(fromClient)) return fromClient;
-  return envToken;
+  const envOnes = [process.env.GITHUB_TOKEN, process.env.GH_TOKEN].map(sanitizeGithubToken);
+
+  const ordered: string[] = [];
+  const push = (t: string) => {
+    if (t && !ordered.includes(t)) ordered.push(t);
+  };
+
+  if (fromClient && looksLikeGithubPat(fromClient)) push(fromClient);
+  for (const t of envOnes) {
+    if (t && looksLikeGithubPat(t)) push(t);
+  }
+  for (const t of envOnes) {
+    if (t) push(t);
+  }
+  return ordered;
+}
+
+/** First usable write token (UI override → GITHUB_TOKEN → GH_TOKEN). */
+export function resolveGithubAuth(override?: string | null): string {
+  return githubAuthCandidates(override)[0] || "";
 }
 
 function repoSettings() {
@@ -203,23 +217,27 @@ async function githubGet(
   token?: string
 ): Promise<{ text: string; sha: string } | null> {
   const { repo, branch } = repoSettings();
-  const auth = resolveGithubAuth(token);
-  if (!auth) return null;
+  const candidates = githubAuthCandidates(token);
+  if (candidates.length === 0) return null;
 
   const apiPath = filePathInRepo.replace(/^\/+/, "");
   const url = `https://api.github.com/repos/${repo}/contents/${apiPath}?ref=${encodeURIComponent(branch)}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${auth}`,
-      Accept: "application/vnd.github+json",
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  const body = await res.json();
-  if (!body.content || !body.sha) return null;
-  const text = Buffer.from(body.content.replace(/\n/g, ""), "base64").toString("utf8");
-  return { text, sha: body.sha };
+
+  for (const auth of candidates) {
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${auth}`,
+        Accept: "application/vnd.github+json",
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) continue;
+    const body = await res.json();
+    if (!body.content || !body.sha) continue;
+    const text = Buffer.from(body.content.replace(/\n/g, ""), "base64").toString("utf8");
+    return { text, sha: body.sha };
+  }
+  return null;
 }
 
 async function githubWrite(
@@ -229,24 +247,27 @@ async function githubWrite(
   token?: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const { repo, branch } = repoSettings();
-  const envToken = resolveGithubAuth();
-  let auth = resolveGithubAuth(token);
-  if (!auth) {
+  const candidates = githubAuthCandidates(token);
+  if (candidates.length === 0) {
     return {
       ok: false,
       error:
-        "No GitHub token. On Vercel set CONTENT_GITHUB_TOKEN (a GitHub PAT), Redeploy, then save. Leave the optional GitHub token field empty. Do not paste the content change code into the GitHub token field.",
+        "No GitHub write token. Set GITHUB_TOKEN on Vercel to your real repo-write PAT (ghp_ / github_pat_), Redeploy, leave the optional GitHub field empty. CONTENT_GITHUB_TOKEN is for GitHub Models AI only — it is not used for Save.",
     };
   }
 
   const apiPath = filePathInRepo.replace(/^\/+/, "");
   const url = `https://api.github.com/repos/${repo}/contents/${apiPath}`;
 
-  async function putWith(authToken: string, sha?: string) {
-    return fetch(url, {
+  let lastStatus = 0;
+  let lastText = "";
+
+  for (const auth of candidates) {
+    const existing = await githubGet(apiPath, auth);
+    const putRes = await fetch(url, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${authToken}`,
+        Authorization: `Bearer ${auth}`,
         Accept: "application/vnd.github+json",
         "Content-Type": "application/json",
       },
@@ -254,45 +275,28 @@ async function githubWrite(
         message,
         content: Buffer.from(content, "utf8").toString("base64"),
         branch,
-        sha,
+        sha: existing?.sha,
       }),
     });
+    if (putRes.ok) return { ok: true };
+    lastStatus = putRes.status;
+    lastText = await putRes.text();
+    // Try next candidate on bad credentials; stop on other errors (403/422/…)
+    if (putRes.status !== 401) break;
   }
 
-  let sha: string | undefined;
-  const existing = await githubGet(apiPath, auth);
-  if (existing) sha = existing.sha;
-
-  let putRes = await putWith(auth, sha);
-
-  // If a pasted/cookie override is bad, fall back to Vercel env token once.
-  if (
-    putRes.status === 401 &&
-    envToken &&
-    auth !== envToken
-  ) {
-    auth = envToken;
-    const existingEnv = await githubGet(apiPath, auth);
-    sha = existingEnv?.sha;
-    putRes = await putWith(auth, sha);
+  let hint = "";
+  if (lastStatus === 401) {
+    hint =
+      " Bad credentials: GITHUB_TOKEN on Vercel is wrong/expired/revoked. Put your real repo-write PAT into GITHUB_TOKEN, Redeploy. CONTENT_GITHUB_TOKEN is for GitHub Models AI (not Save). Do not paste the content change code into the GitHub token field.";
+  } else if (lastStatus === 403) {
+    hint =
+      " Token was accepted but lacks write access. Fine-grained PAT: repo ap-webside + Contents: Read and write. Classic PAT: repo scope.";
   }
-
-  if (!putRes.ok) {
-    const errText = await putRes.text();
-    let hint = "";
-    if (putRes.status === 401) {
-      hint =
-        " Bad credentials = CONTENT_GITHUB_TOKEN on Vercel is wrong/expired/revoked, or a bad value was pasted in the optional GitHub token box. Fix: create a new PAT → set Vercel CONTENT_GITHUB_TOKEN to the raw token (starts with ghp_ or github_pat_) → Redeploy → leave the optional GitHub field empty → Save. The content change code only unlocks edit; it is not a GitHub token.";
-    } else if (putRes.status === 403) {
-      hint =
-        " Token was accepted but lacks write access. Fine-grained PAT: resource owner + repo ap-webside + Contents: Read and write. Classic PAT: enable the repo scope.";
-    }
-    return {
-      ok: false,
-      error: `GitHub write failed (${putRes.status}): ${errText.slice(0, 300)}${hint}`,
-    };
-  }
-  return { ok: true };
+  return {
+    ok: false,
+    error: `GitHub write failed (${lastStatus}): ${lastText.slice(0, 300)}${hint}`,
+  };
 }
 
 export async function loadManagedContent(token?: string): Promise<ManagedContent> {

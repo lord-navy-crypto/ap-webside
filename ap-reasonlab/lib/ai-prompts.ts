@@ -12,9 +12,9 @@ Main areas:
 - Manage (/manage): no-code content manager (editors; needs change code or content-login session).
 - Search (/search): find concepts, formulas, practice across subjects.
 - About (/about): brand, ethics, how change codes work (codes themselves are not published on the page — ask an admin).
-AI Toolbox (/hints): listed in desktop nav and home. Three tools — (1) Hint & Process for problems, (2) Concept Explainer, (3) Site Guide (this tool).
+AI Toolbox (/hints): listed in desktop nav and home. Three tools — (1) Hint & Process for problems, (2) Concept Explainer, (3) Site Guide (this tool). Site AI can use Groq, Gemini, GitHub Models (CONTENT_GITHUB_TOKEN), OpenRouter, DeepSeek.
 Editing: Browse freely. Click the edit circle (bottom-right) on any page or open /login, enter the content change code once, then edit without re-typing. Master code still works.
-Publishing: CONTENT_GITHUB_TOKEN on Vercel lets Manage/+ saves publish to GitHub.
+Publishing: GITHUB_TOKEN on Vercel lets Manage/+ saves publish to GitHub. CONTENT_GITHUB_TOKEN is for GitHub Models AI only — not for Save.
 TrueJet / authors (public GitHub):
 - lord-navy-crypto — Founder / Full Admin (https://github.com/lord-navy-crypto).
 - shulai-ui — Partner with GitHub write access (https://github.com/shulai-ui).
