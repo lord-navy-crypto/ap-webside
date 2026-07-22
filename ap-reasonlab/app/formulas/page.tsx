@@ -70,17 +70,18 @@ function FormulasContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Formulas</h1>
           <p className="mt-2 text-slate-600">
-            Open a subject folder first. Use + to add a formula or upload a file (change code required).
+            Open a subject folder to browse formulas by unit.
           </p>
         </div>
+        <FolderGrid folders={subjectFolders} />
         <UploadAndShow
           alsoShow={["folder"]}
           folderArea="formulas"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/formulas"
           title="Root formulas storage"
+          collapsedByDefault
         />
-        <FolderGrid folders={subjectFolders} />
       </div>
     );
   }
@@ -96,15 +97,6 @@ function FormulasContent() {
           Formulas for this subject, grouped by unit.
         </p>
       </div>
-
-      <UploadAndShow
-        alsoShow={["formula", "folder"]}
-        folderArea="formulas"
-        defaultSubject={activeSubject || undefined}
-        spaceKey={spaceKey}
-        spaceBasePath="/formulas"
-        title={`${activeSubject} storage`}
-      />
 
       <input
         type="text"
@@ -169,6 +161,16 @@ function FormulasContent() {
           Open practice folder
         </Link>
       </section>
+
+      <UploadAndShow
+        alsoShow={["formula", "folder"]}
+        folderArea="formulas"
+        defaultSubject={activeSubject || undefined}
+        spaceKey={spaceKey}
+        spaceBasePath="/formulas"
+        title={`${activeSubject} storage`}
+        collapsedByDefault
+      />
     </div>
   );
 }

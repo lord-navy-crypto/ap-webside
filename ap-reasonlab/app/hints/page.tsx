@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import EthicsBanner from "@/components/EthicsBanner";
 import RichContent from "@/components/RichContent";
 
@@ -13,11 +14,46 @@ type HintResponse = {
   note: string;
 };
 
-export default function HintsPage() {
+const SUBJECT_OPTIONS = [
+  "AP Physics 1",
+  "AP Physics 2",
+  "AP Physics C: Mechanics",
+  "AP Physics C: E&M",
+  "AP Calculus AB/BC",
+  "AP Statistics",
+  "AP Chemistry",
+  "AP Biology",
+  "AP Psychology",
+  "AP Computer Science A",
+  "AP Microeconomics",
+  "AP Macroeconomics",
+  "AP US History",
+] as const;
+
+const DEFAULT_SUBJECT = SUBJECT_OPTIONS[0];
+
+function resolveSubject(raw: string | null): string {
+  if (!raw) return DEFAULT_SUBJECT;
+  const trimmed = raw.trim();
+  if (!trimmed) return DEFAULT_SUBJECT;
+  const exact = SUBJECT_OPTIONS.find((option) => option === trimmed);
+  if (exact) return exact;
+  const caseInsensitive = SUBJECT_OPTIONS.find(
+    (option) => option.toLowerCase() === trimmed.toLowerCase()
+  );
+  if (caseInsensitive) return caseInsensitive;
+  // Allow managed / custom subject names that are not in the static list.
+  return trimmed;
+}
+
+function HintsContent() {
+  const searchParams = useSearchParams();
+  const subjectFromQuery = searchParams.get("subject");
+
   // Initialize from hash to avoid SSR/client mismatch and keep mode shareable.
   const [mode, setMode] = useState<Mode>("default");
   const [question, setQuestion] = useState("");
-  const [subject, setSubject] = useState("AP Physics 1");
+  const [subject, setSubject] = useState(() => resolveSubject(subjectFromQuery));
   const [provider, setProvider] = useState<Provider>("groq");
   const [userKey, setUserKey] = useState("");
   const [notes, setNotes] = useState("");
@@ -32,6 +68,15 @@ export default function HintsPage() {
       setMode("bring-your-own");
     }
   }, []);
+
+  useEffect(() => {
+    setSubject(resolveSubject(subjectFromQuery));
+  }, [subjectFromQuery]);
+
+  const subjectChoices =
+    SUBJECT_OPTIONS.includes(subject as (typeof SUBJECT_OPTIONS)[number])
+      ? SUBJECT_OPTIONS
+      : ([subject, ...SUBJECT_OPTIONS] as string[]);
 
   const promptWithNotes = () => {
     let full = question;
@@ -151,19 +196,11 @@ export default function HintsPage() {
         <div>
           <label className="mb-2 block text-sm font-medium">Subject</label>
           <select className="input" value={subject} onChange={(e) => setSubject(e.target.value)}>
-            <option>AP Physics 1</option>
-            <option>AP Physics 2</option>
-            <option>AP Physics C: Mechanics</option>
-            <option>AP Physics C: E&M</option>
-            <option>AP Calculus AB/BC</option>
-            <option>AP Statistics</option>
-            <option>AP Chemistry</option>
-            <option>AP Biology</option>
-            <option>AP Psychology</option>
-            <option>AP Computer Science A</option>
-            <option>AP Microeconomics</option>
-            <option>AP Macroeconomics</option>
-            <option>AP US History</option>
+            {subjectChoices.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -247,5 +284,13 @@ export default function HintsPage() {
         </section>
       )}
     </div>
+  );
+}
+
+export default function HintsPage() {
+  return (
+    <Suspense fallback={<div className="text-sm text-slate-500">Loading hint coach...</div>}>
+      <HintsContent />
+    </Suspense>
   );
 }

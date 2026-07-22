@@ -55,17 +55,18 @@ function PracticeContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Practice</h1>
           <p className="mt-2 text-slate-600">
-            Open a subject folder first. Use + to add a document or upload a practice file (change code required).
+            Open a subject folder for drills and generated sets — hints only, no final answer keys.
           </p>
         </div>
+        <FolderGrid folders={subjectFolders} />
         <UploadAndShow
           alsoShow={["folder"]}
           folderArea="practice"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/practice"
           title="Root practice storage"
+          collapsedByDefault
         />
-        <FolderGrid folders={subjectFolders} />
       </div>
     );
   }
@@ -84,14 +85,6 @@ function PracticeContent() {
           Practice for this subject — hints only, no final answer keys.
         </p>
       </div>
-
-      <UploadAndShow
-        alsoShow={["document", "folder"]}
-        folderArea="practice"
-        spaceKey={spaceKey}
-        spaceBasePath="/practice"
-        title={`${subject} storage`}
-      />
 
       <div className="card p-2">
         <div className="grid grid-cols-2 gap-2">
@@ -197,6 +190,15 @@ function PracticeContent() {
           )}
         </div>
       )}
+
+      <UploadAndShow
+        alsoShow={["document", "folder"]}
+        folderArea="practice"
+        spaceKey={spaceKey}
+        spaceBasePath="/practice"
+        title={`${subject} storage`}
+        collapsedByDefault
+      />
     </div>
   );
 }
