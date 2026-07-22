@@ -10,9 +10,30 @@ export default function AdminRedirectPage() {
       <div className="card space-y-3 text-sm text-slate-700">
         <p>No login or account needed.</p>
         <ol className="list-decimal space-y-2 pl-5">
-          <li>On any page, click the <strong>+</strong> button to add content or upload a file.</li>
-          <li>Fill the form in the same format as that page.</li>
-          <li>When you save, enter a <strong>change code</strong>.</li>
+          <li>
+            Go to <strong>AP Area</strong> → Concepts / Formulas / Practice (or open a subject
+            folder).
+          </li>
+          <li>
+            Use the matching <strong>+</strong> button:
+            <ul className="mt-1 list-disc pl-5">
+              <li>
+                <strong>+ Add subject folder</strong> — Concepts / Formulas / Practice roots
+              </li>
+              <li>
+                <strong>+ Add topic</strong> — inside a Concepts subject
+              </li>
+              <li>
+                <strong>+ Add formula</strong> — inside a Formulas subject
+              </li>
+              <li>
+                <strong>+ Add generated practice set</strong> — inside Practice (e.g. AP Statistics)
+              </li>
+            </ul>
+          </li>
+          <li>
+            Fill the form, then enter a <strong>change code</strong> to save.
+          </li>
         </ol>
         <ul className="list-disc space-y-1 pl-5">
           <li>
@@ -29,10 +50,16 @@ export default function AdminRedirectPage() {
         </p>
       </div>
       <div className="flex flex-wrap gap-3">
-        <Link href="/concepts" className="btn-primary">
-          Open Concepts
+        <Link href="/ap" className="btn-primary">
+          Open AP Area
         </Link>
-        <Link href="/partners" className="btn-secondary">
+        <Link href="/practice?subject=AP%20Statistics" className="btn-secondary">
+          AP Statistics practice
+        </Link>
+        <Link href="/concepts?subject=AP%20Statistics" className="btn-secondary">
+          AP Statistics topics
+        </Link>
+        <Link href="/partners" className="btn-ghost">
           Partners / members
         </Link>
       </div>

@@ -9,13 +9,21 @@ import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
 import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
 import RichContent, { FormulaMath } from "@/components/RichContent";
+import type { Formula } from "@/lib/types";
 
 function FormulasContent() {
   const searchParams = useSearchParams();
+  const [managedSubjects, setManagedSubjects] = useState<string[]>([]);
+  const [managedFormulas, setManagedFormulas] = useState<Formula[]>([]);
   const subjects = useMemo(() => {
-    const set = new Set<string>([...AP_SUBJECTS, ...getFormulaSubjects()]);
+    const set = new Set<string>([
+      ...AP_SUBJECTS,
+      ...getFormulaSubjects(),
+      ...managedSubjects,
+      ...managedFormulas.map((f) => f.subject),
+    ]);
     return [...set].sort();
-  }, []);
+  }, [managedSubjects, managedFormulas]);
   const activeSubject = searchParams.get("subject");
   const folderParam = searchParams.get("folder");
   const spaceKey = spaceFromSearchParams({ subject: activeSubject, folder: folderParam });
@@ -26,18 +34,43 @@ function FormulasContent() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/edit", { cache: "no-store" });
+        const data = await res.json();
+        if (cancelled) return;
+        setManagedSubjects(Array.isArray(data.subjects) ? data.subjects.map(String) : []);
+        setManagedFormulas(Array.isArray(data.formulas) ? data.formulas : []);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [spaceKey]);
+
   const subjectFolders = subjects.map((s) => ({
     id: s,
     title: s,
-    subtitle: "Open to browse formulas by unit",
-    count: formulas.filter((f) => f.subject === s).length,
+    subtitle: "Open to browse formulas by unit · + to add",
+    count:
+      formulas.filter((f) => f.subject === s).length +
+      managedFormulas.filter((f) => f.subject === s).length,
     href: `/formulas?subject=${encodeURIComponent(s)}`,
   }));
 
-  const filtered = useMemo(
-    () => (activeSubject ? formulas.filter((f) => f.subject === activeSubject) : []),
-    [activeSubject]
-  );
+  const filtered = useMemo(() => {
+    if (!activeSubject) return [];
+    const builtIn = formulas.filter((f) => f.subject === activeSubject);
+    const seen = new Set(builtIn.map((f) => f.id));
+    const extra = managedFormulas.filter(
+      (f) => f.subject === activeSubject && !seen.has(f.id)
+    );
+    return [...builtIn, ...extra];
+  }, [activeSubject, managedFormulas]);
 
   const byUnit = useMemo(() => {
     return filtered.reduce<Record<string, typeof filtered>>((acc, f) => {
@@ -70,15 +103,17 @@ function FormulasContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Formulas</h1>
           <p className="mt-2 text-slate-600">
-            Open a subject folder first. Use + to add a formula or upload a file (change code required).
+            Open a subject folder to add formulas. Use <strong>+ Add subject folder</strong> to
+            create a new subject in this grid.
           </p>
         </div>
         <UploadAndShow
-          alsoShow={["folder"]}
+          alsoShow={["subject", "folder"]}
           folderArea="formulas"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/formulas"
           title="Root formulas storage"
+          onSubjectsChange={setManagedSubjects}
         />
         <FolderGrid folders={subjectFolders} />
       </div>
@@ -93,7 +128,7 @@ function FormulasContent() {
         </Link>
         <h1 className="mt-2 text-3xl font-bold">{activeSubject}</h1>
         <p className="mt-2 text-slate-600">
-          Formulas for this subject, grouped by unit.
+          Formulas for this subject, grouped by unit. Use <strong>+ Add formula</strong> to add more.
         </p>
       </div>
 
@@ -104,6 +139,7 @@ function FormulasContent() {
         spaceKey={spaceKey}
         spaceBasePath="/formulas"
         title={`${activeSubject} storage`}
+        onSubjectsChange={setManagedSubjects}
       />
 
       <input
@@ -127,6 +163,9 @@ function FormulasContent() {
                     <article key={f.id} className="card space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-lg font-semibold">{f.name}</h3>
+                        {f.id.startsWith("m-formula") && (
+                          <span className="badge-generated">ADDED</span>
+                        )}
                         {f.relatedConceptId && (
                           <Link
                             href={`/concepts/${f.relatedConceptId}`}
@@ -152,7 +191,9 @@ function FormulasContent() {
               </section>
             ))
           ) : (
-            <p className="text-sm text-slate-500">No formulas match your search.</p>
+            <p className="text-sm text-slate-500">
+              No formulas yet. Use + Add formula above.
+            </p>
           )}
         </div>
       )}

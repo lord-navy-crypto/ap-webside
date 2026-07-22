@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
-import type { Concept, Formula } from "@/lib/types";
+import type { Concept, Formula, Questionnaire } from "@/lib/types";
 
 export type ManagedDocument = {
   id: string;
@@ -37,6 +37,17 @@ export type ManagedFolder = {
   space?: string;
 };
 
+/** Lightweight topic stub shown in Concepts (also stored as a concept). */
+export type ManagedTopic = {
+  id: string;
+  title: string;
+  subject: string;
+  summary?: string;
+  createdAt: number;
+  area?: string;
+  space?: string;
+};
+
 export type ManagedContent = {
   concepts: Concept[];
   formulas: Formula[];
@@ -44,6 +55,12 @@ export type ManagedContent = {
   files: ManagedFile[];
   members: { id: string; name: string; note?: string; addedAt: number }[];
   folders: ManagedFolder[];
+  /** Extra subject folders created from the UI (+ Add subject) */
+  subjects: string[];
+  /** AI-generated questionnaire sets added from Practice UI */
+  questionnaires: Questionnaire[];
+  /** Optional topic index (mirrors concepts created via + Add topic) */
+  topics: ManagedTopic[];
   updatedAt: number;
 };
 
@@ -70,8 +87,29 @@ const emptyContent = (): ManagedContent => ({
   files: [],
   members: [],
   folders: [],
+  subjects: [],
+  questionnaires: [],
+  topics: [],
   updatedAt: 0,
 });
+
+/** Ensure newer fields exist on older managed-content.json files. */
+export function normalizeManagedContent(raw: Partial<ManagedContent> | null | undefined): ManagedContent {
+  const base = emptyContent();
+  if (!raw) return base;
+  return {
+    concepts: Array.isArray(raw.concepts) ? raw.concepts : [],
+    formulas: Array.isArray(raw.formulas) ? raw.formulas : [],
+    documents: Array.isArray(raw.documents) ? raw.documents : [],
+    files: Array.isArray(raw.files) ? raw.files : [],
+    members: Array.isArray(raw.members) ? raw.members : [],
+    folders: Array.isArray(raw.folders) ? raw.folders : [],
+    subjects: Array.isArray(raw.subjects) ? raw.subjects.map(String) : [],
+    questionnaires: Array.isArray(raw.questionnaires) ? raw.questionnaires : [],
+    topics: Array.isArray(raw.topics) ? raw.topics : [],
+    updatedAt: typeof raw.updatedAt === "number" ? raw.updatedAt : 0,
+  };
+}
 
 const emptyUsers = (): UsersFile => ({ users: [], updatedAt: 0 });
 
@@ -173,22 +211,12 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
   const fromGh = await githubGet("ap-reasonlab/data/managed-content.json", token);
   if (fromGh) {
     try {
-      const parsed = JSON.parse(fromGh.text) as ManagedContent;
-      if (!parsed.members) parsed.members = [];
-      if (!parsed.concepts) parsed.concepts = [];
-      if (!parsed.formulas) parsed.formulas = [];
-      if (!parsed.documents) parsed.documents = [];
-      if (!parsed.files) parsed.files = [];
-      if (!parsed.folders) parsed.folders = [];
-      return parsed;
+      return normalizeManagedContent(JSON.parse(fromGh.text) as ManagedContent);
     } catch {
       // fall through
     }
   }
-  const local = await readJsonFile(CONTENT_PATH, emptyContent());
-  if (!local.members) local.members = [];
-  if (!local.folders) local.folders = [];
-  return local;
+  return normalizeManagedContent(await readJsonFile(CONTENT_PATH, emptyContent()));
 }
 
 export async function saveManagedContent(

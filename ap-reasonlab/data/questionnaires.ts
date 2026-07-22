@@ -3,10 +3,12 @@ import { macroQuestionnaires } from "@/data/ap-macro";
 import { microQuestionnaires } from "@/data/ap-micro";
 import { physics2Questionnaires } from "@/data/ap-physics2";
 import { statsQuestionnaires } from "@/data/ap-stats";
+import managed from "@/data/managed-content.json";
 
 /**
  * Generated question sets only.
- * Workflow: feed topic / sample problems to Claude or ChatGPT → get NEW items → paste here.
+ * Workflow: feed topic / sample problems to Claude or ChatGPT → get NEW items → paste here
+ * OR use Practice UI (+ Add generated practice set) with a change code.
  * Do not paste College Board exam text verbatim.
  */
 
@@ -516,6 +518,8 @@ export const questionnaires: Questionnaire[] = [
   ...macroQuestionnaires,
   ...physics2Questionnaires,
   ...statsQuestionnaires,
+  ...(((managed as { questionnaires?: Questionnaire[] }).questionnaires ||
+    []) as Questionnaire[]),
 ];
 
 export function getQuestionnaireById(id: string): Questionnaire | undefined {

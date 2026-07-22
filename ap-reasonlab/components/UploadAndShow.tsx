@@ -21,7 +21,9 @@ import {
 } from "@/lib/storage-space";
 
 type Props = {
-  alsoShow?: Array<"concept" | "formula" | "document" | "member" | "folder">;
+  alsoShow?: Array<
+    "concept" | "topic" | "formula" | "document" | "member" | "folder" | "subject" | "questionnaire"
+  >;
   defaultSubject?: string;
   /** Page area key, e.g. concepts | formulas | code */
   folderArea?: string;
@@ -30,6 +32,10 @@ type Props = {
   /** Base path for opening nested folders, e.g. /concepts */
   spaceBasePath?: string;
   title?: string;
+  /** Called when managed subjects list changes (parent can refresh folder grids) */
+  onSubjectsChange?: (subjects: string[]) => void;
+  /** Called when managed questionnaires change */
+  onQuestionnairesChange?: (quizzes: unknown[]) => void;
 };
 
 /**
@@ -44,12 +50,18 @@ export default function UploadAndShow({
   spaceKey = ROOT_SPACE,
   spaceBasePath,
   title = "This folder’s storage",
+  onSubjectsChange,
+  onQuestionnairesChange,
 }: Props) {
   const [allFiles, setAllFiles] = useState<ManagedFile[]>([]);
   const [allDocuments, setAllDocuments] = useState<ManagedDocument[]>([]);
   const [allFolders, setAllFolders] = useState<ManagedFolder[]>([]);
   const [allConcepts, setAllConcepts] = useState<Concept[]>([]);
   const [allFormulas, setAllFormulas] = useState<Formula[]>([]);
+  const [allSubjects, setAllSubjects] = useState<string[]>([]);
+  const [allQuizzes, setAllQuizzes] = useState<
+    Array<{ id: string; title: string; subject: string; description?: string; items?: unknown[] }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [changeCode, setChangeCode] = useState("");
@@ -63,14 +75,23 @@ export default function UploadAndShow({
       ? scopedSpace
       : "AP Physics 1");
 
-  const applyContent = useCallback((data: Partial<ManagedContent> | null) => {
-    if (!data) return;
-    setAllFiles(Array.isArray(data.files) ? data.files : []);
-    setAllDocuments(Array.isArray(data.documents) ? data.documents : []);
-    setAllFolders(Array.isArray(data.folders) ? data.folders : []);
-    setAllConcepts(Array.isArray(data.concepts) ? data.concepts : []);
-    setAllFormulas(Array.isArray(data.formulas) ? data.formulas : []);
-  }, []);
+  const applyContent = useCallback(
+    (data: Partial<ManagedContent> | null) => {
+      if (!data) return;
+      setAllFiles(Array.isArray(data.files) ? data.files : []);
+      setAllDocuments(Array.isArray(data.documents) ? data.documents : []);
+      setAllFolders(Array.isArray(data.folders) ? data.folders : []);
+      setAllConcepts(Array.isArray(data.concepts) ? data.concepts : []);
+      setAllFormulas(Array.isArray(data.formulas) ? data.formulas : []);
+      const subjects = Array.isArray(data.subjects) ? data.subjects.map(String) : [];
+      setAllSubjects(subjects);
+      onSubjectsChange?.(subjects);
+      const quizzes = Array.isArray(data.questionnaires) ? data.questionnaires : [];
+      setAllQuizzes(quizzes as typeof allQuizzes);
+      onQuestionnairesChange?.(quizzes);
+    },
+    [onQuestionnairesChange, onSubjectsChange]
+  );
 
   const refresh = useCallback(async () => {
     setError("");
@@ -94,13 +115,20 @@ export default function UploadAndShow({
     refresh();
   }, [refresh]);
 
-  const onSaved = (content?: unknown) => {
-    if (content) applyContent(content as ManagedContent);
-    else void refresh();
+  const onSaved = () => {
+    void refresh();
   };
 
   async function handleDelete(
-    target: "file" | "document" | "folder" | "concept" | "formula",
+    target:
+      | "file"
+      | "document"
+      | "folder"
+      | "concept"
+      | "topic"
+      | "formula"
+      | "subject"
+      | "questionnaire",
     id: string
   ) {
     if (!changeCode.trim()) {
@@ -151,7 +179,7 @@ export default function UploadAndShow({
   );
 
   const conceptsHere = useMemo(() => {
-    if (!alsoShow.includes("concept")) return [];
+    if (!alsoShow.includes("concept") && !alsoShow.includes("topic")) return [];
     if (scopedSpace.startsWith("folder:")) {
       return allConcepts.filter(
         (c) => c.subject === subjectForForms || c.subject === scopedSpace
@@ -174,6 +202,12 @@ export default function UploadAndShow({
     return allFormulas.filter((f) => f.subject === scopedSpace);
   }, [allFormulas, alsoShow, scopedSpace, subjectForForms]);
 
+  const quizzesHere = useMemo(() => {
+    if (!alsoShow.includes("questionnaire")) return [];
+    if (scopedSpace === ROOT_SPACE) return allQuizzes;
+    return allQuizzes.filter((q) => q.subject === scopedSpace || q.subject === subjectForForms);
+  }, [allQuizzes, alsoShow, scopedSpace, subjectForForms]);
+
   const panelTitle = `${title} · ${spaceLabel(
     scopedSpace,
     folders.find((f) => folderSpaceId(f.id) === scopedSpace)?.title
@@ -194,6 +228,15 @@ export default function UploadAndShow({
             Add / upload in this folder only
           </h2>
           <div className="flex flex-col gap-3">
+            {alsoShow.includes("subject") && (
+              <ChangePanel
+                mode="subject"
+                label="+ Add subject folder"
+                folderArea={folderArea}
+                spaceKey={scopedSpace}
+                onSaved={onSaved}
+              />
+            )}
             <ChangePanel
               mode="file"
               label="+ Upload file"
@@ -205,6 +248,16 @@ export default function UploadAndShow({
               <ChangePanel
                 mode="document"
                 label="+ Add document"
+                folderArea={folderArea}
+                spaceKey={scopedSpace}
+                onSaved={onSaved}
+              />
+            )}
+            {alsoShow.includes("topic") && (
+              <ChangePanel
+                mode="topic"
+                label="+ Add topic"
+                defaultSubject={subjectForForms}
                 folderArea={folderArea}
                 spaceKey={scopedSpace}
                 onSaved={onSaved}
@@ -224,6 +277,16 @@ export default function UploadAndShow({
               <ChangePanel
                 mode="formula"
                 label="+ Add formula"
+                defaultSubject={subjectForForms}
+                folderArea={folderArea}
+                spaceKey={scopedSpace}
+                onSaved={onSaved}
+              />
+            )}
+            {alsoShow.includes("questionnaire") && (
+              <ChangePanel
+                mode="questionnaire"
+                label="+ Add generated practice set"
                 defaultSubject={subjectForForms}
                 folderArea={folderArea}
                 spaceKey={scopedSpace}
@@ -265,6 +328,11 @@ export default function UploadAndShow({
               />
             </details>
           </div>
+          {allSubjects.length > 0 && alsoShow.includes("subject") && (
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-xs text-emerald-900">
+              Custom subjects saved: {allSubjects.join(" · ")}
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
@@ -331,7 +399,7 @@ export default function UploadAndShow({
               {conceptsHere.length > 0 && (
                 <section className="space-y-2">
                   <h3 className="text-sm font-semibold">
-                    Concepts in this folder ({conceptsHere.length})
+                    Topics / concepts in this folder ({conceptsHere.length})
                   </h3>
                   <ul className="space-y-2">
                     {conceptsHere.map((c) => (
@@ -350,9 +418,11 @@ export default function UploadAndShow({
                         </div>
                         <button
                           type="button"
-                          title="Delete concept"
+                          title="Delete topic/concept"
                           disabled={deletingId === c.id}
-                          onClick={() => handleDelete("concept", c.id)}
+                          onClick={() =>
+                            handleDelete(c.id.startsWith("m-topic") ? "topic" : "concept", c.id)
+                          }
                           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50"
                         >
                           −
@@ -384,6 +454,43 @@ export default function UploadAndShow({
                           disabled={deletingId === f.id}
                           onClick={() => handleDelete("formula", f.id)}
                           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50"
+                        >
+                          −
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+
+              {quizzesHere.length > 0 && (
+                <section className="space-y-2">
+                  <h3 className="text-sm font-semibold">
+                    Generated sets ({quizzesHere.length})
+                  </h3>
+                  <ul className="space-y-2">
+                    {quizzesHere.map((q) => (
+                      <li
+                        key={q.id}
+                        className="flex items-start justify-between gap-2 rounded-xl border border-violet-100 bg-violet-50/50 p-3"
+                      >
+                        <div className="min-w-0">
+                          <Link
+                            href={`/questionnaires/${q.id}`}
+                            className="text-sm font-medium text-brand-800 hover:underline"
+                          >
+                            {q.title}
+                          </Link>
+                          <p className="mt-1 line-clamp-2 text-xs text-slate-600">
+                            {q.description || q.subject}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          title="Delete set"
+                          disabled={deletingId === q.id}
+                          onClick={() => handleDelete("questionnaire", q.id)}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50"
                         >
                           −
                         </button>

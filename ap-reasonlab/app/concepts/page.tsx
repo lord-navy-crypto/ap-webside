@@ -28,6 +28,7 @@ function ConceptsContent() {
   const [managedConcepts, setManagedConcepts] = useState<
     Array<{ id: string; title: string; subject: string; summary: string }>
   >([]);
+  const [managedSubjects, setManagedSubjects] = useState<string[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -41,6 +42,7 @@ function ConceptsContent() {
         const data = await res.json();
         if (cancelled) return;
         setManagedConcepts(Array.isArray(data.concepts) ? data.concepts : []);
+        setManagedSubjects(Array.isArray(data.subjects) ? data.subjects.map(String) : []);
         if (folderParam) {
           const found = (data.folders || []).find(
             (f: { id: string }) => f.id === folderParam
@@ -63,16 +65,20 @@ function ConceptsContent() {
     AP_SUBJECTS.forEach((s) => set.add(s));
     concepts.forEach((c) => set.add(c.subject));
     keyConceptGuides.forEach((g) => set.add(g.subject));
+    managedSubjects.forEach((s) => set.add(s));
+    managedConcepts.forEach((c) => set.add(c.subject));
     return [...set].sort();
-  }, []);
+  }, [managedSubjects, managedConcepts]);
 
   const subjectFolders = subjects.map((s) => {
-    const conceptCount = concepts.filter((c) => c.subject === s).length;
+    const conceptCount =
+      concepts.filter((c) => c.subject === s).length +
+      managedConcepts.filter((c) => c.subject === s).length;
     const guideCount = keyConceptGuides.filter((g) => g.subject === s).length;
     return {
       id: s,
       title: s,
-      subtitle: `${conceptCount} concepts · ${guideCount} guides · own storage`,
+      subtitle: `${conceptCount} topics · ${guideCount} guides · own storage`,
       count: conceptCount + guideCount,
       href: `/concepts?subject=${encodeURIComponent(s)}`,
     };
@@ -152,17 +158,18 @@ function ConceptsContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">{folderTitle || "Folder"}</h1>
           <p className="mt-2 text-slate-600">
-            Storage for this folder only. Add a concept with area, name, and notes — AI sorts into
-            key points, common mistakes, and example.
+            Storage for this folder only. Use <strong>+ Add topic</strong> to create a topic card
+            (AI can sort notes into key points / mistakes / example).
           </p>
         </div>
         <UploadAndShow
-          alsoShow={["concept", "document", "folder"]}
+          alsoShow={["topic", "concept", "document", "folder"]}
           defaultSubject={subject || folderTitle || "Custom"}
           folderArea="concepts"
           spaceKey={spaceKey}
           spaceBasePath="/concepts"
           title="Folder storage"
+          onSubjectsChange={setManagedSubjects}
         />
       </div>
     );
@@ -177,18 +184,19 @@ function ConceptsContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Concepts</h1>
           <p className="mt-2 text-slate-600">
-            Each subject folder has its own storage. Open a folder to add concepts and files —
-            they stay in that folder and do not mix with other subjects.
+            Open a subject folder to add topics. Or use <strong>+ Add subject folder</strong> below
+            to create a new subject that appears in this grid.
           </p>
         </div>
         <UploadAndShow
-          alsoShow={["folder"]}
+          alsoShow={["subject", "folder"]}
           folderArea="concepts"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/concepts"
           title="Root concepts storage"
+          onSubjectsChange={setManagedSubjects}
         />
-        <FolderGrid folders={subjectFolders} />
+        <FolderGrid folders={subjectFolders} emptyText="No subject folders yet. Add a subject above." />
       </div>
     );
   }
@@ -201,25 +209,26 @@ function ConceptsContent() {
         </Link>
         <h1 className="mt-2 text-3xl font-bold">{subject}</h1>
         <p className="mt-2 text-slate-600">
-          Storage for {subject} only. Type area, name, and paste notes — Auto-sort fills key
-          points, common mistakes, and examples.
+          Use <strong>+ Add topic</strong> to add a topic to this subject. Paste notes and Auto-sort
+          to fill key points, common mistakes, and examples.
         </p>
       </div>
 
       <UploadAndShow
-        alsoShow={["concept", "document", "folder"]}
+        alsoShow={["topic", "concept", "document", "folder"]}
         defaultSubject={subject}
         folderArea="concepts"
         spaceKey={spaceKey}
         spaceBasePath="/concepts"
         title={`${subject} storage`}
+        onSubjectsChange={setManagedSubjects}
       />
 
       <div className="flex flex-wrap gap-2">
         {(
           [
             ["all", "All"],
-            ["concept", "Concepts"],
+            ["concept", "Topics"],
             ["guide", "Guides"],
           ] as const
         ).map(([value, label]) => (
@@ -251,13 +260,15 @@ function ConceptsContent() {
                 href={item.href}
                 className="card block transition hover:border-brand-300"
               >
-                <span className="badge">{item.kind === "concept" ? "Concept" : "Guide"}</span>
+                <span className="badge">{item.kind === "concept" ? "Topic" : "Guide"}</span>
                 <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
                 <p className="mt-2 line-clamp-2 text-sm text-slate-600">{item.summary}</p>
               </Link>
             ))
           ) : (
-            <p className="text-sm text-slate-500">No topics in this folder yet.</p>
+            <p className="text-sm text-slate-500">
+              No topics in this folder yet. Use + Add topic above.
+            </p>
           )}
         </div>
       )}

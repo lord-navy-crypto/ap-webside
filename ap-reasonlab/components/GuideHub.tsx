@@ -13,7 +13,7 @@ const sections: { id: SectionId; label: string; icon: string }[] = [
   { id: "faq", label: "FAQ", icon: "💬" },
 ];
 
-const PROMPT_TEMPLATE = `You are an AP Physics 1 question writer.
+const PROMPT_TEMPLATE = `You are an AP Statistics question writer.
 
 I will give you TOPIC and SAMPLE PROBLEMS for style reference only.
 Create 5 ORIGINAL practice questions. Do NOT copy wording from samples or any real AP exam.
@@ -24,30 +24,30 @@ Requirements:
 - no answer keys, no final numeric solutions
 - output valid JSON array only
 
-TOPIC: Kinematics, 1D motion with constant acceleration
+TOPIC: AP Statistics — one-proportion z-interval and interpreting confidence intervals
 
 SAMPLE PROBLEMS (reference only):
 1) [paste problem A]
 2) [paste problem B]`;
 
 const JSON_SNIPPET = `{
-  id: "phys1-gen-energy-01",
-  title: "Physics 1 — Energy Generated Set",
-  subject: "AP Physics 1",
+  id: "stats-gen-inference-b",
+  title: "Stats — Inference Generated Set B",
+  subject: "AP Statistics",
   kind: "generated",
-  description: "Short description",
-  generationNote: "Claude 2026-07-21; style reference only",
-  estimatedMinutes: 20,
-  tags: ["energy", "generated"],
+  description: "Original CI / significance-test FRQ clones",
+  generationNote: "Claude/ChatGPT; style reference only",
+  estimatedMinutes: 25,
+  tags: ["inference", "generated"],
   items: [
     {
-      id: "phys1-gen-e1",
+      id: "stats-inf-b1",
       format: "frq_half",
-      conceptId: "kinematics-basics",
-      conceptIntro: "Key concept: …",
+      conceptId: "stats-ci-prop-mean",
+      conceptIntro: "One-proportion z-interval",
       prompt: "Your question…",
       visibleSteps: ["Step 1", "Step 2"],
-      blankSteps: ["Answer: ______"],
+      blankSteps: ["CI = ______"],
       hints: ["L1: …", "L2: …"],
     },
   ],
@@ -317,7 +317,8 @@ export default function GuideHub() {
               <header>
                 <h2 className="section-title">AI Workflow</h2>
                 <p className="mt-2 text-slate-600">
-                  No fine-tuning. Prompt Claude or ChatGPT → paste into the site. Question
+                  No fine-tuning. Prompt Claude or ChatGPT → add via Practice UI (+ Add generated
+                  practice set) or paste into code. Question
                   generation does not need an API key.
                 </p>
               </header>
@@ -326,7 +327,7 @@ export default function GuideHub() {
                 {[
                   { title: "Prompt", desc: "Topic + style samples" },
                   { title: "Review", desc: "Original, no answers" },
-                  { title: "Embed", desc: "Paste into data file" },
+                  { title: "Add", desc: "Practice UI + change code" },
                 ].map((item, i) => (
                   <div key={item.title} className="guide-flow-card">
                     <span className="text-xs font-bold text-brand-600">0{i + 1}</span>
@@ -338,7 +339,7 @@ export default function GuideHub() {
 
               <StepCard n="1" title="Prepare your input">
                 <ul className="list-disc space-y-1 pl-5">
-                  <li>Subject + unit (e.g. AP Physics 1 — Kinematics)</li>
+                  <li>Subject + unit (e.g. AP Statistics — Inference)</li>
                   <li>2–3 sample problems as <strong>style reference only</strong></li>
                   <li>Require new contexts, new numbers, new wording</li>
                 </ul>
@@ -348,9 +349,17 @@ export default function GuideHub() {
                 <CodeBlock label="Claude / ChatGPT" code={PROMPT_TEMPLATE} language="prompt" />
               </StepCard>
 
-              <StepCard n="3" title="Embed in questionnaires.ts">
+              <StepCard n="3" title="Add on Practice UI (preferred) or embed in code">
                 <p>
-                  Append a new object to{" "}
+                  Open{" "}
+                  <Link
+                    href="/practice?subject=AP%20Statistics"
+                    className="font-medium text-brand-700 underline"
+                  >
+                    Practice → AP Statistics
+                  </Link>{" "}
+                  and click <strong>+ Add generated practice set</strong> (change code). Or append to{" "}
+                  <code className="rounded bg-slate-100 px-1.5">data/ap-stats.ts</code> /{" "}
                   <code className="rounded bg-slate-100 px-1.5">data/questionnaires.ts</code> with{" "}
                   <code className="rounded bg-slate-100 px-1.5">kind: &quot;generated&quot;</code>:
                 </p>

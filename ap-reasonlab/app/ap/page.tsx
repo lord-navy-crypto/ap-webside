@@ -7,17 +7,22 @@ const apTools = [
   {
     href: "/concepts",
     title: "Concepts",
-    description: "Subject folders → concepts & key guides. + to add.",
+    description: "Subject folders → topics & guides. + Add subject / + Add topic.",
   },
   {
     href: "/formulas",
     title: "Formulas",
-    description: "Subject folders → unit formulas. + to add.",
+    description: "Subject folders → unit formulas. + Add subject / + Add formula.",
   },
   {
     href: "/practice",
     title: "Practice",
-    description: "Subject folders → drills and generated sets. + to upload files.",
+    description: "Subject folders → drills & AI FRQ sets. + Add subject / + Add generated set.",
+  },
+  {
+    href: "/practice?subject=AP%20Statistics",
+    title: "AP Statistics FRQs",
+    description: "Jump straight into Statistics generated FRQ sets (exploring → inference).",
   },
   {
     href: "/hints",
@@ -45,12 +50,17 @@ export default function ApHubPage() {
         </span>
         <h1 className="mt-3 text-3xl font-bold">AP Area</h1>
         <p className="mt-2 max-w-2xl text-blue-100">
-          Open a tool, then a subject folder. Every page has a + button — save with a change code.
+          Open Concepts / Formulas / Practice, then a subject folder. Every tool page has + buttons —
+          including <strong className="text-white">+ Add subject</strong>,{" "}
+          <strong className="text-white">+ Add topic</strong>, and{" "}
+          <strong className="text-white">+ Add generated practice set</strong>. Save with a change
+          code.
         </p>
       </section>
 
       <UploadAndShow
-        alsoShow={["concept", "formula", "folder"]}
+        alsoShow={["subject", "topic", "concept", "formula", "questionnaire", "folder"]}
+        defaultSubject="AP Statistics"
         folderArea="ap"
         spaceKey="_root"
         spaceBasePath="/ap"

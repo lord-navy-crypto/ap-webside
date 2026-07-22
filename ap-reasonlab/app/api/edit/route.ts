@@ -9,8 +9,10 @@ import {
   loadManagedContent,
   saveManagedContent,
   uid,
+  normalizeManagedContent,
   type ManagedContent,
 } from "@/lib/managed-store";
+import type { QuestionFormat, QuestionnaireItem } from "@/lib/types";
 
 async function tokenFrom(body: { githubToken?: string }) {
   const t = body.githubToken?.trim();
@@ -56,6 +58,15 @@ export async function GET(req: NextRequest) {
       folders: (content.folders || []).filter(
         (f) => f.area === area && (f.space || "_root") === spaceKey
       ),
+      topics: (content.topics || []).filter((t) => {
+        if (spaceKey === "_root") return !t.subject || t.subject === "_root";
+        return t.subject === spaceKey || t.space === spaceKey;
+      }),
+      questionnaires:
+        spaceKey === "_root"
+          ? content.questionnaires || []
+          : (content.questionnaires || []).filter((q) => q.subject === spaceKey),
+      subjects: content.subjects || [],
       members: content.members || [],
       updatedAt: content.updatedAt,
       scoped: { area, space: spaceKey },
@@ -78,24 +89,36 @@ export async function POST(req: NextRequest) {
 
     const action = String(body.action || "");
     const token = await tokenFrom(body);
-    const current: ManagedContent = await loadManagedContent(token);
-    if (!current.members) current.members = [];
-    if (!current.folders) current.folders = [];
+    const current: ManagedContent = normalizeManagedContent(await loadManagedContent(token));
 
-    if (action === "add_concept") {
+    if (action === "add_concept" || action === "add_topic") {
       const item = body.item || {};
       if (!item.title || !item.subject) {
         return NextResponse.json({ error: "title and subject required" }, { status: 400 });
       }
+      const conceptId = uid(action === "add_topic" ? "m-topic" : "m-concept");
       current.concepts.push({
-        id: uid("m-concept"),
+        id: conceptId,
         title: String(item.title),
         subject: String(item.subject),
         summary: String(item.summary || ""),
         keyPoints: Array.isArray(item.keyPoints) ? item.keyPoints.map(String) : [],
-        commonMistakes: Array.isArray(item.commonMistakes) ? item.commonMistakes.map(String) : [],
+        commonMistakes: Array.isArray(item.commonMistakes)
+          ? item.commonMistakes.map(String)
+          : [],
         example: String(item.example || ""),
       });
+      if (action === "add_topic") {
+        current.topics.push({
+          id: conceptId,
+          title: String(item.title),
+          subject: String(item.subject),
+          summary: String(item.summary || ""),
+          createdAt: Date.now(),
+          area: item.area ? String(item.area) : undefined,
+          space: item.space ? String(item.space) : undefined,
+        });
+      }
     } else if (action === "add_formula") {
       const item = body.item || {};
       if (!item.name || !item.expression || !item.subject) {
@@ -174,6 +197,79 @@ export async function POST(req: NextRequest) {
         createdAt: Date.now(),
         space: item.space ? String(item.space) : "_root",
       });
+    } else if (action === "add_subject") {
+      const item = body.item || {};
+      const name = String(item.title || item.name || item.subject || "").trim();
+      if (!name) {
+        return NextResponse.json({ error: "subject name required" }, { status: 400 });
+      }
+      if (!current.subjects.includes(name)) {
+        current.subjects.push(name);
+        current.subjects.sort((a, b) => a.localeCompare(b));
+      }
+    } else if (action === "add_questionnaire") {
+      const item = body.item || {};
+      if (!item.title || !item.subject) {
+        return NextResponse.json({ error: "title and subject required" }, { status: 400 });
+      }
+      const setId = uid("m-quiz");
+      const firstPrompt = String(item.firstPrompt || item.prompt || "").trim();
+      const items: QuestionnaireItem[] = [];
+      if (firstPrompt) {
+        items.push({
+          id: uid("m-item"),
+          format: (String(item.format || "concept_check") as QuestionFormat) || "concept_check",
+          prompt: firstPrompt,
+          hints: Array.isArray(item.hints)
+            ? item.hints.map(String)
+            : [String(item.hint || "Attempt before asking AI for more hints.")],
+          visibleSteps: Array.isArray(item.visibleSteps)
+            ? item.visibleSteps.map(String)
+            : undefined,
+          blankSteps: Array.isArray(item.blankSteps) ? item.blankSteps.map(String) : undefined,
+          choices: Array.isArray(item.choices) ? item.choices.map(String) : undefined,
+          conceptIntro: item.conceptIntro ? String(item.conceptIntro) : undefined,
+        });
+      }
+      current.questionnaires.push({
+        id: setId,
+        title: String(item.title),
+        subject: String(item.subject),
+        kind: "generated",
+        description: String(item.description || "AI-generated practice set added from the UI."),
+        generationNote: String(
+          item.generationNote || `Added via change-code UI · ${new Date().toISOString().slice(0, 10)}`
+        ),
+        estimatedMinutes: Number(item.estimatedMinutes) || 20,
+        tags: Array.isArray(item.tags)
+          ? item.tags.map(String)
+          : ["generated", "managed"],
+        items,
+      });
+    } else if (action === "add_questionnaire_item") {
+      const setId = String(body.setId || body.id || "");
+      const item = body.item || {};
+      const quiz = current.questionnaires.find((q) => q.id === setId);
+      if (!quiz) {
+        return NextResponse.json({ error: "questionnaire set not found" }, { status: 404 });
+      }
+      if (!item.prompt) {
+        return NextResponse.json({ error: "item prompt required" }, { status: 400 });
+      }
+      quiz.items.push({
+        id: uid("m-item"),
+        format: (String(item.format || "concept_check") as QuestionFormat) || "concept_check",
+        prompt: String(item.prompt),
+        hints: Array.isArray(item.hints)
+          ? item.hints.map(String)
+          : [String(item.hint || "Try yourself first.")],
+        visibleSteps: Array.isArray(item.visibleSteps)
+          ? item.visibleSteps.map(String)
+          : undefined,
+        blankSteps: Array.isArray(item.blankSteps) ? item.blankSteps.map(String) : undefined,
+        choices: Array.isArray(item.choices) ? item.choices.map(String) : undefined,
+        conceptIntro: item.conceptIntro ? String(item.conceptIntro) : undefined,
+      });
     } else if (action === "delete") {
       const target = String(body.target || "");
       const id = String(body.id || "");
@@ -183,13 +279,29 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
-      if (target === "concept") current.concepts = current.concepts.filter((c) => c.id !== id);
-      else if (target === "formula") current.formulas = current.formulas.filter((f) => f.id !== id);
-      else if (target === "document") current.documents = current.documents.filter((d) => d.id !== id);
-      else if (target === "file") current.files = current.files.filter((f) => f.id !== id);
-      else if (target === "member") current.members = current.members.filter((m) => m.id !== id);
-      else if (target === "folder") current.folders = current.folders.filter((f) => f.id !== id);
-      else return NextResponse.json({ error: "Unknown delete target" }, { status: 400 });
+      if (target === "concept") {
+        current.concepts = current.concepts.filter((c) => c.id !== id);
+        current.topics = current.topics.filter((t) => t.id !== id);
+      } else if (target === "topic") {
+        current.topics = current.topics.filter((t) => t.id !== id);
+        current.concepts = current.concepts.filter((c) => c.id !== id);
+      } else if (target === "formula") {
+        current.formulas = current.formulas.filter((f) => f.id !== id);
+      } else if (target === "document") {
+        current.documents = current.documents.filter((d) => d.id !== id);
+      } else if (target === "file") {
+        current.files = current.files.filter((f) => f.id !== id);
+      } else if (target === "member") {
+        current.members = current.members.filter((m) => m.id !== id);
+      } else if (target === "folder") {
+        current.folders = current.folders.filter((f) => f.id !== id);
+      } else if (target === "subject") {
+        current.subjects = current.subjects.filter((s) => s !== id);
+      } else if (target === "questionnaire") {
+        current.questionnaires = current.questionnaires.filter((q) => q.id !== id);
+      } else {
+        return NextResponse.json({ error: "Unknown delete target" }, { status: 400 });
+      }
     } else if (action === "set_github_token") {
       const t = String(body.githubToken || "").trim();
       if (!t) return NextResponse.json({ error: "githubToken required" }, { status: 400 });
