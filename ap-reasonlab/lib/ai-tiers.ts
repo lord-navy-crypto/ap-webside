@@ -1,76 +1,16 @@
 /**
- * Cloud spend tiers for Knowledge Explorer AI.
- *
- * - public: website shared Instant keys — lowest limits (default)
- * - author / Advanced Default: mid versatile models (same class as BYOK), modestly higher tokens
- * - byok: user-pasted key — mid models, slightly more open (not unlimited)
- *
- * Local AI (browser) is separate and has no product-side token caps.
- *
- * Manage → Advanced Default toggles the website Default API between Instant and Advanced
- * without redeploying env. Env SITE_AI_TIER=author remains a fallback when the Manage
- * flag has never been used / content load fails.
+ * Cloud spend tiers — client-safe helpers (no Node fs).
+ * Manage Advanced Default override lives in ai-tiers-managed.ts (server only).
  */
-
-import { loadManagedContent } from "@/lib/managed-store";
 
 export type CloudSpendTier = "public" | "author" | "byok";
 
-const CACHE_TTL_MS = 30_000;
-
-let cached: { tier: "public" | "author"; advancedDefault: boolean; at: number } | null =
-  null;
-
-/** Clear cached Manage override (call after saving Advanced Default). */
-export function invalidateSiteAiTierCache(): void {
-  cached = null;
-}
-
-/** Env-only fallback (sync). Prefer resolveSiteCloudTier() in AI routes. */
+/** Env-only fallback when managed settings cannot be read. */
 export function resolveSiteCloudTierFromEnv(): "public" | "author" {
   const raw = (process.env.SITE_AI_TIER || process.env.AUTHOR_AI_TIER || "public")
     .trim()
     .toLowerCase();
   return raw === "author" || raw === "mid" || raw === "standard" ? "author" : "public";
-}
-
-/**
- * Resolve Default website API tier.
- * Manage Advanced Default wins when settings load; otherwise env SITE_AI_TIER.
- */
-export async function resolveSiteCloudTier(): Promise<"public" | "author"> {
-  const status = await getSiteAiTierStatus();
-  return status.tier;
-}
-
-export async function getSiteAiTierStatus(): Promise<{
-  tier: "public" | "author";
-  advancedDefault: boolean;
-  source: "manage" | "env";
-}> {
-  const now = Date.now();
-  if (cached && now - cached.at < CACHE_TTL_MS) {
-    return {
-      tier: cached.tier,
-      advancedDefault: cached.advancedDefault,
-      source: "manage",
-    };
-  }
-
-  try {
-    const content = await loadManagedContent();
-    const advancedDefault = Boolean(content.settings?.advancedDefault);
-    const tier: "public" | "author" = advancedDefault ? "author" : "public";
-    cached = { tier, advancedDefault, at: now };
-    return { tier, advancedDefault, source: "manage" };
-  } catch {
-    const tier = resolveSiteCloudTierFromEnv();
-    return {
-      tier,
-      advancedDefault: tier === "author",
-      source: "env",
-    };
-  }
 }
 
 const TOKEN_CAPS: Record<CloudSpendTier, number> = {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSiteAiTierStatus, midModelFor, tierLabel } from "@/lib/ai-tiers";
+import { midModelFor, tierLabel } from "@/lib/ai-tiers";
+import { getSiteAiTierStatus } from "@/lib/ai-tiers-managed";
 
 /** Public status for Default website API Instant vs Advanced Default. */
 export async function GET() {
@@ -9,7 +10,6 @@ export async function GET() {
     tier: status.tier,
     source: status.source,
     label: tierLabel(status.tier),
-    /** Sample mid models used when Advanced Default is on (same class as BYOK). */
     advancedModels: {
       groq: midModelFor("groq"),
       gemini: midModelFor("gemini"),

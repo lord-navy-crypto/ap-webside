@@ -556,7 +556,7 @@ export async function POST(req: NextRequest) {
 
     const result = await saveManagedContent(current, token);
     if (action === "set_advanced_default") {
-      const { invalidateSiteAiTierCache } = await import("@/lib/ai-tiers");
+      const { invalidateSiteAiTierCache } = await import("@/lib/ai-tiers-managed");
       invalidateSiteAiTierCache();
     }
     return NextResponse.json({
