@@ -37,7 +37,11 @@ export default function EditModeButton() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Unlock failed");
-      setNote(data.note || "Unlocked.");
+      setNote(
+        data.level === "master"
+          ? "Master unlocked. AI Developer and History & Undo are available on Manage."
+          : data.note || "Unlocked."
+      );
       setChangeCode("");
       await refresh();
       setActive(true);
@@ -79,6 +83,11 @@ export default function EditModeButton() {
             <div className="space-y-3 text-sm">
               <p className="rounded-xl bg-emerald-50 px-3 py-2 text-emerald-900">
                 Unlocked as <strong>{editor?.level}</strong> editor.
+                {editor?.level === "content" && (
+                  <span className="mt-1 block text-xs">
+                    AI Developer / History need Master — enter Master code below to upgrade.
+                  </span>
+                )}
               </p>
               <button type="button" className={active ? "btn-secondary w-full" : "btn-primary w-full"} onClick={turnOnEditMode}>
                 {active ? "Hide edit controls" : "Start editing this page"}
@@ -86,6 +95,19 @@ export default function EditModeButton() {
               <Link href="/manage" className="btn-secondary block w-full text-center" onClick={() => setOpen(false)}>
                 Open Manage
               </Link>
+              <form onSubmit={unlock} className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-medium text-slate-700">Switch / upgrade code</p>
+                <input
+                  type="password"
+                  className="input"
+                  value={changeCode}
+                  onChange={(e) => setChangeCode(e.target.value)}
+                  placeholder="Content or Master code"
+                />
+                <button type="submit" className="btn-secondary w-full" disabled={busy || !changeCode.trim()}>
+                  {busy ? "Checking…" : "Re-unlock"}
+                </button>
+              </form>
               <Link href="/partners" className="btn-ghost block w-full text-center" onClick={() => setOpen(false)}>
                 Partners / join people
               </Link>
@@ -96,15 +118,15 @@ export default function EditModeButton() {
           ) : (
             <form onSubmit={unlock} className="space-y-3">
               <p className="text-xs text-slate-600">
-                Enter the <strong>content change code</strong> once. Then you can edit without
-                typing it on every save.
+                Enter the <strong>content</strong> or <strong>master</strong> change code once. Then
+                you can edit without typing it on every save.
               </p>
               <input
                 type="password"
                 className="input"
                 value={changeCode}
                 onChange={(e) => setChangeCode(e.target.value)}
-                placeholder="Content change code"
+                placeholder="Content or Master code"
                 required
                 autoFocus
               />

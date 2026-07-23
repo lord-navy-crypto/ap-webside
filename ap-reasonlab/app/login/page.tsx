@@ -1,31 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useContentEditor } from "@/components/useContentEditor";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/manage";
+  const { editor, unlocked, refresh } = useContentEditor();
   const [changeCode, setChangeCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
-  const [alreadyIn, setAlreadyIn] = useState(false);
 
   useEffect(() => {
-    fetch("/api/auth/me", { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.contentEditor) {
-          setAlreadyIn(true);
-          setNote(`Already unlocked as ${data.contentEditor.level} editor on this browser.`);
-        }
-      })
-      .catch(() => undefined);
-  }, []);
+    if (unlocked && editor) {
+      setNote(`Currently unlocked as ${editor.level} editor on this browser.`);
+    }
+  }, [editor, unlocked]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -40,8 +34,14 @@ function LoginForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
-      setNote(data.note || "Unlocked.");
-      setAlreadyIn(true);
+      // Force client session refresh so Content → Master upgrades are not cached.
+      await refresh();
+      setNote(
+        data.level === "master"
+          ? "Master editor unlocked. AI Developer and History & Undo are available on Manage."
+          : data.note || "Content editor unlocked."
+      );
+      setChangeCode("");
       router.push(next.startsWith("/") ? next : "/manage");
       router.refresh();
     } catch (err) {
@@ -53,8 +53,8 @@ function LoginForm() {
 
   async function handleLogout() {
     await fetch("/api/auth/content-logout", { method: "POST" });
-    setAlreadyIn(false);
-    setNote("Editor session cleared. Enter the content code again to unlock.");
+    await refresh();
+    setNote("Editor session cleared. Enter Content or Master code to unlock again.");
   }
 
   return (
@@ -62,35 +62,52 @@ function LoginForm() {
       <div>
         <h1 className="text-3xl font-bold">Editor login</h1>
         <p className="mt-2 text-slate-600">
-          Enter the <strong>content change code</strong> once. This browser stays unlocked for
-          saving content — you will not be asked for the code on every upload.
+          Enter the <strong>content change code</strong> or <strong>master code</strong> once.
+          This browser stays unlocked for saving — you will not be asked on every upload.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-4">
+        {unlocked && editor && (
+          <div className="rounded-xl bg-emerald-50 px-3 py-3 text-sm text-emerald-900">
+            Current session: <strong>{editor.level}</strong>
+            {editor.level === "content" ? (
+              <span className="mt-1 block text-xs">
+                Content can edit normal pages. To see <strong>AI Developer</strong> and{" "}
+                <strong>History &amp; Undo</strong>, enter the <strong>Master code</strong> below
+                and unlock again (no need to lock first).
+              </span>
+            ) : (
+              <span className="mt-1 block text-xs">
+                Master can open AI Developer and History &amp; Undo on Manage after Start editing.
+              </span>
+            )}
+          </div>
+        )}
         <div>
-          <label className="mb-2 block text-sm font-medium">Content change code</label>
+          <label className="mb-2 block text-sm font-medium">
+            {unlocked ? "Content or Master code (re-unlock / upgrade)" : "Change code"}
+          </label>
           <input
             type="password"
             className="input"
             value={changeCode}
             onChange={(e) => setChangeCode(e.target.value)}
-            placeholder="Content code"
-            required={!alreadyIn}
+            placeholder={unlocked ? "Paste Master code to upgrade" : "Content or Master code"}
+            required
             autoFocus
           />
           <p className="mt-2 text-xs text-slate-500">
-            Master code is not required for normal editing right now. Ask an admin if you do not
-            have the content code.
+            Content code = normal editing. Master code = Manage AI Developer + History &amp; Undo.
           </p>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         {note && <p className="text-sm text-emerald-700">{note}</p>}
         <div className="flex flex-wrap gap-2">
           <button type="submit" className="btn-primary" disabled={loading || !changeCode.trim()}>
-            {loading ? "Checking…" : alreadyIn ? "Re-unlock / refresh" : "Unlock editor"}
+            {loading ? "Checking…" : unlocked ? "Re-unlock / upgrade" : "Unlock editor"}
           </button>
-          {alreadyIn && (
+          {unlocked && (
             <button type="button" className="btn-secondary" onClick={handleLogout}>
               Lock again
             </button>
@@ -104,7 +121,7 @@ function LoginForm() {
       <p className="text-xs text-slate-500">
         Publishing uses Vercel <code>GITHUB_TOKEN</code> (repo Contents write).{" "}
         <code>CONTENT_GITHUB_TOKEN</code> is for GitHub Models AI, not Save. That is separate from
-        the content change code.
+        the change codes.
       </p>
     </div>
   );
