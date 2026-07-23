@@ -20,7 +20,8 @@ const boxes = [
   },
   {
     title: "AI Toolbox",
-    description: "Hint & Process, Concept Explainer, and Site Guide — path: /hints.",
+    description:
+      "Hint & Process, Concept Explainer, Site Guide, plus TI-style calculator and grapher.",
     href: "/hints",
   },
   {
@@ -45,7 +46,7 @@ export default function HomePage() {
     <div className="space-y-10">
       <section className="hero-gradient overflow-hidden rounded-2xl px-6 py-10 text-white shadow-xl md:px-10">
         <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-semibold tracking-wide">
-          RESULTS · ACADEMIC BOX & PLATFORM
+          KNOWLEDGE EXPLORER · ACADEMIC BOX & PLATFORM
         </span>
         <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-tight">{brand.name}</h1>
         <p className="mt-4 max-w-xl text-lg text-blue-100">{brand.tagline}</p>
@@ -58,16 +59,16 @@ export default function HomePage() {
             Open AP box
           </Link>
           <Link
+            href="/hints?tool=calculator"
+            className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+          >
+            Calculator & Grapher
+          </Link>
+          <Link
             href="/english"
             className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
           >
             English Learning
-          </Link>
-          <Link
-            href="/academic"
-            className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
-          >
-            Academic Platform
           </Link>
           <Link
             href="/hints"
@@ -108,7 +109,7 @@ export default function HomePage() {
           </Link>
         </div>
         <p className="text-sm text-slate-600">
-          People on TrueJet / Results with GitHub. Add anyone on Partners — free name + GitHub,
+          People on TrueJet / Knowledge Explorer with GitHub. Add anyone on Partners — free name + GitHub,
           not a fixed single choice.
         </p>
         <div className="grid gap-3 sm:grid-cols-3">

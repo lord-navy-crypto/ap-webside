@@ -130,7 +130,7 @@ export default function PartnersPage() {
         </span>
         <h1 className="mt-3 text-3xl font-bold">Partners & members</h1>
         <p className="mt-2 max-w-2xl text-brand-100">
-          Everyone on TrueJet / Results with their GitHub. Add new people with a name + GitHub
+          Everyone on TrueJet / Knowledge Explorer with their GitHub. Add new people with a name + GitHub
           username — not a single fixed choice.
         </p>
       </section>

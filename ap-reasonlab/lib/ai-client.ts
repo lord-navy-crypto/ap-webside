@@ -227,7 +227,7 @@ async function callOpenRouterJson(
     provider: "openrouter",
     extraHeaders: {
       "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://results-academic.vercel.app",
-      "X-Title": process.env.OPENROUTER_APP_NAME || "Results Academic Platform",
+      "X-Title": process.env.OPENROUTER_APP_NAME || "Knowledge Explorer",
     },
     note: `Powered by OpenRouter (${OPENROUTER_DEFAULT_MODEL}).`,
   });

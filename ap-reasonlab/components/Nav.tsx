@@ -10,6 +10,7 @@ const primaryLinks = [
   { href: "/ap", label: "AP" },
   { href: "/english", label: "English" },
   { href: "/academic", label: "Academic" },
+  { href: "/tools", label: "Tools" },
   { href: "/code", label: "Code" },
   { href: "/hints", label: "AI Toolbox" },
   { href: "/forum", label: "Forum" },
@@ -21,6 +22,9 @@ const moreGroups = [
     links: [
       { href: "/", label: "Home" },
       { href: "/about", label: "About" },
+      { href: "/tools", label: "Tools" },
+      { href: "/hints?tool=calculator", label: "Calculator" },
+      { href: "/hints?tool=grapher", label: "Grapher" },
       { href: "/hints", label: "AI Toolbox" },
       { href: "/search", label: "Search" },
     ],
@@ -85,8 +89,8 @@ export default function Nav() {
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-            R
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-xs font-bold text-white">
+            {brand.shortName}
           </span>
           <span className="text-lg font-bold text-slate-900">{brand.name}</span>
         </Link>

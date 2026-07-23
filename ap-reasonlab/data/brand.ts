@@ -6,7 +6,7 @@ export type Collaborator = {
   org?: string;
 };
 
-/** People on the TrueJet / Results collaborator roster (GitHub-linked). */
+/** People on the TrueJet / Knowledge Explorer collaborator roster (GitHub-linked). */
 export const trueJetMembers: Collaborator[] = [
   {
     name: "lord-navy-crypto",
@@ -64,8 +64,9 @@ export const collaborators = [
 ];
 
 export const brand = {
-  name: "Results",
-  tagline: "Academic box & platform — learn by reasoning",
+  name: "Knowledge Explorer",
+  shortName: "KE",
+  tagline: "Explore knowledge — AP, tools, and reasoning",
   description:
-    "Results is an academic platform. AP is one box inside it — with room for A-Level, IB, code resources, and more.",
+    "Knowledge Explorer is an academic platform. AP is one box inside it — with room for calculators, graphers, code resources, and more.",
 };

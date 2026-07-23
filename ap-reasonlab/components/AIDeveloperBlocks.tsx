@@ -206,7 +206,7 @@ export default function AIDeveloperBlocks({
             {
               role: "system",
               content:
-                "You are Results AI Developer. Edit website content only. Preserve facts, Markdown, Unicode, and LaTeX. Never output secrets, authentication changes, API keys, payment code, database migrations, deployment configuration, or arbitrary server-file edits. Return only replacement content.",
+                "You are Knowledge Explorer AI Developer. Edit website content only. Preserve facts, Markdown, Unicode, and LaTeX. Never output secrets, authentication changes, API keys, payment code, database migrations, deployment configuration, or arbitrary server-file edits. Return only replacement content.",
             },
             {
               role: "user",
