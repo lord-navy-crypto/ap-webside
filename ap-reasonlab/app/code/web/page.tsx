@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import HtmlPlayground from "@/components/HtmlPlayground";
 import UploadAndShow from "@/components/UploadAndShow";
 import { standardSnippets } from "@/data/code-snippets";
 
@@ -14,10 +15,18 @@ export default function CodeWebPage() {
       <div>
         <h1 className="text-3xl font-bold">Web / HTML</h1>
         <p className="mt-2 text-slate-600">
-          HTML starters. Use + Add document with category <strong>Simulation</strong> for simulation
-          webpage notes/links. No iframe editor installed yet.
+          Online HTML playground with live preview. Also upload files or add Simulation documents
+          with a change code.
         </p>
       </div>
+
+      <HtmlPlayground
+        examples={snippets.map((item) => ({
+          id: item.id,
+          title: item.title,
+          code: item.code,
+        }))}
+      />
 
       <UploadAndShow
         alsoShow={["document", "folder"]}
