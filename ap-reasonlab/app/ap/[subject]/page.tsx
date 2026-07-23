@@ -11,7 +11,7 @@ import { concepts } from "@/data/content";
 import { formulas } from "@/data/formulas";
 import { questionnaires } from "@/data/questionnaires";
 import { getSubjectBySlug } from "@/data/ap-catalog";
-import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-store";
+import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
 
 const sectionConfig = [
   { key: "units", label: "Units", icon: "▦" },
