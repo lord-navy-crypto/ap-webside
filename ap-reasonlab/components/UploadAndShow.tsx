@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ChangePanel from "@/components/ChangePanel";
 import RichContent from "@/components/RichContent";
+import { useContentEditor } from "@/components/useContentEditor";
 import type {
   ManagedContent,
   ManagedDocument,
   ManagedFile,
   ManagedFolder,
 } from "@/lib/managed-store";
+import { managedSubjectNames } from "@/lib/managed-store";
 import type { Concept, Formula } from "@/lib/types";
 import {
   ROOT_SPACE,
@@ -36,6 +38,10 @@ type Props = {
   onSubjectsChange?: (subjects: string[]) => void;
   /** Called when managed questionnaires change */
   onQuestionnairesChange?: (quizzes: unknown[]) => void;
+  /** Keep uploads collapsed so study content stays first */
+  collapsedByDefault?: boolean;
+  /** Anonymous users may add to Sharing Materials; deletion still requires a code. */
+  allowPublicContributions?: boolean;
 };
 
 /**
@@ -52,7 +58,10 @@ export default function UploadAndShow({
   title = "This folder’s storage",
   onSubjectsChange,
   onQuestionnairesChange,
+  collapsedByDefault = false,
+  allowPublicContributions = false,
 }: Props) {
+  const { unlocked } = useContentEditor();
   const [allFiles, setAllFiles] = useState<ManagedFile[]>([]);
   const [allDocuments, setAllDocuments] = useState<ManagedDocument[]>([]);
   const [allFolders, setAllFolders] = useState<ManagedFolder[]>([]);
@@ -67,6 +76,7 @@ export default function UploadAndShow({
   const [changeCode, setChangeCode] = useState("");
   const [githubToken, setGithubToken] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(!collapsedByDefault);
 
   const scopedSpace = normalizeSpace(spaceKey);
   const subjectForForms =
@@ -83,7 +93,7 @@ export default function UploadAndShow({
       setAllFolders(Array.isArray(data.folders) ? data.folders : []);
       setAllConcepts(Array.isArray(data.concepts) ? data.concepts : []);
       setAllFormulas(Array.isArray(data.formulas) ? data.formulas : []);
-      const subjects = Array.isArray(data.subjects) ? data.subjects.map(String) : [];
+      const subjects = managedSubjectNames(data.subjects);
       setAllSubjects(subjects);
       onSubjectsChange?.(subjects);
       const quizzes = Array.isArray(data.questionnaires) ? data.questionnaires : [];
@@ -115,8 +125,18 @@ export default function UploadAndShow({
     refresh();
   }, [refresh]);
 
-  const onSaved = () => {
-    void refresh();
+  useEffect(() => {
+    function onEditMode(event: Event) {
+      const detail = (event as CustomEvent<{ on?: boolean }>).detail;
+      if (detail?.on) setExpanded(true);
+    }
+    window.addEventListener("results-edit-mode", onEditMode);
+    return () => window.removeEventListener("results-edit-mode", onEditMode);
+  }, []);
+
+  const onSaved = (content?: unknown) => {
+    if (content) applyContent(content as ManagedContent);
+    else void refresh();
   };
 
   async function handleDelete(
@@ -131,8 +151,8 @@ export default function UploadAndShow({
       | "questionnaire",
     id: string
   ) {
-    if (!changeCode.trim()) {
-      setError("Enter a change code below, then press − to delete.");
+    if (!unlocked && !changeCode.trim()) {
+      setError("Unlock at /login with the content code, or enter it below, then press − to delete.");
       return;
     }
     if (!confirm("Delete this item from this folder’s storage?")) return;
@@ -146,7 +166,7 @@ export default function UploadAndShow({
           action: "delete",
           target,
           id,
-          changeCode: changeCode.trim(),
+          changeCode: changeCode.trim() || undefined,
           githubToken: githubToken.trim() || undefined,
         }),
       });
@@ -215,6 +235,25 @@ export default function UploadAndShow({
 
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-800">{panelTitle}</p>
+          <p className="text-xs text-slate-500">
+            Uploads stay in this panel only. Open when you need to add or manage files.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          className="btn-secondary"
+          aria-expanded={expanded}
+        >
+          {expanded ? "Hide storage" : "Show storage & uploads"}
+        </button>
+      </div>
+
+      {expanded && (
+        <>
       <div className="rounded-2xl border border-brand-100 bg-brand-50/50 px-4 py-3 text-sm text-brand-950">
         <strong>Separate storage for this panel.</strong> Files and notes here belong only to{" "}
         <span className="font-semibold">{folderArea}</span> /{" "}
@@ -243,6 +282,7 @@ export default function UploadAndShow({
               folderArea={folderArea}
               spaceKey={scopedSpace}
               onSaved={onSaved}
+              allowPublicContribution={allowPublicContributions}
             />
             {alsoShow.includes("document") && (
               <ChangePanel
@@ -251,6 +291,7 @@ export default function UploadAndShow({
                 folderArea={folderArea}
                 spaceKey={scopedSpace}
                 onSaved={onSaved}
+                allowPublicContribution={allowPublicContributions}
               />
             )}
             {alsoShow.includes("topic") && (
@@ -303,13 +344,20 @@ export default function UploadAndShow({
                 folderArea={folderArea}
                 spaceKey={scopedSpace}
                 onSaved={onSaved}
+                allowPublicContribution={allowPublicContributions}
               />
             )}
           </div>
           <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <label className="block text-xs font-medium text-slate-600">
-              Change code (needed to delete with −)
-            </label>
+            {unlocked ? (
+              <p className="text-xs text-emerald-800">
+                Editor unlocked — delete uses your session. Optional code override below.
+              </p>
+            ) : (
+              <label className="block text-xs font-medium text-slate-600">
+                Change code (needed to delete with −)
+              </label>
+            )}
             <input
               type="password"
               className="input"
@@ -590,6 +638,8 @@ export default function UploadAndShow({
           )}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

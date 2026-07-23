@@ -41,7 +41,13 @@ function FormulasContent() {
         const res = await fetch("/api/edit", { cache: "no-store" });
         const data = await res.json();
         if (cancelled) return;
-        setManagedSubjects(Array.isArray(data.subjects) ? data.subjects.map(String) : []);
+        setManagedSubjects(
+          Array.isArray(data.subjects)
+            ? data.subjects.map((s: unknown) =>
+                typeof s === "string" ? s : String((s as { name?: string }).name || "")
+              ).filter(Boolean)
+            : []
+        );
         setManagedFormulas(Array.isArray(data.formulas) ? data.formulas : []);
       } catch {
         // ignore
@@ -114,6 +120,7 @@ function FormulasContent() {
           spaceBasePath="/formulas"
           title="Root formulas storage"
           onSubjectsChange={setManagedSubjects}
+          collapsedByDefault
         />
         <FolderGrid folders={subjectFolders} />
       </div>

@@ -42,7 +42,13 @@ function ConceptsContent() {
         const data = await res.json();
         if (cancelled) return;
         setManagedConcepts(Array.isArray(data.concepts) ? data.concepts : []);
-        setManagedSubjects(Array.isArray(data.subjects) ? data.subjects.map(String) : []);
+        setManagedSubjects(
+          Array.isArray(data.subjects)
+            ? data.subjects.map((s: unknown) =>
+                typeof s === "string" ? s : String((s as { name?: string }).name || "")
+              ).filter(Boolean)
+            : []
+        );
         if (folderParam) {
           const found = (data.folders || []).find(
             (f: { id: string }) => f.id === folderParam
@@ -195,6 +201,7 @@ function ConceptsContent() {
           spaceBasePath="/concepts"
           title="Root concepts storage"
           onSubjectsChange={setManagedSubjects}
+          collapsedByDefault
         />
         <FolderGrid folders={subjectFolders} emptyText="No subject folders yet. Add a subject above." />
       </div>

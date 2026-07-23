@@ -1,7 +1,6 @@
 import Link from "next/link";
 import EthicsBanner from "@/components/EthicsBanner";
-import { brand, collaborators } from "@/data/brand";
-import { DEFAULT_CONTENT_CODE, DEFAULT_MASTER_CODE } from "@/lib/change-codes";
+import { brand, trueJetMembers } from "@/data/brand";
 
 export default function AboutPage() {
   return (
@@ -10,34 +9,45 @@ export default function AboutPage() {
         <h1 className="text-3xl font-bold">About {brand.name}</h1>
         <p className="text-slate-600">{brand.description}</p>
         <p className="text-slate-600">
-          No login. Every page has a <strong>+</strong> button. Saving asks for a change code.
+          Editors unlock once at{" "}
+          <Link href="/login" className="font-medium text-brand-700 hover:underline">
+            /login
+          </Link>{" "}
+          or via the <strong>edit circle</strong> on any page with the{" "}
+          <strong>content change code</strong>. After that, saving in this browser does not ask for
+          the code again.
         </p>
       </section>
 
       <EthicsBanner />
 
       <section className="card space-y-3">
-        <h2 className="text-lg font-semibold">Change codes</h2>
+        <h2 className="text-lg font-semibold">Content change code</h2>
         <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
           <li>
-            <strong>Content code</strong> (<code>{DEFAULT_CONTENT_CODE}</code>) — add/edit content
-            and upload files. Cannot add members.
+            <strong>Content code</strong> — unlock editor login, then add/edit content, partners,
+            and upload files.
           </li>
           <li>
-            <strong>Master code</strong> (<code>{DEFAULT_MASTER_CODE}</code>) — can do everything,
-            including members on Partners.
+            <strong>Master code</strong> — still works for the same edits when needed; normal
+            monthly page updates only need the content code.
           </li>
         </ul>
+        <p className="text-sm text-slate-600">
+          Ask a site admin for the content code. It is not published on this page.
+        </p>
         <p className="text-xs text-slate-500">
-          Override on Vercel with <code>CONTENT_CHANGE_CODE</code> and{" "}
-          <code>MASTER_CHANGE_CODE</code>. Also set <code>GITHUB_TOKEN</code> so saves publish.
+          Admins set <code>CONTENT_CHANGE_CODE</code> (and optional{" "}
+          <code>MASTER_CHANGE_CODE</code>) on Vercel. Publishing / Save uses{" "}
+          <code>GITHUB_TOKEN</code>. AI Toolbox GitHub Models uses{" "}
+          <code>CONTENT_GITHUB_TOKEN</code>.
         </p>
       </section>
 
       <section className="card space-y-3">
-        <h2 className="text-lg font-semibold">GitHub collaborators</h2>
+        <h2 className="text-lg font-semibold">TrueJet members</h2>
         <ul className="space-y-2 text-sm text-slate-700">
-          {collaborators.map((c) => (
+          {trueJetMembers.map((c) => (
             <li key={c.name}>
               <a
                 href={c.github}
@@ -47,7 +57,7 @@ export default function AboutPage() {
               >
                 {c.name}
               </a>{" "}
-              — {c.role}
+              — {c.role} · @{c.github.replace(/^https?:\/\/github\.com\//i, "")}
             </li>
           ))}
         </ul>

@@ -6,15 +6,15 @@ import UploadAndShow from "@/components/UploadAndShow";
 const academicTools = [
   {
     href: "/learning-box",
-    title: "Learning Box",
+    title: "Private Learning Box",
     description:
-      "Document & Storage for your own notes and materials, plus Random Draw for spaced review.",
+      "A private browser folder for your own notes and text files, plus Random Draw. No change code needed.",
   },
   {
     href: "/academic/materials",
     title: "Shared materials",
     description:
-      "Site materials for the materials area — separate from AP / Code / Forum folders.",
+      "Public materials everyone can upload and view without a change code.",
   },
   {
     href: "/picture",

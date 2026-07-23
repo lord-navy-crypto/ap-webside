@@ -38,7 +38,13 @@ function PracticeContent() {
         const res = await fetch("/api/edit", { cache: "no-store" });
         const data = await res.json();
         if (cancelled) return;
-        setManagedSubjects(Array.isArray(data.subjects) ? data.subjects.map(String) : []);
+        setManagedSubjects(
+          Array.isArray(data.subjects)
+            ? data.subjects.map((s: unknown) =>
+                typeof s === "string" ? s : String((s as { name?: string }).name || "")
+              ).filter(Boolean)
+            : []
+        );
         setManagedQuizzes(Array.isArray(data.questionnaires) ? data.questionnaires : []);
       } catch {
         // ignore
@@ -94,6 +100,7 @@ function PracticeContent() {
           title="Root practice storage"
           onSubjectsChange={setManagedSubjects}
           onQuestionnairesChange={(q) => setManagedQuizzes(q as Questionnaire[])}
+          collapsedByDefault
         />
         <FolderGrid folders={subjectFolders} />
       </div>

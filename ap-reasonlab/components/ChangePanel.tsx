@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
+import { useContentEditor } from "@/components/useContentEditor";
 
 export type ChangeMode =
   | "concept"
@@ -25,6 +27,7 @@ type Props = {
   label?: string;
   /** Called after successful save; receives latest managed content when available */
   onSaved?: (content?: unknown) => void;
+  allowPublicContribution?: boolean;
 };
 
 /**
@@ -38,7 +41,9 @@ export default function ChangePanel({
   spaceKey = ROOT_SPACE,
   label,
   onSaved,
+  allowPublicContribution = false,
 }: Props) {
+  const { unlocked, editor, refresh } = useContentEditor();
   const [open, setOpen] = useState(false);
   const [changeCode, setChangeCode] = useState("");
   const [githubToken, setGithubToken] = useState("");
@@ -59,6 +64,7 @@ export default function ChangePanel({
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("Uploaded");
   const [memberNote, setMemberNote] = useState("");
+  const [githubUser, setGithubUser] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [firstPrompt, setFirstPrompt] = useState("");
   const [minutes, setMinutes] = useState("20");
@@ -73,13 +79,14 @@ export default function ChangePanel({
     formula: "Add formula",
     document: "Add document",
     file: "Upload file",
-    member: "Add member (master code only)",
+    member: "Add partner (any name + GitHub)",
     folder: "Add folder (own storage space)",
     subject: "Add subject folder",
     questionnaire: "Add generated practice set",
   };
 
   const scopedSpace = normalizeSpace(spaceKey);
+  const needsCodeField = !allowPublicContribution && !unlocked;
 
   function reset() {
     setTitle("");
@@ -91,6 +98,7 @@ export default function ChangePanel({
     setExpression("");
     setContent("");
     setMemberNote("");
+    setGithubUser("");
     setFile(null);
     setFirstPrompt("");
     setMinutes("20");
@@ -140,6 +148,10 @@ export default function ChangePanel({
     setError("");
     setNote("");
     try {
+      if (needsCodeField && !changeCode.trim()) {
+        throw new Error("Enter the content change code, or unlock once at /login.");
+      }
+
       let action = "";
       let item: Record<string, unknown> = {};
 
@@ -182,7 +194,12 @@ export default function ChangePanel({
         };
       } else if (mode === "member") {
         action = "add_member";
-        item = { name: title, note: memberNote };
+        const handle = githubUser.trim().replace(/^@/, "");
+        const noteParts = [
+          memberNote.trim() || "TrueJet partner",
+          handle ? `github:${handle}` : "",
+        ].filter(Boolean);
+        item = { name: title.trim(), note: noteParts.join(" · ") };
       } else if (mode === "folder") {
         action = "add_folder";
         item = {
@@ -193,7 +210,7 @@ export default function ChangePanel({
         };
       } else if (mode === "subject") {
         action = "add_subject";
-        item = { title };
+        item = { title, name: title };
       } else if (mode === "questionnaire") {
         action = "add_questionnaire";
         item = {
@@ -213,16 +230,19 @@ export default function ChangePanel({
         body: JSON.stringify({
           action,
           item,
-          changeCode: changeCode.trim(),
+          changeCode: changeCode.trim() || undefined,
           githubToken: githubToken.trim() || undefined,
+          publicContribution: allowPublicContribution || undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
 
-      setNote("Saved. It should appear in this panel / subject list now.");
+      setNote(data.note || "Saved. It should appear in this panel / subject list now.");
       reset();
+      setOpen(false);
       onSaved?.(data.content);
+      void refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -454,31 +474,65 @@ export default function ChangePanel({
             />
           )}
 
-          <div className="space-y-2 rounded-xl bg-amber-50 px-3 py-3">
-            <label className="block text-sm font-medium text-amber-950">
-              Change code (required to save)
-            </label>
-            <input
-              type="password"
-              className="input"
-              placeholder="Enter change code"
-              value={changeCode}
-              onChange={(e) => setChangeCode(e.target.value)}
-              required
-            />
-            <p className="text-xs text-amber-900">
-              Content code can add content/files. Master code can also add members.
+          {mode === "member" && (
+            <>
+              <input
+                className="input"
+                placeholder="GitHub username (e.g. octocat)"
+                value={githubUser}
+                onChange={(e) => setGithubUser(e.target.value)}
+              />
+            </>
+          )}
+
+          {!allowPublicContribution && unlocked && (
+            <p className="rounded-xl bg-emerald-50 px-3 py-3 text-xs text-emerald-900">
+              Editor unlocked ({editor?.level}). Saves use your login session — no change code
+              needed.{" "}
+              <Link href="/login" className="font-medium underline">
+                Manage login
+              </Link>
             </p>
-          </div>
+          )}
+
+          {!allowPublicContribution && needsCodeField && (
+            <div className="space-y-2 rounded-xl bg-amber-50 px-3 py-3">
+              <label className="block text-sm font-medium text-amber-950">
+                Content change code
+              </label>
+              <input
+                type="password"
+                className="input"
+                placeholder="Content code"
+                value={changeCode}
+                onChange={(e) => setChangeCode(e.target.value)}
+                required={needsCodeField}
+              />
+              <p className="text-xs text-amber-900">
+                Prefer the edit circle on any page, or{" "}
+                <Link href="/login" className="font-medium underline">
+                  /login
+                </Link>{" "}
+                once — then this field stays hidden. Master code can also add members.
+              </p>
+            </div>
+          )}
+
+          {allowPublicContribution && (
+            <p className="rounded-xl bg-emerald-50 px-3 py-3 text-xs text-emerald-900">
+              Public contribution: no change code is needed. Do not upload private, sensitive, or
+              copyrighted material you cannot share.
+            </p>
+          )}
 
           <details className="text-sm text-slate-600">
             <summary className="cursor-pointer font-medium">
-              GitHub publish token (for Vercel)
+              GitHub publish token (optional override)
             </summary>
             <input
               type="password"
               className="input mt-2"
-              placeholder="ghp_... optional if GITHUB_TOKEN is set on Vercel"
+              placeholder="Leave empty — uses Vercel GITHUB_TOKEN (repo write)"
               value={githubToken}
               onChange={(e) => setGithubToken(e.target.value)}
             />
@@ -489,7 +543,7 @@ export default function ChangePanel({
 
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Saving..." : "Save with change code"}
+              {loading ? "Saving..." : "Save"}
             </button>
             <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>
               Cancel

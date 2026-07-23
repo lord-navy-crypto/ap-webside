@@ -1,6 +1,6 @@
 import Link from "next/link";
 import EthicsBanner from "@/components/EthicsBanner";
-import { brand, collaborators } from "@/data/brand";
+import { brand, trueJetMembers } from "@/data/brand";
 
 const boxes = [
   {
@@ -10,8 +10,13 @@ const boxes = [
   },
   {
     title: "Academic Platform",
-    description: "Learning Box, shared materials, Picture, Image Gen.",
+    description: "Private Learning Box, shared materials, Picture, Image Gen.",
     href: "/academic",
+  },
+  {
+    title: "AI Toolbox",
+    description: "Hint & Process, Concept Explainer, and Site Guide — path: /hints.",
+    href: "/hints",
   },
   {
     title: "Code Resource",
@@ -25,7 +30,7 @@ const boxes = [
   },
   {
     title: "Partners",
-    description: "Add members yourself (master change code). Link GitHub usernames in notes.",
+    description: "TrueJet members with GitHub. Add anyone by name + GitHub username.",
     href: "/partners",
   },
 ];
@@ -52,6 +57,12 @@ export default function HomePage() {
             className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
           >
             Academic Platform
+          </Link>
+          <Link
+            href="/hints"
+            className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+          >
+            AI Toolbox
           </Link>
         </div>
       </section>
@@ -80,21 +91,21 @@ export default function HomePage() {
 
       <section className="card space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="section-title">Collaborators & members</h2>
+          <h2 className="section-title">TrueJet members</h2>
           <Link href="/partners" className="text-sm font-medium text-brand-600 hover:underline">
-            Manage on Partners →
+            Full roster & join →
           </Link>
         </div>
         <p className="text-sm text-slate-600">
-          Add people yourself on Partners with the master change code. Use note{" "}
-          <code>github:username</code> to link GitHub collaborators.
+          People on TrueJet / Results with GitHub. Add anyone on Partners — free name + GitHub,
+          not a fixed single choice.
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
-          {collaborators.map((c) => (
+          {trueJetMembers.map((c) => (
             <a
               key={c.name}
-              href={c.github.startsWith("http") ? c.github : "/partners"}
-              target={c.github.startsWith("http") ? "_blank" : undefined}
+              href={c.github}
+              target="_blank"
               rel="noreferrer"
               className="flex items-center gap-3 rounded-xl border border-slate-200 px-3 py-3 hover:border-brand-300"
             >
@@ -103,15 +114,30 @@ export default function HomePage() {
                 <img src={c.avatar} alt="" className="h-10 w-10 rounded-full" />
               ) : (
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-500">
-                  +
+                  {c.name.slice(0, 1).toUpperCase()}
                 </span>
               )}
               <div>
                 <p className="font-medium text-slate-900">{c.name}</p>
                 <p className="text-xs text-slate-500">{c.role}</p>
+                <p className="text-xs text-brand-700">
+                  @{c.github.replace(/^https?:\/\/github\.com\//i, "")}
+                </p>
               </div>
             </a>
           ))}
+          <Link
+            href="/partners"
+            className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 px-3 py-3 hover:border-brand-300"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-500">
+              +
+            </span>
+            <div>
+              <p className="font-medium text-slate-900">Add a person</p>
+              <p className="text-xs text-slate-500">Name + GitHub on Partners</p>
+            </div>
+          </Link>
         </div>
       </section>
     </div>

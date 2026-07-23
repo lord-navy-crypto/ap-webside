@@ -1,14 +1,18 @@
 import Link from "next/link";
 
 /**
- * Accounts/login removed. Editing is done with + buttons on each page + a change code.
+ * Editing help + links. Full content console lives at /manage; unlock at /login.
  */
 export default function AdminRedirectPage() {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <h1 className="text-3xl font-bold">How editing works now</h1>
       <div className="card space-y-3 text-sm text-slate-700">
-        <p>No login or account needed.</p>
+        <p>
+          Prefer unlocking once at <Link href="/login" className="font-medium text-brand-700 underline">/login</Link>, then use +
+          buttons on each page. The full console is at{" "}
+          <Link href="/manage" className="font-medium text-brand-700 underline">/manage</Link>.
+        </p>
         <ol className="list-decimal space-y-2 pl-5">
           <li>
             Go to <strong>AP Area</strong> → Concepts / Formulas / Practice (or open a subject
@@ -32,7 +36,8 @@ export default function AdminRedirectPage() {
             </ul>
           </li>
           <li>
-            Fill the form, then enter a <strong>change code</strong> to save.
+            Fill the form, then enter a <strong>change code</strong> (or use your unlocked session) to
+            save.
           </li>
         </ol>
         <ul className="list-disc space-y-1 pl-5">
@@ -52,6 +57,9 @@ export default function AdminRedirectPage() {
       <div className="flex flex-wrap gap-3">
         <Link href="/ap" className="btn-primary">
           Open AP Area
+        </Link>
+        <Link href="/manage" className="btn-secondary">
+          Manage console
         </Link>
         <Link href="/practice?subject=AP%20Statistics" className="btn-secondary">
           AP Statistics practice

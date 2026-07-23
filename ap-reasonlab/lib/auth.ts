@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import type { ChangeLevel } from "@/lib/change-codes";
 
 export type Role = "user" | "partner" | "admin";
 
@@ -9,8 +10,13 @@ export type SessionUser = {
   role: Role;
 };
 
+export type ContentEditorSession = {
+  level: "content" | "master";
+};
+
 const COOKIE = "results_session";
 const GH_COOKIE = "results_gh_token";
+const CONTENT_EDITOR_COOKIE = "results_content_editor";
 
 function authSecret(): string {
   return (
@@ -36,13 +42,13 @@ export function verifyPassword(password: string, stored: string): boolean {
   return timingSafeEqual(prev, next);
 }
 
-export function signSession(user: SessionUser): string {
-  const payload = Buffer.from(JSON.stringify(user), "utf8").toString("base64url");
+function signPayload(payloadObj: object): string {
+  const payload = Buffer.from(JSON.stringify(payloadObj), "utf8").toString("base64url");
   const sig = createHmac("sha256", authSecret()).update(payload).digest("base64url");
   return `${payload}.${sig}`;
 }
 
-export function readSessionToken(token: string | undefined): SessionUser | null {
+function readSignedPayload<T>(token: string | undefined): T | null {
   if (!token) return null;
   const [payload, sig] = token.split(".");
   if (!payload || !sig) return null;
@@ -51,10 +57,18 @@ export function readSessionToken(token: string | undefined): SessionUser | null 
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
   try {
-    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as SessionUser;
+    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as T;
   } catch {
     return null;
   }
+}
+
+export function signSession(user: SessionUser): string {
+  return signPayload(user);
+}
+
+export function readSessionToken(token: string | undefined): SessionUser | null {
+  return readSignedPayload<SessionUser>(token);
 }
 
 export async function getSession(): Promise<SessionUser | null> {
@@ -77,12 +91,53 @@ export async function clearSessionCookie() {
   const jar = await cookies();
   jar.delete(COOKIE);
   jar.delete(GH_COOKIE);
+  jar.delete(CONTENT_EDITOR_COOKIE);
+}
+
+/** Content-code editor session: unlocks edits after one successful content-code login. */
+export async function getContentEditorSession(): Promise<ContentEditorSession | null> {
+  const jar = await cookies();
+  const raw = readSignedPayload<ContentEditorSession & { v?: number }>(
+    jar.get(CONTENT_EDITOR_COOKIE)?.value
+  );
+  if (!raw) return null;
+  if (raw.level !== "content" && raw.level !== "master") return null;
+  return { level: raw.level };
+}
+
+export async function getContentEditorLevel(): Promise<ChangeLevel> {
+  const session = await getContentEditorSession();
+  return session?.level || null;
+}
+
+export async function setContentEditorCookie(level: "content" | "master") {
+  const jar = await cookies();
+  jar.set(CONTENT_EDITOR_COOKIE, signPayload({ level, v: 1 }), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+}
+
+export async function clearContentEditorCookie() {
+  const jar = await cookies();
+  jar.delete(CONTENT_EDITOR_COOKIE);
 }
 
 /** Optional GitHub PAT for publishing Manager saves (BYOK). */
 export async function setGithubTokenCookie(token: string) {
   const jar = await cookies();
-  jar.set(GH_COOKIE, token, {
+  // Lazy import avoided — sanitize inline for cookie safety
+  let t = token.trim();
+  if (
+    (t.startsWith('"') && t.endsWith('"')) ||
+    (t.startsWith("'") && t.endsWith("'"))
+  ) {
+    t = t.slice(1, -1).trim();
+  }
+  jar.set(GH_COOKIE, t, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -93,7 +148,14 @@ export async function setGithubTokenCookie(token: string) {
 
 export async function getGithubTokenFromCookie(): Promise<string | undefined> {
   const jar = await cookies();
-  const v = jar.get(GH_COOKIE)?.value?.trim();
+  let v = jar.get(GH_COOKIE)?.value?.trim();
+  if (!v) return undefined;
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
+    v = v.slice(1, -1).trim();
+  }
   return v || undefined;
 }
 
