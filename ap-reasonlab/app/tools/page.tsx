@@ -3,19 +3,19 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 
 export const metadata = {
   title: "Tools — Knowledge Explorer",
-  description: "Online calculator and function grapher for Knowledge Explorer.",
+  description: "Calculator and grapher live in AI Toolbox; /tools keeps short links.",
 };
 
 const tools = [
   {
-    href: "/tools/calculator",
+    href: "/hints?tool=calculator",
     title: "KE-84 Calculator",
-    blurb: "Scientific keypad inspired by Texas Instruments handhelds — sin, log, powers, ANS.",
+    blurb: "Open inside AI Toolbox — TI-inspired scientific keypad.",
   },
   {
-    href: "/tools/grapher",
+    href: "/hints?tool=grapher",
     title: "KE Graph",
-    blurb: "Plot y = f(x) with zoom, axes, and trace — graphing-calculator style.",
+    blurb: "Open inside AI Toolbox — plot y = f(x) with zoom and trace.",
   },
 ];
 
@@ -26,7 +26,11 @@ export default function ToolsPage() {
       <section className="space-y-2">
         <h1 className="section-title">Online tools</h1>
         <p className="max-w-2xl text-sm text-slate-600">
-          Computer-style study tools you can use in the browser — no app install.
+          Calculator and grapher live in the{" "}
+          <Link href="/hints" className="font-medium text-brand-700 underline">
+            AI Toolbox
+          </Link>
+          . These links jump straight to each tab.
         </p>
       </section>
       <div className="grid gap-4 md:grid-cols-2">

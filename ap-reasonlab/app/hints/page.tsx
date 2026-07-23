@@ -7,9 +7,11 @@ import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import LocalAIControls from "@/components/LocalAIControls";
 import { useLocalAI } from "@/components/LocalAIProvider";
 import RichContent from "@/components/RichContent";
+import TICalculator from "@/components/TICalculator";
+import TIGrapher from "@/components/TIGrapher";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
-type Tool = "hint" | "concept" | "guide";
+type Tool = "hint" | "concept" | "guide" | "calculator" | "grapher";
 
 type HintResult = {
   hints: string[];
@@ -77,7 +79,15 @@ function ToolboxContent() {
   useEffect(() => {
     setSubject(resolveSubject(searchParams.get("subject")));
     const tab = searchParams.get("tool");
-    if (tab === "concept" || tab === "guide" || tab === "hint") setTool(tab);
+    if (
+      tab === "concept" ||
+      tab === "guide" ||
+      tab === "hint" ||
+      tab === "calculator" ||
+      tab === "grapher"
+    ) {
+      setTool(tab);
+    }
   }, [searchParams]);
 
   const subjectChoices = SUBJECT_OPTIONS.includes(subject as (typeof SUBJECT_OPTIONS)[number])
@@ -262,7 +272,19 @@ function ToolboxContent() {
       label: "Site Guide",
       blurb: "Only how to use Knowledge Explorer — navigation, design, authors. Not study content.",
     },
+    {
+      id: "calculator",
+      label: "Calculator",
+      blurb: "TI-style KE-84 scientific keypad — sin, log, powers, ANS.",
+    },
+    {
+      id: "grapher",
+      label: "Grapher",
+      blurb: "TI-style function plotter — y = f(x) with zoom and trace.",
+    },
   ];
+
+  const isAiTool = tool === "hint" || tool === "concept" || tool === "guide";
 
   return (
     <div className="space-y-6">
@@ -270,16 +292,16 @@ function ToolboxContent() {
         <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">AI Toolbox</p>
         <h1 className="mt-1 text-3xl font-bold">Study tools powered by Instant models</h1>
         <p className="mt-2 max-w-2xl text-slate-600">
-          Three focused AIs. Site default uses shared fast models. Your own API is more
-          effective and more powerful for personal quota when the shared key is busy.
+          AI tutors plus TI-style calculator and grapher. Site default uses shared fast models.
+          Your own API is more effective when the shared key is busy.
         </p>
       </div>
 
       <EthicsBanner />
 
-      <LocalAIControls />
+      {isAiTool && <LocalAIControls />}
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {tools.map((item) => (
           <button
             key={item.id}
@@ -302,7 +324,7 @@ function ToolboxContent() {
         ))}
       </div>
 
-      {localAI.mode !== "local" && (
+      {isAiTool && localAI.mode !== "local" && (
         <div className="space-y-2">
           {localAI.mode === "auto" && (
             <p className="text-xs text-slate-500">
@@ -438,6 +460,30 @@ function ToolboxContent() {
             {loading ? "Looking up…" : "Ask Site Guide"}
           </button>
         </form>
+      )}
+
+      {tool === "calculator" && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-xl font-semibold">Calculator</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Texas Instruments–inspired scientific calculator inside the AI Toolbox.
+            </p>
+          </div>
+          <TICalculator />
+        </section>
+      )}
+
+      {tool === "grapher" && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-xl font-semibold">Grapher</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Plot y = f(x) with zoom and trace — graphing-calculator style.
+            </p>
+          </div>
+          <TIGrapher />
+        </section>
       )}
 
       {error && <div className="card border-red-200 bg-red-50 text-sm text-red-700">{error}</div>}

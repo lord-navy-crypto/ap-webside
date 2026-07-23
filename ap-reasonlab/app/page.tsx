@@ -14,18 +14,14 @@ const boxes = [
     href: "/english",
   },
   {
-    title: "Tools",
-    description: "TI-style online calculator and function grapher — compute and plot in the browser.",
-    href: "/tools",
-  },
-  {
     title: "Academic Platform",
     description: "Private Learning Box, shared materials, Picture, Image Gen.",
     href: "/academic",
   },
   {
     title: "AI Toolbox",
-    description: "Hint & Process, Concept Explainer, and Site Guide — path: /hints.",
+    description:
+      "Hint & Process, Concept Explainer, Site Guide, plus TI-style calculator and grapher.",
     href: "/hints",
   },
   {
@@ -63,7 +59,7 @@ export default function HomePage() {
             Open AP box
           </Link>
           <Link
-            href="/tools"
+            href="/hints?tool=calculator"
             className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
           >
             Calculator & Grapher
