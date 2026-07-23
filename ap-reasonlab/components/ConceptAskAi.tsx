@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import EthicsBanner from "@/components/EthicsBanner";
 import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import RichContent from "@/components/RichContent";
-import type { AiProvider } from "@/lib/ai-client";
+import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
 type Props = {
   defaultSubject?: string;
@@ -20,6 +20,7 @@ export default function ConceptAskAi({
   lockToConcept = true,
 }: Props) {
   const [channel, setChannel] = useState<ApiChannel>("site");
+  const [siteModel, setSiteModel] = useState<SiteModelChoice>("auto");
   const [provider, setProvider] = useState<AiProvider>("groq");
   const [userKey, setUserKey] = useState("");
   const [mode, setMode] = useState<"explain" | "quiz" | "ask">("explain");
@@ -62,6 +63,7 @@ export default function ConceptAskAi({
           lockToConcept,
           userApiKey: channel === "byok" ? userKey.trim() : undefined,
           provider,
+          siteModel: channel === "site" ? siteModel : "auto",
         }),
       });
       const data = await res.json();
@@ -86,6 +88,8 @@ export default function ConceptAskAi({
       <AiApiChannel
         channel={channel}
         onChannelChange={setChannel}
+        siteModel={siteModel}
+        onSiteModelChange={setSiteModel}
         provider={provider}
         onProviderChange={setProvider}
         userKey={userKey}
