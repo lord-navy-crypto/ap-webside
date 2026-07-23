@@ -39,10 +39,10 @@ const MODES: Array<{
 ];
 
 const MODEL_GROUPS: Array<{ value: LocalModelGroup; label: string }> = [
-  { value: "ultralight", label: "Ultra-light models" },
-  { value: "general", label: "General & Chinese models" },
-  { value: "study", label: "Study & mathematics" },
-  { value: "developer", label: "Developer models" },
+  { value: "superlight", label: "Super light" },
+  { value: "light", label: "Light" },
+  { value: "medium", label: "Medium" },
+  { value: "heavy", label: "Heavy" },
 ];
 
 export default function LocalAIControls() {
@@ -187,7 +187,7 @@ export default function LocalAIControls() {
             </p>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
               No website token bill, prompts stay on your device, and we do not apply cloud-style
-              output caps. Pick a model below (tiny / Chinese / math / coder), then Enable.
+              output caps. Pick Super light → Light → Medium → Heavy below, then Enable.
             </p>
           </div>
           <span
