@@ -8,9 +8,9 @@
 
 1. **Four topics kept intact** (Exploring Data → Collecting Data → Probability & RVs → Inference).
 2. **Within each topic, problems are ordered by difficulty**:
-   - * Foundation - identify / interpret / short explanation
-   - ** Standard - calculation + justification in context
-   - *** Challenge - full multi-step inference or layered probability
+   - Level 1 Foundation — identify / interpret / short explanation
+   - Level 2 Standard — calculation + justification in context
+   - Level 3 Challenge — full multi-step inference or layered probability
 3. **Substantive stems unchanged** (cleaned for OCR/layout only).
 4. **Part II** contains **reference answers** for every problem (worked solutions for self-check).
 
@@ -29,7 +29,7 @@
 
 ## Topic 1 Exploring Data
 
-### T1-F1 · Foundation * · Scatterplot language & residual
+### T1-F1 · Foundation (Level 1) · Scatterplot language & residual
 
 *Template source label (for study tracking): 2017 FRQ1 (wolves)*
 
@@ -48,7 +48,7 @@ The least-squares equation is y-hat = -16.46 + 35.02x.
 
 ---
 
-### T1-F2 · Foundation * · Two-way table proportions & association
+### T1-F2 · Foundation (Level 1) · Two-way table proportions & association
 
 *Template source label (for study tracking): 2014 FRQ1 (extracurricular)*
 
@@ -67,7 +67,7 @@ An administrator sampled 100 students. Residential status (on/off campus) and ex
 
 ---
 
-### T1-S1 · Standard ** · Five-number summary & two outlier rules
+### T1-S1 · Standard (Level 2) · Five-number summary & two outlier rules
 
 *Template source label (for study tracking): 2021 FRQ1 (hospital stay)*
 
@@ -87,7 +87,7 @@ Length of stay (days) for a random sample of 50 patients:
 
 ---
 
-### T1-S2 · Standard ** · Histogram SOCS, outliers, boxplot vs histogram
+### T1-S2 · Standard (Level 2) · Histogram SOCS, outliers, boxplot vs histogram
 
 *Template source label (for study tracking): 2019 FRQ1 (room sizes)*
 
@@ -103,7 +103,7 @@ Mean 231.4, SD 68.12, Min 134, Q1 174, Median 253.5, Q3 292, Max 315.
 
 ---
 
-### T1-S3 · Standard ** · Describe distribution; mean vs median under a change
+### T1-S3 · Standard (Level 2) · Describe distribution; mean vs median under a change
 
 *Template source label (for study tracking): 2016 FRQ1 (tips)*
 
@@ -115,7 +115,7 @@ A histogram shows Robin’s 60 tip amounts for one day (right-skewed, roughly $0
 
 ---
 
-### T1-S4 · Standard ** · Slope, r², largest residual
+### T1-S4 · Standard (Level 2) · Slope, r², largest residual
 
 *Template source label (for study tracking): 2022 FRQ1 (bullfrogs)*
 
@@ -132,7 +132,7 @@ mass = -546 + 6.08(length), with r² ~= 0.819. (Plot of 11 bullfrogs with the li
 
 ---
 
-### T1-S5 · Standard ** · Intercept, r², outlier on scatterplot
+### T1-S5 · Standard (Level 2) · Intercept, r², outlier on scatterplot
 
 *Template source label (for study tracking): 2018 FRQ1 (checkout)*
 
@@ -149,7 +149,7 @@ Computer output: Constant 72.95; Customers in line 174.40; R-Sq = 73.33%; S = 20
 
 ## Topic 2 Collecting Data
 
-### T2-F1 · Foundation * · Random assignment to two equal groups
+### T2-F1 · Foundation (Level 1) · Random assignment to two equal groups
 
 *Template source label (for study tracking): 2009 FRQ3 (frog labs)*
 
@@ -159,7 +159,7 @@ A teacher will compare physical frog dissection vs computer simulation using 24 
 
 ---
 
-### T2-F2 · Foundation * · Identify treatments, units, response; control; random assignment
+### T2-F2 · Foundation (Level 1) · Identify treatments, units, response; control; random assignment
 
 *Template source label (for study tracking): 2019 FRQ2 (fungus)*
 
@@ -173,7 +173,7 @@ Researchers create four fungus concentrations: 0, 1.25, 2.5, 3.75 ml/L. Equal nu
 
 ---
 
-### T2-S1 · Standard ** · Matched pairs vs CRD
+### T2-S1 · Standard (Level 2) · Matched pairs vs CRD
 
 *Template source label (for study tracking): 2022 FRQ2 (acne twins)*
 
@@ -185,7 +185,7 @@ A dermatologist recruits 36 pairs of identical twins. Each person receives new d
 
 ---
 
-### T2-S2 · Standard ** · Median vs mean; voluntary response vs SRS
+### T2-S2 · Standard (Level 2) · Median vs mean; voluntary response vs SRS
 
 *Template source label (for study tracking): 2014 FRQ4 (alumni income)*
 
@@ -197,7 +197,7 @@ At a reunion, mean income of 50 attendees was reported as the class mean income.
 
 ---
 
-### T2-S3 · Standard ** · Convenience, SRS, stratification
+### T2-S3 · Standard (Level 2) · Convenience, SRS, stratification
 
 *Template source label (for study tracking): 2013 FRQ2 (campus survey)*
 
@@ -211,7 +211,7 @@ Estimate proportion of 70,000 students satisfied with campus appearance; sample 
 
 ---
 
-### T2-S4 · Standard ** · Observational study & confounding
+### T2-S4 · Standard (Level 2) · Observational study & confounding
 
 *Template source label (for study tracking): 2016 FRQ3 (smoking & Alzheimer’s)*
 
@@ -225,7 +225,7 @@ A study tracked 21,123 people for 23 years. For those smoking >=2 packs/day, Alz
 
 ---
 
-### T2-C1 · Challenge *** · Experiment scope & non-random assignment
+### T2-C1 · Challenge (Level 3) · Experiment scope & non-random assignment
 
 *Template source label (for study tracking): 2011B FRQ2 (acrophobia)*
 
@@ -241,7 +241,7 @@ A study tracked 21,123 people for 23 years. For those smoking >=2 packs/day, Alz
 
 ## Topic 3 Probability & Random Variables
 
-### T3-S1 · Standard ** · Joint, union, conditional; independence
+### T3-S1 · Standard (Level 2) · Joint, union, conditional; independence
 
 *Template source label (for study tracking): 2019 FRQ3 (medicine adherence)*
 
@@ -261,7 +261,7 @@ One person selected at random.
 
 ---
 
-### T3-S2 · Standard ** · Combinations & flawed simulation
+### T3-S2 · Standard (Level 2) · Combinations & flawed simulation
 
 *Template source label (for study tracking): 2014 FRQ2 (convention)*
 
@@ -273,7 +273,7 @@ One person selected at random.
 
 ---
 
-### T3-S3 · Standard ** · Discrete RV: P, E(X), conditional
+### T3-S3 · Standard (Level 2) · Discrete RV: P, E(X), conditional
 
 *Template source label (for study tracking): 2015 FRQ3 (ATMs)*
 
@@ -286,7 +286,7 @@ X = number of working ATMs when the mall opens. P(X=0)=0.15, P(1)=0.21, P(2)=0.4
 
 ---
 
-### T3-S4 · Standard ** · Binomial definition, P(at least one), expected value
+### T3-S4 · Standard (Level 2) · Binomial definition, P(at least one), expected value
 
 *Template source label (for study tracking): 2021 FRQ3 (gift cards)*
 
@@ -302,7 +302,7 @@ X = number of working ATMs when the mall opens. P(X=0)=0.15, P(1)=0.21, P(2)=0.4
 
 ---
 
-### T3-S5 · Standard ** · Geometric wait; binomial count; surprise
+### T3-S5 · Standard (Level 2) · Geometric wait; binomial count; surprise
 
 *Template source label (for study tracking): 2011B FRQ3 (upgrades)*
 
@@ -314,7 +314,7 @@ P(upgrade) = 0.10 each flight, independent.
 
 ---
 
-### T3-C1 · Challenge *** · Sequential testing; rare event reasoning
+### T3-C1 · Challenge (Level 3) · Sequential testing; rare event reasoning
 
 *Template source label (for study tracking): 2016 FRQ4 (igniters)*
 
@@ -326,7 +326,7 @@ Overall igniter failure rate claimed 15%. Test super igniters until first failur
 
 ---
 
-### T3-C2 · Challenge *** · Normal underfill + Binomial crate rejection
+### T3-C2 · Challenge (Level 3) · Normal underfill + Binomial crate rejection
 
 *Template source label (for study tracking): 2022 FRQ3 (shampoo)*
 
@@ -341,7 +341,7 @@ A ~ N(0.60 L, 0.04 L). Underfilled if A < 0.50. Boxes of 10; crate rejected if a
 
 ---
 
-### T3-C3 · Challenge *** · Normal percentile, claim probability, expected gain
+### T3-C3 · Challenge (Level 3) · Normal percentile, claim probability, expected gain
 
 *Template source label (for study tracking): 2019 FRQ5 (battery warranty)*
 
@@ -355,7 +355,7 @@ Battery life ~ N(30 months, 8 months). $50 warranty replaces phone if life < 24 
 
 ---
 
-### T3-C4 · Challenge *** · Law of total probability; Bayes; Binomial
+### T3-C4 · Challenge (Level 3) · Law of total probability; Bayes; Binomial
 
 *Template source label (for study tracking): 2018 FRQ3 (left-handed)*
 
@@ -369,7 +369,7 @@ Battery life ~ N(30 months, 8 months). $50 warranty replaces phone if life < 24 
 
 ## Topic 4 Statistical Inference
 
-### T4-S1 · Standard ** · One-proportion z-interval + claim about 0.5
+### T4-S1 · Standard (Level 2) · One-proportion z-interval + claim about 0.5
 
 *Template source label (for study tracking): 2022 FRQ4 (streaming)*
 
@@ -381,7 +381,7 @@ Random sample of 920 U.S. teens; 59% use a video streaming service every day.
 
 ---
 
-### T4-S2 · Standard ** · One-prop CI → cost interval
+### T4-S2 · Standard (Level 2) · One-prop CI → cost interval
 
 *Template source label (for study tracking): 2017 FRQ2 (water cups)*
 
@@ -393,7 +393,7 @@ Of 80 random customers who asked for a water cup, 23 filled it with soda.
 
 ---
 
-### T4-S3 · Standard ** · CI for regression slope
+### T4-S3 · Standard (Level 2) · CI for regression slope
 
 *Template source label (for study tracking): 2019 Intl FRQ2 (house prices)*
 
@@ -405,7 +405,7 @@ n=20 houses. Regression of price (thousands $) on distance (miles): slope b=-2.1
 
 ---
 
-### T4-S4 · Standard ** · Proportions vs counts; homogeneity hypotheses
+### T4-S4 · Standard (Level 2) · Proportions vs counts; homogeneity hypotheses
 
 *Template source label (for study tracking): 2021 FRQ5 (soft drinks)*
 
@@ -426,7 +426,7 @@ Independent city samples (Yes = consumed soft drink in past week):
 
 ---
 
-### T4-C1 · Challenge *** · One-proportion z-test + Type I/II
+### T4-C1 · Challenge (Level 3) · One-proportion z-test + Type I/II
 
 *Template source label (for study tracking): 2021 FRQ4 ($10 coupon)*
 
@@ -438,7 +438,7 @@ Manager believes with a $10 coupon, more than 40% of past customers will reorder
 
 ---
 
-### T4-C2 · Challenge *** · Two-proportion z-test for an increase
+### T4-C2 · Challenge (Level 3) · Two-proportion z-test for an increase
 
 *Template source label (for study tracking): 2019 FRQ4 (kochia)*
 
@@ -446,7 +446,7 @@ Manager believes with a $10 coupon, more than 40% of past customers will reorder
 
 ---
 
-### T4-C3 · Challenge *** · Causation from design + two-sample t
+### T4-C3 · Challenge (Level 3) · Causation from design + two-sample t
 
 *Template source label (for study tracking): 2018 FRQ4 (ACL surgery)*
 
@@ -459,7 +459,7 @@ Convincing evidence new has smaller mean recovery?
 
 ---
 
-### T4-C4 · Challenge *** · Chi-square association
+### T4-C4 · Challenge (Level 3) · Chi-square association
 
 *Template source label (for study tracking): 2013 FRQ4 (fruits/vegetables)*
 
@@ -476,7 +476,7 @@ Convincing evidence of association between age-group and 5+ servings/day?
 
 ---
 
-### T4-C5 · Challenge *** · Paired t-test
+### T4-C5 · Challenge (Level 3) · Paired t-test
 
 *Template source label (for study tracking): 2014 FRQ5 (car prices)*
 
@@ -486,7 +486,7 @@ Do the data provide convincing evidence that, on average, women pay more than me
 
 ---
 
-### T4-C6 · Challenge *** · Chi-square goodness-of-fit
+### T4-C6 · Challenge (Level 3) · Chi-square goodness-of-fit
 
 *Template source label (for study tracking): 2015 Intl FRQ4 (bank waits)*
 
@@ -503,7 +503,7 @@ Use after attempting. Score yourself on: **correct method**, **work shown**, and
 
 ### T1-F1 · Scatterplot language & residual
 
-**Difficulty:** Foundation *
+**Difficulty:** Foundation (Level 1)
 
 (a) (i) Positive: as length increases, weight tends to increase.
 (ii) Linear: the pattern of points is well described by a straight line.
@@ -518,7 +518,7 @@ Actual y = y-hat + residual = 32.568 - 9.67 = 22.90 kg.
 
 ### T1-F2 · Two-way table proportions & association
 
-**Difficulty:** Foundation *
+**Difficulty:** Foundation (Level 1)
 
 (a) On campus: 9/33 ~= 0.273.
 Off campus: 30/67 ~= 0.448.
@@ -529,7 +529,7 @@ Off campus: 30/67 ~= 0.448.
 
 ### T1-S1 · Five-number summary & two outlier rules
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) Min = 5, Q1 = 6, Median = 7, Q3 = 8, Max = 21.
 
@@ -545,7 +545,7 @@ Potential outlier: 21 only.
 
 ### T1-S2 · Histogram SOCS, outliers, boxplot vs histogram
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) The distribution is bimodal (peaks near lower and upper ranges), spanning about 100-350 sq ft, with no extreme outliers obvious from the histogram. Center is near the mid-200s; spread is moderately large.
 
@@ -559,7 +559,7 @@ Boxplot: whiskers 134-315; box Q1=174 to Q3=292; median 253.5.
 
 ### T1-S3 · Describe distribution; mean vs median under a change
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) Tip amounts are strongly right-skewed, centered near about $5-$10, ranging from about $0 to $25, with a few larger tips in the right tail.
 
@@ -570,7 +570,7 @@ Median is unchanged (n = 60; changing one value that stays on the same side of t
 
 ### T1-S4 · Slope, r², largest residual
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (b) Slope = 6.08: for each additional 1 mm of length, predicted mass increases by about 6.08 g.
 
@@ -583,7 +583,7 @@ Median is unchanged (n = 60; changing one value that stays on the same side of t
 
 ### T1-S5 · Intercept, r², outlier on scatterplot
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) Intercept ~= 72.95: when there are 0 customers ahead, predicted checkout time is about 72.95 seconds (may be extrapolation).
 
@@ -595,7 +595,7 @@ Median is unchanged (n = 60; changing one value that stays on the same side of t
 
 ### T2-F1 · Random assignment to two equal groups
 
-**Difficulty:** Foundation *
+**Difficulty:** Foundation (Level 1)
 
 Label students 1-24. Use a random number generator (or shuffle slips) to select 12 distinct numbers for Group A (physical dissection); the remaining 12 are Group B (simulation). Equal size + chance assignment supports a fair comparison.
 
@@ -603,7 +603,7 @@ Label students 1-24. Use a random number generator (or shuffle slips) to select 
 
 ### T2-F2 · Identify treatments, units, response; control; random assignment
 
-**Difficulty:** Foundation *
+**Difficulty:** Foundation (Level 1)
 
 (a) Treatments: 0, 1.25, 2.5, 3.75 ml/L.
 Units: the 20 containers.
@@ -617,7 +617,7 @@ Response: number of insects alive after one week.
 
 ### T2-S1 · Matched pairs vs CRD
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) Treatments: new drug, placebo.
 Units: the 72 people (or 36 twin pairs as matched units).
@@ -629,7 +629,7 @@ Response: improvement score 0-100.
 
 ### T2-S2 · Median vs mean; voluntary response vs SRS
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) Median is resistant to skew/outliers; income is often right-skewed, so the median better represents a “typical” income.
 
@@ -639,7 +639,7 @@ Response: improvement score 0-100.
 
 ### T2-S3 · Convenience, SRS, stratification
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) Football attendees are not representative of all students; opinions about grounds may correlate with who attends games → bias.
 
@@ -651,7 +651,7 @@ Response: improvement score 0-100.
 
 ### T2-S4 · Observational study & confounding
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) Explanatory: smoking amount (e.g., packs/day). Response: developing Alzheimer’s.
 
@@ -663,7 +663,7 @@ Response: improvement score 0-100.
 
 ### T2-C1 · Experiment scope & non-random assignment
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 (a) Experiment - treatments randomly assigned.
 
@@ -675,7 +675,7 @@ Response: improvement score 0-100.
 
 ### T3-S1 · Joint, union, conditional; independence
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a)(i) 0.0636
 (a)(ii) 0.1200 + 0.5300 - 0.0636 = 0.5864
@@ -686,7 +686,7 @@ Response: improvement score 0-100.
 
 ### T3-S2 · Combinations & flawed simulation
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) C(3,3)/C(9,3) = 1/84 ~= 0.0119.
 
@@ -698,7 +698,7 @@ Response: improvement score 0-100.
 
 ### T3-S3 · Discrete RV: P, E(X), conditional
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) 1 - 0.15 = 0.85
 (b) 0(0.15)+1(0.21)+2(0.40)+3(0.24) = 1.73
@@ -709,7 +709,7 @@ Response: improvement score 0-100.
 
 ### T3-S4 · Binomial definition, P(at least one), expected value
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a)(i) X = # cards for that employee in 52 weeks; X ~ Bin(52, 1/200).
 (a)(ii) P(X>=1) = 1 - (199/200)^52 ~= 0.229.
@@ -722,7 +722,7 @@ Response: improvement score 0-100.
 
 ### T3-S5 · Geometric wait; binomial count; surprise
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) First three not upgraded: 0.9^3 = 0.729.
 
@@ -734,7 +734,7 @@ Response: improvement score 0-100.
 
 ### T3-C1 · Sequential testing; rare event reasoning
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 (a) 0.85^30 ~= 0.00763.
 
@@ -746,7 +746,7 @@ Response: improvement score 0-100.
 
 ### T3-C2 · Normal underfill + Binomial crate rejection
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 (a) z = (0.50-0.60)/0.04 = -2.5 → P ~= 0.0062.
 
@@ -759,7 +759,7 @@ Response: improvement score 0-100.
 
 ### T3-C3 · Normal percentile, claim probability, expected gain
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 (a) 25th percentile: z~=-0.6745 → 30 - 0.6745(8) ~= 24.6 months.
 
@@ -771,7 +771,7 @@ Response: improvement score 0-100.
 
 ### T3-C4 · Law of total probability; Bayes; Binomial
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 (a) P(L) = 0.035(0.22) + 0.965(0.11) = 0.11385.
 
@@ -783,7 +783,7 @@ Response: improvement score 0-100.
 
 ### T4-S1 · One-proportion z-interval + claim about 0.5
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) phat=0.59. CI: 0.59 ± 1.96sqrt(0.59·0.41/920) ~= (0.558, 0.622).
 We are 95% confident the true proportion of U.S. teens who stream daily is between about 0.558 and 0.622.
@@ -794,7 +794,7 @@ We are 95% confident the true proportion of U.S. teens who stream daily is betwe
 
 ### T4-S2 · One-prop CI → cost interval
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) phat=23/80=0.2875. CI ~= (0.188, 0.387).
 95% confident the true proportion is between about 0.188 and 0.387.
@@ -805,7 +805,7 @@ We are 95% confident the true proportion of U.S. teens who stream daily is betwe
 
 ### T4-S3 · CI for regression slope
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) -2.158 ± 2.101(0.149) ~= (-2.471, -1.845).
 95% confident the true slope is between about -2.471 and -1.845 (thousands of $ per mile).
@@ -816,7 +816,7 @@ We are 95% confident the true proportion of U.S. teens who stream daily is betwe
 
 ### T4-S4 · Proportions vs counts; homogeneity hypotheses
 
-**Difficulty:** Standard **
+**Difficulty:** Standard (Level 2)
 
 (a) Incorrect - must compare proportions, not counts. Baltimore’s proportion 727/904 ~= 0.804 is actually the largest.
 
@@ -830,7 +830,7 @@ Ha: at least one city’s probability differs.
 
 ### T4-C1 · One-proportion z-test + Type I/II
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 (a) H0: p=0.40 vs Ha: p>0.40.
 phat=38/90~=0.422.
@@ -843,7 +843,7 @@ Fail to reject H0 - not convincing evidence that more than 40% will order.
 
 ### T4-C2 · Two-proportion z-test for an increase
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 H0: p_2017 = p_2014 vs Ha: p_2017 > p_2014.
 Using counts ~=12/61 and 20/52: pooled phat_c~=0.283, z~=2.21, p-value~=0.014 < 0.05.
@@ -853,7 +853,7 @@ Yes - convincing evidence of an increase.
 
 ### T4-C3 · Causation from design + two-sample t
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 (a) Yes - random assignment supports a causal conclusion for patients like those studied.
 
@@ -865,7 +865,7 @@ Yes - convincing evidence of shorter mean recovery for the new procedure.
 
 ### T4-C4 · Chi-square association
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 Chi-square test of independence/association.
 chi^2 ~= 8.98, df=2, p~=0.011 < 0.05.
@@ -875,7 +875,7 @@ Yes - convincing evidence of association.
 
 ### T4-C5 · Paired t-test
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 Paired t-test: H0: mu_d = 0 vs Ha: mu_d > 0.
 t = 585 / (530.71 / sqrt(8)) ~= 3.12; df = 7; p ~= 0.008 < 0.05.
@@ -885,7 +885,7 @@ Yes - convincing evidence women pay more on average.
 
 ### T4-C6 · Chi-square goodness-of-fit
 
-**Difficulty:** Challenge ***
+**Difficulty:** Challenge (Level 3)
 
 chi^2 GOF: H0: proportions equal claimed; Ha: at least one differs.
 Expected: 30, 25, 20, 15, 10.
