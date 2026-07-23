@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { AiProvider, SiteModelChoice } from "@/lib/ai-site-models";
-import { SITE_INSTANT_MODELS } from "@/lib/ai-site-models";
+import { useEffect, useMemo, useState } from "react";
+import type { AdvancedModelMap, AiProvider, SiteModelChoice } from "@/lib/ai-site-models";
+import { siteModelOptionsForTier } from "@/lib/ai-site-models";
 
 export type ApiChannel = "site" | "byok";
 
@@ -52,21 +52,37 @@ export default function AiApiChannel({
 }: Props) {
   const selected = byokOptions.find((option) => option.value === provider) || byokOptions[0];
   const [advancedDefault, setAdvancedDefault] = useState(false);
+  const [advancedModels, setAdvancedModels] = useState<AdvancedModelMap | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/ai/site-tier", { cache: "no-store" })
       .then((response) => response.json())
-      .then((payload: { advancedDefault?: boolean }) => {
-        if (!cancelled) setAdvancedDefault(Boolean(payload.advancedDefault));
-      })
+      .then(
+        (payload: {
+          advancedDefault?: boolean;
+          advancedModels?: AdvancedModelMap;
+        }) => {
+          if (cancelled) return;
+          setAdvancedDefault(Boolean(payload.advancedDefault));
+          setAdvancedModels(payload.advancedModels || null);
+        }
+      )
       .catch(() => {
-        if (!cancelled) setAdvancedDefault(false);
+        if (!cancelled) {
+          setAdvancedDefault(false);
+          setAdvancedModels(null);
+        }
       });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const siteOptions = useMemo(
+    () => siteModelOptionsForTier(advancedDefault, advancedModels),
+    [advancedDefault, advancedModels]
+  );
 
   return (
     <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
@@ -146,7 +162,7 @@ export default function AiApiChannel({
           <label className="block text-sm font-medium text-slate-800">
             Official site model{" "}
             <span className="font-normal text-slate-400">
-              ({advancedDefault ? "Advanced Default" : "Instant"})
+              ({advancedDefault ? "showing Advanced mid models" : "showing Instant models"})
             </span>
           </label>
           <select
@@ -154,7 +170,7 @@ export default function AiApiChannel({
             value={siteModel}
             onChange={(e) => onSiteModelChange(e.target.value as SiteModelChoice)}
           >
-            {SITE_INSTANT_MODELS.map((option) => (
+            {siteOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
                 {option.value === "auto" ? "" : ` · ${option.model}`}
@@ -163,8 +179,8 @@ export default function AiApiChannel({
           </select>
           <p className="text-xs text-slate-500">
             {advancedDefault
-              ? "Advanced Default is ON in Manage — site keys use mid versatile models (same Advanced class as Your own API)."
-              : "Advanced Default is OFF — Instant / Flash / fast-chat with low token caps. Toggle Advanced Default in Manage to switch."}
+              ? "Advanced Default is ON — requests use these mid versatile models (e.g. Groq llama-3.3-70b-versatile), not Instant 8B. Check the AI reply note for the real model id."
+              : "Advanced Default is OFF — Instant / Flash / fast-chat with low token caps. Turn ON Advanced Default in the ✎ Page edit menu to switch models."}
           </p>
         </div>
       )}
