@@ -292,7 +292,7 @@ function ToolboxContent() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">AI Toolbox</p>
-        <h1 className="mt-1 text-3xl font-bold">Study tools powered by Instant models</h1>
+        <h1 className="mt-1 text-3xl font-bold">Study tools — Local AI first</h1>
         <p className="mt-2 max-w-2xl text-slate-600">
           <strong>Author recommends Local AI first</strong> — free for the site, private on your
           computer, no shared cloud caps. Use Cloud (public Instant = lowest) or your own mid-tier
@@ -304,11 +304,17 @@ function ToolboxContent() {
         <p className="font-semibold">Site recommendations</p>
         <ul className="mt-1 list-disc space-y-1 pl-5 text-emerald-900/90">
           <li>
-            <strong>Local AI</strong> — author recommends; enable a model in the library below.
+            <strong>Local AI</strong> — author recommends; enable a model in the library below
+            (no site token bill, private on your device, no product-side caps).
           </li>
           <li>
             <strong>Auto / Cloud</strong> — backup when WebGPU is missing; public website API stays
             Instant with the lowest limits.
+          </li>
+          <li>
+            <strong>Author mid-tier</strong> — owner may set{" "}
+            <code className="rounded bg-emerald-100/80 px-1">SITE_AI_TIER=author</code> for mid
+            versatile models (not Instant) with modestly higher caps.
           </li>
           <li>
             <strong>Your own API</strong> — optional mid-tier; easier personal quota than the shared
