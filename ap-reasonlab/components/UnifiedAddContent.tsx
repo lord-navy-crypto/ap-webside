@@ -9,10 +9,18 @@ import { handleRichPaste } from "@/lib/rich-paste";
 
 type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "folder";
 
+type SubjectOption = {
+  id: string;
+  name: string;
+  icon?: string;
+};
+
 type Props = {
   subjectId?: string;
   subjectName?: string;
+  subjects?: SubjectOption[];
   units?: ManagedUnit[];
+  onSubjectChange?: (subjectId: string) => void;
   onSaved?: () => void;
   label?: string;
 };
@@ -29,6 +37,9 @@ const contentTypes: Array<{ value: ContentType; label: string }> = [
 export default function UnifiedAddContent({
   subjectId = "",
   subjectName = "",
+  subjects = [],
+  units = [],
+  onSubjectChange,
   onSaved,
   label = "+ Add content",
 }: Props) {
@@ -38,6 +49,7 @@ export default function UnifiedAddContent({
   const [type, setType] = useState<ContentType>("concept");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [unitId, setUnitId] = useState("");
   const [changeCode, setChangeCode] = useState("");
   const [githubToken, setGithubToken] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -53,6 +65,7 @@ export default function UnifiedAddContent({
       setType((draft.type as ContentType) || "concept");
       setTitle(draft.title || "");
       setContent(draft.content || "");
+      setUnitId(draft.unitId || "");
     } catch {
       localStorage.removeItem(storageKey);
     }
@@ -62,9 +75,15 @@ export default function UnifiedAddContent({
     if (!open) return;
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ type, title, content })
+      JSON.stringify({ type, title, content, unitId })
     );
-  }, [content, open, storageKey, title, type]);
+  }, [content, open, storageKey, title, type, unitId]);
+
+  useEffect(() => {
+    if (unitId && !units.some((unit) => unit.id === unitId)) {
+      setUnitId("");
+    }
+  }, [unitId, units]);
 
   async function fileAsDataUrl(selected: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -85,6 +104,7 @@ export default function UnifiedAddContent({
       const action = type === "file" ? "add_files" : type === "folder" ? "add_folder" : "add_content_item";
       let item: Record<string, unknown> = {
         subjectId,
+        unitId: unitId || undefined,
         type,
         title,
         content,
@@ -122,6 +142,7 @@ export default function UnifiedAddContent({
       localStorage.removeItem(storageKey);
       setTitle("");
       setContent("");
+      setUnitId("");
       setFiles([]);
       setMessage(requestedStatus === "draft" ? "Draft saved." : "Published successfully.");
       onSaved?.();
@@ -133,6 +154,8 @@ export default function UnifiedAddContent({
   }
 
   if (!editMode) return null;
+
+  const canPickSubject = subjects.length > 0 && typeof onSubjectChange === "function";
 
   return (
     <>
@@ -159,18 +182,91 @@ export default function UnifiedAddContent({
               </div>
             </fieldset>
 
-            <label className="block text-sm font-medium">Subject<input className="input mt-1" value={subjectName || subjectId} disabled /></label>
+            {canPickSubject ? (
+              <label className="block text-sm font-medium">
+                Subject
+                <select
+                  className="input mt-1"
+                  value={subjectId}
+                  onChange={(event) => onSubjectChange(event.target.value)}
+                >
+                  {subjects.map((subject) => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.icon ? `${subject.icon} ` : ""}
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <label className="block text-sm font-medium">
+                Subject
+                <input className="input mt-1" value={subjectName || subjectId} disabled />
+              </label>
+            )}
+
+            {type !== "file" && type !== "folder" && units.length > 0 && (
+              <label className="block text-sm font-medium">
+                Unit <span className="font-normal text-slate-400">(optional)</span>
+                <select
+                  className="input mt-1"
+                  value={unitId}
+                  onChange={(event) => setUnitId(event.target.value)}
+                >
+                  <option value="">No unit</option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
 
             {type === "file" ? (
-              <label className="block text-sm font-medium">Choose up to 10 files<input className="mt-2 block w-full text-sm" type="file" multiple onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 10))} required /><span className="mt-1 block text-xs text-slate-500">{files.length} selected · each file must stay under ~1MB</span></label>
+              <label className="block text-sm font-medium">
+                Choose up to 10 files
+                <input
+                  className="mt-2 block w-full text-sm"
+                  type="file"
+                  multiple
+                  onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 10))}
+                  required
+                />
+                <span className="mt-1 block text-xs text-slate-500">
+                  {files.length} selected · each file must stay under ~1MB · stored under ap-subject / {subjectName || subjectId}
+                </span>
+              </label>
             ) : null}
-            <input className="input" placeholder={type === "file" ? "File note" : `${type} title`} value={title} onChange={(event) => setTitle(event.target.value)} required />
-            {type !== "file" && <textarea className="textarea min-h-[20rem] resize-y" placeholder="Paste the complete content here. Markdown is supported; use $...$ or $$...$$ for LaTeX math." value={content} onChange={(event) => setContent(event.target.value)} onPaste={(event) => handleRichPaste(event, content, setContent)} required={type !== "folder"} />}
+            <input
+              className="input"
+              placeholder={type === "file" ? "File note" : `${type} title`}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              required
+            />
+            {type !== "file" && (
+              <textarea
+                className="textarea min-h-[20rem] resize-y"
+                placeholder="Paste the complete content here. Markdown is supported; use $...$ or $$...$$ for LaTeX math."
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                onPaste={(event) => handleRichPaste(event, content, setContent)}
+                required={type !== "folder"}
+              />
+            )}
 
             {type !== "file" && content && (
               <div className="rounded-2xl border border-slate-200">
-                <button type="button" className="flex w-full items-center justify-between p-4 text-sm font-semibold" onClick={() => setPreview((value) => !value)}>Preview before publishing <span>{preview ? "−" : "+"}</span></button>
-                {preview && <div className="max-h-[45vh] overflow-auto border-t border-slate-200 p-4"><h3 className="text-lg font-semibold">{title || "Untitled"}</h3><RichContent className="mt-2">{content}</RichContent></div>}
+                <button type="button" className="flex w-full items-center justify-between p-4 text-sm font-semibold" onClick={() => setPreview((value) => !value)}>
+                  Preview before publishing <span>{preview ? "−" : "+"}</span>
+                </button>
+                {preview && (
+                  <div className="max-h-[45vh] overflow-auto border-t border-slate-200 p-4">
+                    <h3 className="text-lg font-semibold">{title || "Untitled"}</h3>
+                    <RichContent className="mt-2">{content}</RichContent>
+                  </div>
+                )}
               </div>
             )}
 
@@ -212,13 +308,30 @@ export default function UnifiedAddContent({
               )}
             </div>
 
-            {message && <p role="status" className={/failed|Wrong|Choose/.test(message) ? "text-sm text-red-600" : "text-sm text-emerald-700"}>{message}</p>}
+            {message && (
+              <p
+                role="status"
+                className={/failed|Wrong|Choose/.test(message) ? "text-sm text-red-600" : "text-sm text-emerald-700"}
+              >
+                {message}
+              </p>
+            )}
             <div className="flex flex-wrap justify-end gap-2">
-              <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
-              {type !== "file" && type !== "folder" && <button type="submit" value="draft" className="btn-secondary" disabled={busy}>Save draft</button>}
-              <button type="submit" value="published" className="btn-primary" disabled={busy}>{busy ? "Saving…" : "Publish"}</button>
+              <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>
+                Cancel
+              </button>
+              {type !== "file" && type !== "folder" && (
+                <button type="submit" value="draft" className="btn-secondary" disabled={busy}>
+                  Save draft
+                </button>
+              )}
+              <button type="submit" value="published" className="btn-primary" disabled={busy}>
+                {busy ? "Saving…" : "Publish"}
+              </button>
             </div>
-            <p className="text-xs text-slate-500">Your unfinished form is saved automatically in this browser.</p>
+            <p className="text-xs text-slate-500">
+              Your unfinished form is saved automatically in this browser. File/folder uploads appear in Manage → Files &amp; structure.
+            </p>
           </form>
         </div>
       )}
