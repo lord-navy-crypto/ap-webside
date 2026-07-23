@@ -8,11 +8,12 @@ import {
   getSubjectsFromQuestionnaires,
   questionnaires,
 } from "@/data/questionnaires";
-import EthicsBanner from "@/components/EthicsBanner";
+import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
 import UploadAndShow from "@/components/UploadAndShow";
 import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
 import RichContent from "@/components/RichContent";
+import type { Questionnaire } from "@/lib/types";
 
 type Tab = "drills" | "sets";
 
@@ -21,27 +22,58 @@ function PracticeContent() {
   const subject = searchParams.get("subject");
   const folderParam = searchParams.get("folder");
   const spaceKey = spaceFromSearchParams({ subject, folder: folderParam });
-  const [tab, setTab] = useState<Tab>("drills");
+  const [tab, setTab] = useState<Tab>("sets");
   const [mounted, setMounted] = useState(false);
+  const [managedSubjects, setManagedSubjects] = useState<string[]>([]);
+  const [managedQuizzes, setManagedQuizzes] = useState<Questionnaire[]>([]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/edit", { cache: "no-store" });
+        const data = await res.json();
+        if (cancelled) return;
+        setManagedSubjects(
+          Array.isArray(data.subjects)
+            ? data.subjects.map((s: unknown) =>
+                typeof s === "string" ? s : String((s as { name?: string }).name || "")
+              ).filter(Boolean)
+            : []
+        );
+        setManagedQuizzes(Array.isArray(data.questionnaires) ? data.questionnaires : []);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [spaceKey]);
+
   const subjects = useMemo(() => {
     const set = new Set<string>();
+    AP_SUBJECTS.forEach((s) => set.add(s));
     practiceQuestions.forEach((q) => set.add(q.subject));
     getSubjectsFromQuestionnaires().forEach((s) => set.add(s));
+    managedSubjects.forEach((s) => set.add(s));
+    managedQuizzes.forEach((q) => set.add(q.subject));
     return [...set].sort();
-  }, []);
+  }, [managedSubjects, managedQuizzes]);
 
   const subjectFolders = subjects.map((s) => {
     const drillCount = practiceQuestions.filter((q) => q.subject === s).length;
-    const setCount = questionnaires.filter((q) => q.subject === s).length;
+    const setCount =
+      questionnaires.filter((q) => q.subject === s).length +
+      managedQuizzes.filter((q) => q.subject === s).length;
     return {
       id: s,
       title: s,
-      subtitle: `${drillCount} drills · ${setCount} generated sets`,
+      subtitle: `${drillCount} drills · ${setCount} generated sets · + to add sets`,
       count: drillCount + setCount,
       href: `/practice?subject=${encodeURIComponent(s)}`,
     };
@@ -56,25 +88,33 @@ function PracticeContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">Practice</h1>
           <p className="mt-2 text-slate-600">
-            Open a subject folder for drills and generated sets — hints only, no final answer keys.
+            Open a subject (e.g. <strong>AP Statistics</strong>) to add generated FRQ sets. Or use{" "}
+            <strong>+ Add subject folder</strong> to create a new subject.
           </p>
         </div>
-        <EthicsBanner />
-        <FolderGrid folders={subjectFolders} />
         <UploadAndShow
-          alsoShow={["folder"]}
+          alsoShow={["subject", "folder"]}
           folderArea="practice"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/practice"
           title="Root practice storage"
+          onSubjectsChange={setManagedSubjects}
+          onQuestionnairesChange={(q) => setManagedQuizzes(q as Questionnaire[])}
           collapsedByDefault
         />
+        <FolderGrid folders={subjectFolders} />
       </div>
     );
   }
 
   const drills = practiceQuestions.filter((q) => q.subject === subject);
-  const sets = questionnaires.filter((q) => q.subject === subject);
+  const builtInSets = questionnaires.filter((q) => q.subject === subject);
+  const managedSets = managedQuizzes.filter((q) => q.subject === subject);
+  const seen = new Set(builtInSets.map((q) => q.id));
+  const sets = [
+    ...builtInSets,
+    ...managedSets.filter((q) => !seen.has(q.id)),
+  ];
 
   return (
     <div className="space-y-6">
@@ -84,11 +124,29 @@ function PracticeContent() {
         </Link>
         <h1 className="mt-2 text-3xl font-bold">{subject}</h1>
         <p className="mt-2 text-slate-600">
-          Practice for this subject — hints only, no final answer keys.
+          Practice for this subject — hints only. Use{" "}
+          <strong>+ Add generated practice set</strong> to create a new AI FRQ set here.
+          {subject === "AP Statistics" && (
+            <>
+              {" "}
+              Open <strong>Documents</strong> in the storage panel below for the regenerated FRQ
+              Practice Pack (with reference answers) and download the PDF.
+            </>
+          )}
         </p>
       </div>
 
-      <EthicsBanner />
+      <UploadAndShow
+        alsoShow={["questionnaire", "document", "folder"]}
+        defaultSubject={subject}
+        folderArea="practice"
+        spaceKey={spaceKey}
+        spaceBasePath="/practice"
+        title={`${subject} storage`}
+        onSubjectsChange={setManagedSubjects}
+        onQuestionnairesChange={(q) => setManagedQuizzes(q as Questionnaire[])}
+      />
+
       <div className="card p-2">
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -119,7 +177,10 @@ function PracticeContent() {
       {mounted && tab === "drills" && (
         <div className="space-y-6">
           {drills.length === 0 ? (
-            <div className="card text-sm text-slate-500">No drills in this folder yet.</div>
+            <div className="card text-sm text-slate-500">
+              No built-in drills in this folder yet. Switch to Generated Sets and use + Add generated
+              practice set.
+            </div>
           ) : (
             drills.map((q) => (
               <article key={q.id} className="card space-y-4">
@@ -175,33 +236,27 @@ function PracticeContent() {
       {mounted && tab === "sets" && (
         <div className="grid gap-4 md:grid-cols-2">
           {sets.length === 0 ? (
-            <div className="card text-sm text-slate-500">No generated sets in this folder yet.</div>
+            <div className="card text-sm text-slate-500">
+              No generated sets yet. Use + Add generated practice set above.
+            </div>
           ) : (
             sets.map((q) => (
               <Link key={q.id} href={`/questionnaires/${q.id}`} className="card-hover block">
                 <div className="flex flex-wrap gap-2">
                   <span className="badge-generated">GENERATED</span>
                   <span className="badge">~{q.estimatedMinutes} min</span>
+                  {q.id.startsWith("m-quiz") && <span className="badge">UI-added</span>}
                 </div>
                 <h2 className="mt-3 text-xl font-semibold text-slate-900">{q.title}</h2>
                 <p className="mt-2 text-sm text-slate-600">{q.description}</p>
                 <p className="mt-3 text-xs text-slate-400">
-                  {q.items.length} items · {q.generationNote}
+                  {q.items?.length || 0} items · {q.generationNote}
                 </p>
               </Link>
             ))
           )}
         </div>
       )}
-
-      <UploadAndShow
-        alsoShow={["document", "folder"]}
-        folderArea="practice"
-        spaceKey={spaceKey}
-        spaceBasePath="/practice"
-        title={`${subject} storage`}
-        collapsedByDefault
-      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
-import type { Concept, Formula } from "@/lib/types";
+import type { Concept, Formula, Questionnaire } from "@/lib/types";
+import { subjectSlug } from "@/data/ap-catalog";
 
 export type ManagedDocument = {
   id: string;
@@ -34,6 +35,17 @@ export type ManagedFolder = {
   note?: string;
   createdAt: number;
   /** Parent storage space where this folder appears */
+  space?: string;
+};
+
+/** Lightweight topic stub shown in Concepts (also stored as a concept). */
+export type ManagedTopic = {
+  id: string;
+  title: string;
+  subject: string;
+  summary?: string;
+  createdAt: number;
+  area?: string;
   space?: string;
 };
 
@@ -100,10 +112,15 @@ export type ManagedContent = {
   files: ManagedFile[];
   members: { id: string; name: string; note?: string; addedAt: number }[];
   folders: ManagedFolder[];
+  /** Managed subject catalog entries (+ Add subject / Manage UI) */
   subjects: ManagedSubject[];
   units: ManagedUnit[];
   contentItems: ManagedContentItem[];
   forumPosts: ManagedForumPost[];
+  /** AI-generated questionnaire sets added from Practice UI */
+  questionnaires: Questionnaire[];
+  /** Optional topic index (mirrors concepts created via + Add topic) */
+  topics: ManagedTopic[];
   updatedAt: number;
 };
 
@@ -134,8 +151,75 @@ const emptyContent = (): ManagedContent => ({
   units: [],
   contentItems: [],
   forumPosts: [],
+  questionnaires: [],
+  topics: [],
   updatedAt: 0,
 });
+
+/** Coerce legacy string[] subjects and incomplete objects into ManagedSubject[]. */
+export function normalizeSubjects(raw: unknown): ManagedSubject[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ManagedSubject[] = [];
+  raw.forEach((entry, index) => {
+    if (typeof entry === "string") {
+      const name = entry.trim();
+      if (!name) return;
+      out.push({
+        id: `subject-legacy-${index}-${subjectSlug(name)}`,
+        slug: subjectSlug(name),
+        name,
+        shortName: name.replace(/^AP\s+/, ""),
+        order: index,
+        enabled: true,
+        createdAt: 0,
+      });
+      return;
+    }
+    if (!entry || typeof entry !== "object") return;
+    const s = entry as Partial<ManagedSubject>;
+    const name = String(s.name || "").trim();
+    if (!name) return;
+    out.push({
+      id: String(s.id || `subject-${index}-${subjectSlug(name)}`),
+      slug: String(s.slug || subjectSlug(name)),
+      name,
+      shortName: s.shortName ? String(s.shortName) : name.replace(/^AP\s+/, ""),
+      description: s.description ? String(s.description) : undefined,
+      icon: s.icon ? String(s.icon) : undefined,
+      color: s.color ? String(s.color) : undefined,
+      order: Number.isFinite(Number(s.order)) ? Number(s.order) : index,
+      enabled: s.enabled !== false,
+      createdAt: typeof s.createdAt === "number" ? s.createdAt : 0,
+    });
+  });
+  return out;
+}
+
+/** Display names for folder grids (Concepts / Formulas / Practice). */
+export function managedSubjectNames(subjects: ManagedSubject[] | unknown): string[] {
+  return normalizeSubjects(subjects).map((s) => s.name);
+}
+
+/** Ensure newer fields exist on older managed-content.json files. */
+export function normalizeManagedContent(raw: Partial<ManagedContent> | null | undefined): ManagedContent {
+  const base = emptyContent();
+  if (!raw) return base;
+  return {
+    concepts: Array.isArray(raw.concepts) ? raw.concepts : [],
+    formulas: Array.isArray(raw.formulas) ? raw.formulas : [],
+    documents: Array.isArray(raw.documents) ? raw.documents : [],
+    files: Array.isArray(raw.files) ? raw.files : [],
+    members: Array.isArray(raw.members) ? raw.members : [],
+    folders: Array.isArray(raw.folders) ? raw.folders : [],
+    subjects: normalizeSubjects(raw.subjects),
+    units: Array.isArray(raw.units) ? raw.units : [],
+    contentItems: Array.isArray(raw.contentItems) ? raw.contentItems : [],
+    forumPosts: Array.isArray(raw.forumPosts) ? raw.forumPosts : [],
+    questionnaires: Array.isArray(raw.questionnaires) ? raw.questionnaires : [],
+    topics: Array.isArray(raw.topics) ? raw.topics : [],
+    updatedAt: typeof raw.updatedAt === "number" ? raw.updatedAt : 0,
+  };
+}
 
 const emptyUsers = (): UsersFile => ({ users: [], updatedAt: 0 });
 
@@ -303,37 +387,19 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
   const fromGh = await githubGet("ap-reasonlab/data/managed-content.json", token);
   if (fromGh) {
     try {
-      const parsed = JSON.parse(fromGh.text) as ManagedContent;
-      if (!parsed.members) parsed.members = [];
-      if (!parsed.concepts) parsed.concepts = [];
-      if (!parsed.formulas) parsed.formulas = [];
-      if (!parsed.documents) parsed.documents = [];
-      if (!parsed.files) parsed.files = [];
-      if (!parsed.folders) parsed.folders = [];
-      if (!parsed.subjects) parsed.subjects = [];
-      if (!parsed.units) parsed.units = [];
-      if (!parsed.contentItems) parsed.contentItems = [];
-      if (!parsed.forumPosts) parsed.forumPosts = [];
-      return parsed;
+      return normalizeManagedContent(JSON.parse(fromGh.text) as ManagedContent);
     } catch {
       // fall through
     }
   }
-  const local = await readJsonFile(CONTENT_PATH, emptyContent());
-  if (!local.members) local.members = [];
-  if (!local.folders) local.folders = [];
-  if (!local.subjects) local.subjects = [];
-  if (!local.units) local.units = [];
-  if (!local.contentItems) local.contentItems = [];
-  if (!local.forumPosts) local.forumPosts = [];
-  return local;
+  return normalizeManagedContent(await readJsonFile(CONTENT_PATH, emptyContent()));
 }
 
 export async function saveManagedContent(
   data: ManagedContent,
   token?: string
 ): Promise<{ mode: "github" | "local" }> {
-  const next = { ...data, updatedAt: Date.now() };
+  const next = { ...normalizeManagedContent(data), updatedAt: Date.now() };
   const text = JSON.stringify(next, null, 2) + "\n";
   const repoPath = "ap-reasonlab/data/managed-content.json";
   const viaGithub = await githubWrite(

@@ -9,10 +9,12 @@ import {
   saveManagedContent,
   looksLikeGithubPat,
   sanitizeGithubToken,
+  normalizeManagedContent,
   uid,
   type ManagedContent,
 } from "@/lib/managed-store";
 import { subjectSlug } from "@/data/ap-catalog";
+import type { QuestionFormat, QuestionnaireItem } from "@/lib/types";
 
 const forumWriteTimes = new Map<string, number>();
 
@@ -74,6 +76,15 @@ export async function GET(req: NextRequest) {
       folders: (content.folders || []).filter(
         (f) => f.area === area && (f.space || "_root") === spaceKey
       ),
+      topics: (content.topics || []).filter((t) => {
+        if (spaceKey === "_root") return !t.subject || t.subject === "_root";
+        return t.subject === spaceKey || t.space === spaceKey;
+      }),
+      questionnaires:
+        spaceKey === "_root"
+          ? content.questionnaires || []
+          : (content.questionnaires || []).filter((q) => q.subject === spaceKey),
+      subjects: content.subjects || [],
       members: content.members || [],
       forumPosts: area === "forum" ? content.forumPosts || [] : undefined,
       updatedAt: content.updatedAt,
@@ -111,13 +122,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = await tokenFrom(body);
-    const current: ManagedContent = await loadManagedContent(token);
-    if (!current.members) current.members = [];
-    if (!current.folders) current.folders = [];
-    if (!current.subjects) current.subjects = [];
-    if (!current.units) current.units = [];
-    if (!current.contentItems) current.contentItems = [];
-    if (!current.forumPosts) current.forumPosts = [];
+    const current: ManagedContent = normalizeManagedContent(await loadManagedContent(token));
 
     if (action === "add_forum_post") {
       const author = String(item.author || "").trim();
@@ -155,24 +160,26 @@ export async function POST(req: NextRequest) {
       post.replies.push({ id: uid("forum-reply"), author, body: replyBody, createdAt: Date.now() });
     } else if (action === "add_subject") {
       const item = body.item || {};
-      const name = String(item.name || "").trim();
+      const name = String(item.title || item.name || item.subject || "").trim();
       if (!name) return NextResponse.json({ error: "subject name required" }, { status: 400 });
       const slug = subjectSlug(String(item.slug || name));
-      if (current.subjects.some((subject) => subject.slug === slug)) {
-        return NextResponse.json({ error: "A subject with this URL already exists" }, { status: 409 });
+      if (current.subjects.some((subject) => subject.slug === slug || subject.name === name)) {
+        // Idempotent for folder UX: already exists is OK
+        // still return success below
+      } else {
+        current.subjects.push({
+          id: uid("subject"),
+          slug,
+          name,
+          shortName: String(item.shortName || name.replace(/^AP /, "")),
+          description: String(item.description || ""),
+          icon: String(item.icon || "◇"),
+          color: String(item.color || "blue"),
+          order: Number.isFinite(Number(item.order)) ? Number(item.order) : current.subjects.length,
+          enabled: item.enabled !== false,
+          createdAt: Date.now(),
+        });
       }
-      current.subjects.push({
-        id: uid("subject"),
-        slug,
-        name,
-        shortName: String(item.shortName || name.replace(/^AP /, "")),
-        description: String(item.description || ""),
-        icon: String(item.icon || "◇"),
-        color: String(item.color || "blue"),
-        order: Number.isFinite(Number(item.order)) ? Number(item.order) : current.subjects.length,
-        enabled: item.enabled !== false,
-        createdAt: Date.now(),
-      });
     } else if (action === "add_unit") {
       const item = body.item || {};
       if (!item.subjectId || !item.title) {
@@ -251,19 +258,92 @@ export async function POST(req: NextRequest) {
           space: item.space ? String(item.space) : undefined,
         });
       }
-    } else if (action === "add_concept") {
+    } else if (action === "add_concept" || action === "add_topic") {
       const item = body.item || {};
       if (!item.title || !item.subject) {
         return NextResponse.json({ error: "title and subject required" }, { status: 400 });
       }
+      const conceptId = uid(action === "add_topic" ? "m-topic" : "m-concept");
       current.concepts.push({
-        id: uid("m-concept"),
+        id: conceptId,
         title: String(item.title),
         subject: String(item.subject),
         summary: String(item.summary || ""),
         keyPoints: Array.isArray(item.keyPoints) ? item.keyPoints.map(String) : [],
         commonMistakes: Array.isArray(item.commonMistakes) ? item.commonMistakes.map(String) : [],
         example: String(item.example || ""),
+      });
+      if (action === "add_topic") {
+        current.topics.push({
+          id: conceptId,
+          title: String(item.title),
+          subject: String(item.subject),
+          summary: String(item.summary || ""),
+          createdAt: Date.now(),
+          area: item.area ? String(item.area) : undefined,
+          space: item.space ? String(item.space) : undefined,
+        });
+      }
+    } else if (action === "add_questionnaire") {
+      const item = body.item || {};
+      if (!item.title || !item.subject) {
+        return NextResponse.json({ error: "title and subject required" }, { status: 400 });
+      }
+      const setId = uid("m-quiz");
+      const firstPrompt = String(item.firstPrompt || item.prompt || "").trim();
+      const items: QuestionnaireItem[] = [];
+      if (firstPrompt) {
+        items.push({
+          id: uid("m-item"),
+          format: (String(item.format || "concept_check") as QuestionFormat) || "concept_check",
+          prompt: firstPrompt,
+          hints: Array.isArray(item.hints)
+            ? item.hints.map(String)
+            : [String(item.hint || "Attempt before asking AI for more hints.")],
+          visibleSteps: Array.isArray(item.visibleSteps)
+            ? item.visibleSteps.map(String)
+            : undefined,
+          blankSteps: Array.isArray(item.blankSteps) ? item.blankSteps.map(String) : undefined,
+          choices: Array.isArray(item.choices) ? item.choices.map(String) : undefined,
+          conceptIntro: item.conceptIntro ? String(item.conceptIntro) : undefined,
+        });
+      }
+      current.questionnaires.push({
+        id: setId,
+        title: String(item.title),
+        subject: String(item.subject),
+        kind: "generated",
+        description: String(item.description || "AI-generated practice set added from the UI."),
+        generationNote: String(
+          item.generationNote || `Added via change-code UI · ${new Date().toISOString().slice(0, 10)}`
+        ),
+        estimatedMinutes: Number(item.estimatedMinutes) || 20,
+        tags: Array.isArray(item.tags) ? item.tags.map(String) : ["generated", "managed"],
+        items,
+      });
+    } else if (action === "add_questionnaire_item") {
+      const setId = String(body.setId || body.id || "");
+      const item = body.item || {};
+      const quiz = current.questionnaires.find((q) => q.id === setId);
+      if (!quiz) {
+        return NextResponse.json({ error: "questionnaire set not found" }, { status: 404 });
+      }
+      if (!item.prompt) {
+        return NextResponse.json({ error: "item prompt required" }, { status: 400 });
+      }
+      quiz.items.push({
+        id: uid("m-item"),
+        format: (String(item.format || "concept_check") as QuestionFormat) || "concept_check",
+        prompt: String(item.prompt),
+        hints: Array.isArray(item.hints)
+          ? item.hints.map(String)
+          : [String(item.hint || "Try yourself first.")],
+        visibleSteps: Array.isArray(item.visibleSteps)
+          ? item.visibleSteps.map(String)
+          : undefined,
+        blankSteps: Array.isArray(item.blankSteps) ? item.blankSteps.map(String) : undefined,
+        choices: Array.isArray(item.choices) ? item.choices.map(String) : undefined,
+        conceptIntro: item.conceptIntro ? String(item.conceptIntro) : undefined,
       });
     } else if (action === "add_formula") {
       const item = body.item || {};
@@ -363,14 +443,22 @@ export async function POST(req: NextRequest) {
           item.deletedAt = Date.now();
           item.updatedAt = Date.now();
         }
-      }
-      else if (target === "concept") current.concepts = current.concepts.filter((c) => c.id !== id);
-      else if (target === "formula") current.formulas = current.formulas.filter((f) => f.id !== id);
+      } else if (target === "concept") {
+        current.concepts = current.concepts.filter((c) => c.id !== id);
+        current.topics = current.topics.filter((t) => t.id !== id);
+      } else if (target === "topic") {
+        current.topics = current.topics.filter((t) => t.id !== id);
+        current.concepts = current.concepts.filter((c) => c.id !== id);
+      } else if (target === "formula") current.formulas = current.formulas.filter((f) => f.id !== id);
       else if (target === "document") current.documents = current.documents.filter((d) => d.id !== id);
       else if (target === "file") current.files = current.files.filter((f) => f.id !== id);
       else if (target === "member") current.members = current.members.filter((m) => m.id !== id);
       else if (target === "folder") current.folders = current.folders.filter((f) => f.id !== id);
-      else if (target === "forum_post") current.forumPosts = current.forumPosts.filter((post) => post.id !== id);
+      else if (target === "subject") {
+        current.subjects = current.subjects.filter((s) => s.id !== id && s.name !== id && s.slug !== id);
+      } else if (target === "questionnaire") {
+        current.questionnaires = current.questionnaires.filter((q) => q.id !== id);
+      } else if (target === "forum_post") current.forumPosts = current.forumPosts.filter((post) => post.id !== id);
       else if (target === "forum_reply") {
         const post = current.forumPosts.find((entry) => entry.id === String(body.postId || ""));
         if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });

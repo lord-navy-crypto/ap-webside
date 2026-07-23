@@ -72,6 +72,25 @@ export default function ApHubPage() {
         </div>
       </section>
 
+      <section className="card space-y-3 border-brand-100 bg-brand-50/40">
+        <h2 className="text-lg font-bold text-slate-900">AP Statistics FRQ pack</h2>
+        <p className="text-sm text-slate-600">
+          Generated FRQ sets plus the regenerated practice pack (PDF/MD with reference answers) live
+          under Concepts, Practice, and subject storage.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/practice?subject=AP%20Statistics" className="btn-primary">
+            Statistics practice
+          </Link>
+          <Link href="/concepts?subject=AP%20Statistics" className="btn-secondary">
+            Statistics topics & docs
+          </Link>
+          <Link href="/ap/statistics" className="btn-ghost">
+            Open Statistics subject
+          </Link>
+        </div>
+      </section>
+
       {favoriteSubjects.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Favorites</h2>

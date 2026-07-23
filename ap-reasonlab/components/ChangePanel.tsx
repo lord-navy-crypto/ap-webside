@@ -5,18 +5,35 @@ import Link from "next/link";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
 import { useContentEditor } from "@/components/useContentEditor";
 
-type Mode = "concept" | "formula" | "document" | "file" | "member" | "folder";
+export type ChangeMode =
+  | "concept"
+  | "topic"
+  | "formula"
+  | "document"
+  | "file"
+  | "member"
+  | "folder"
+  | "subject"
+  | "questionnaire";
 
 type Props = {
-  mode: Mode;
+  mode: ChangeMode;
+  /** Default subject / area name for concept/formula forms */
   defaultSubject?: string;
+  /** Page area for folder creation and file/doc scoping */
   folderArea?: string;
+  /** Isolated storage space key for this folder */
   spaceKey?: string;
   label?: string;
+  /** Called after successful save; receives latest managed content when available */
   onSaved?: (content?: unknown) => void;
   allowPublicContribution?: boolean;
 };
 
+/**
+ * Plus-button editor: fill the form, then enter a change code to save.
+ * Concepts/topics: type area + name + paste notes → AI sorts into key points / mistakes / example.
+ */
 export default function ChangePanel({
   mode,
   defaultSubject = "AP Physics 1",
@@ -49,18 +66,23 @@ export default function ChangePanel({
   const [memberNote, setMemberNote] = useState("");
   const [githubUser, setGithubUser] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [firstPrompt, setFirstPrompt] = useState("");
+  const [minutes, setMinutes] = useState("20");
 
   useEffect(() => {
     setSubject(defaultSubject);
   }, [defaultSubject]);
 
-  const titles: Record<Mode, string> = {
+  const titles: Record<ChangeMode, string> = {
     concept: "Add concept (AI sort)",
+    topic: "Add topic",
     formula: "Add formula",
     document: "Add document",
     file: "Upload file",
     member: "Add partner (any name + GitHub)",
     folder: "Add folder (own storage space)",
+    subject: "Add subject folder",
+    questionnaire: "Add generated practice set",
   };
 
   const scopedSpace = normalizeSpace(spaceKey);
@@ -78,6 +100,8 @@ export default function ChangePanel({
     setMemberNote("");
     setGithubUser("");
     setFile(null);
+    setFirstPrompt("");
+    setMinutes("20");
     setChangeCode("");
     setError("");
   }
@@ -98,19 +122,19 @@ export default function ChangePanel({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: title,
-          area: subject,
-          summary,
-          content: rawNotes,
+          name: title.trim(),
+          area: subject.trim(),
+          summary: summary.trim(),
+          content: rawNotes.trim(),
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "AI sort failed");
-      if (data.summary) setSummary(data.summary);
-      if (Array.isArray(data.keyPoints)) setKeyPointsText(data.keyPoints.join("\n"));
-      if (Array.isArray(data.commonMistakes)) setMistakesText(data.commonMistakes.join("\n"));
-      if (data.example) setExample(data.example);
-      setNote(data.note || "Sorted. Review fields, then save.");
+      if (data.summary) setSummary(String(data.summary));
+      setKeyPointsText((data.keyPoints || []).join("\n"));
+      setMistakesText((data.commonMistakes || []).join("\n"));
+      setExample(String(data.example || ""));
+      setNote(`${data.note || "Sorted."} ${data.aiMayBeWrong || ""}`.trim());
     } catch (err) {
       setError(err instanceof Error ? err.message : "AI sort failed");
     } finally {
@@ -131,8 +155,8 @@ export default function ChangePanel({
       let action = "";
       let item: Record<string, unknown> = {};
 
-      if (mode === "concept") {
-        action = "add_concept";
+      if (mode === "concept" || mode === "topic") {
+        action = mode === "topic" ? "add_topic" : "add_concept";
         item = {
           title,
           subject,
@@ -140,6 +164,8 @@ export default function ChangePanel({
           keyPoints: linesToList(keyPointsText),
           commonMistakes: linesToList(mistakesText),
           example,
+          area: folderArea,
+          space: scopedSpace,
         };
       } else if (mode === "formula") {
         action = "add_formula";
@@ -148,28 +174,21 @@ export default function ChangePanel({
           subject,
           unit,
           expression,
-          variables: summary,
-          whenToUse: content,
-          sourceNote: "Managed upload",
+          variables: "",
+          whenToUse: summary,
         };
       } else if (mode === "document") {
         action = "add_document";
-        item = {
-          title,
-          category,
-          content,
-          area: folderArea,
-          space: scopedSpace,
-        };
+        item = { title, content, category, area: folderArea, space: scopedSpace };
       } else if (mode === "file") {
-        if (!file) throw new Error("Choose a file");
-        const dataUrl = await readFileAsDataURL(file);
+        if (!file) throw new Error("Choose a file first");
         action = "add_file";
+        const dataUrl = await readFileAsDataURL(file);
         item = {
           name: file.name,
-          mime: file.type || "application/octet-stream",
+          mime: file.type,
           dataUrl,
-          note: memberNote || summary,
+          note: title || category,
           area: folderArea,
           space: scopedSpace,
         };
@@ -185,9 +204,23 @@ export default function ChangePanel({
         action = "add_folder";
         item = {
           title,
-          note: memberNote || summary,
           area: folderArea,
+          note: memberNote || summary,
           space: scopedSpace,
+        };
+      } else if (mode === "subject") {
+        action = "add_subject";
+        item = { title, name: title };
+      } else if (mode === "questionnaire") {
+        action = "add_questionnaire";
+        item = {
+          title,
+          subject,
+          description: summary || content,
+          firstPrompt,
+          estimatedMinutes: Number(minutes) || 20,
+          generationNote: memberNote || undefined,
+          hint: "Attempt before asking for more hints.",
         };
       }
 
@@ -204,7 +237,8 @@ export default function ChangePanel({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
-      setNote(data.note || "Saved.");
+
+      setNote(data.note || "Saved. It should appear in this panel / subject list now.");
       reset();
       setOpen(false);
       onSaved?.(data.content);
@@ -216,30 +250,64 @@ export default function ChangePanel({
     }
   }
 
+  const showTitleField =
+    mode === "concept" ||
+    mode === "topic" ||
+    mode === "formula" ||
+    mode === "document" ||
+    mode === "member" ||
+    mode === "folder" ||
+    mode === "subject" ||
+    mode === "questionnaire";
+
+  const showSubjectField =
+    mode === "concept" || mode === "topic" || mode === "formula" || mode === "questionnaire";
+
   return (
     <div className="space-y-3">
-      <button type="button" className="btn-secondary" onClick={() => setOpen((v) => !v)}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-2 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-4 py-2.5 text-sm font-semibold text-brand-800 hover:bg-brand-100"
+      >
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white">
+          +
+        </span>
         {label || titles[mode]}
       </button>
-      {open && (
-        <form onSubmit={handleSubmit} className="card space-y-3">
-          <h3 className="font-semibold">{titles[mode]}</h3>
 
-          {(mode === "concept" ||
-            mode === "formula" ||
-            mode === "document" ||
-            mode === "member" ||
-            mode === "folder") && (
+      {open && (
+        <form onSubmit={handleSubmit} className="card space-y-3 border-brand-200">
+          <h3 className="font-semibold text-slate-900">{titles[mode]}</h3>
+          <p className="text-xs text-slate-500">
+            {mode === "subject"
+              ? "Creates a new subject folder on Concepts / Formulas / Practice."
+              : mode === "topic"
+                ? "Adds a topic (concept card) inside this subject — searchable on the Concepts page."
+                : mode === "questionnaire"
+                  ? "Creates an AI-generated practice set in this subject (hints only)."
+                  : "Saves only into this area + folder bucket — not mixed with other panels."}
+          </p>
+
+          {showTitleField && (
             <input
               className="input"
               placeholder={
                 mode === "formula"
                   ? "Formula name"
                   : mode === "member"
-                    ? "Display name (anyone — type freely)"
+                    ? "Member name"
                     : mode === "folder"
-                      ? "Folder title"
-                      : "Title"
+                      ? "Folder name (becomes its own storage)"
+                      : mode === "subject"
+                        ? "Subject name (e.g. AP Statistics FRQ Lab)"
+                        : mode === "topic"
+                          ? "Topic title (e.g. One-proportion z-interval)"
+                          : mode === "concept"
+                            ? "Name (concept title)"
+                            : mode === "questionnaire"
+                              ? "Set title (e.g. Stats — Inference Sprint B)"
+                              : "Title"
               }
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -247,26 +315,35 @@ export default function ChangePanel({
             />
           )}
 
-          {(mode === "concept" || mode === "formula") && (
+          {mode === "folder" && (
             <input
               className="input"
-              placeholder="Subject / area"
+              placeholder="Note (optional)"
+              value={memberNote}
+              onChange={(e) => setMemberNote(e.target.value)}
+            />
+          )}
+
+          {showSubjectField && (
+            <input
+              className="input"
+              placeholder="Subject (e.g. AP Statistics)"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               required
             />
           )}
 
-          {mode === "concept" && (
+          {(mode === "concept" || mode === "topic") && (
             <>
               <textarea
-                className="textarea min-h-[80px]"
-                placeholder="Short summary (optional)"
+                className="textarea min-h-[90px]"
+                placeholder="Summary (stays on top; Markdown + $math$ ok)"
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
               />
               <textarea
-                className="textarea"
+                className="textarea min-h-[140px]"
                 placeholder="Related notes / AI production content — paste here, then Auto-sort"
                 value={rawNotes}
                 onChange={(e) => setRawNotes(e.target.value)}
@@ -286,13 +363,13 @@ export default function ChangePanel({
                 onChange={(e) => setKeyPointsText(e.target.value)}
               />
               <textarea
-                className="textarea min-h-[80px]"
+                className="textarea min-h-[90px]"
                 placeholder="Common mistakes (one per line)"
                 value={mistakesText}
                 onChange={(e) => setMistakesText(e.target.value)}
               />
               <textarea
-                className="textarea min-h-[80px]"
+                className="textarea min-h-[90px]"
                 placeholder="Example"
                 value={example}
                 onChange={(e) => setExample(e.target.value)}
@@ -304,28 +381,22 @@ export default function ChangePanel({
             <>
               <input
                 className="input"
-                placeholder="Expression"
+                placeholder="Unit"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Expression (Unicode or LaTeX, e.g. v = v_0 + at)"
                 value={expression}
                 onChange={(e) => setExpression(e.target.value)}
                 required
               />
               <input
                 className="input"
-                placeholder="Unit / topic"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Variables"
+                placeholder="When to use (optional)"
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
-              />
-              <textarea
-                className="textarea min-h-[80px]"
-                placeholder="When to use"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
               />
             </>
           )}
@@ -339,11 +410,40 @@ export default function ChangePanel({
                 onChange={(e) => setCategory(e.target.value)}
               />
               <textarea
-                className="textarea"
-                placeholder="Document content"
+                className="textarea min-h-[120px]"
+                placeholder="Document text (Markdown + $E=mc^2$ supported)..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
+              />
+            </>
+          )}
+
+          {mode === "questionnaire" && (
+            <>
+              <textarea
+                className="textarea min-h-[80px]"
+                placeholder="Short description of this generated set"
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Estimated minutes (e.g. 25)"
+                value={minutes}
+                onChange={(e) => setMinutes(e.target.value)}
+              />
+              <textarea
+                className="textarea min-h-[100px]"
+                placeholder="Optional first question prompt (you can add more items later)"
+                value={firstPrompt}
+                onChange={(e) => setFirstPrompt(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Generation note (optional)"
+                value={memberNote}
+                onChange={(e) => setMemberNote(e.target.value)}
               />
             </>
           )}
@@ -352,9 +452,9 @@ export default function ChangePanel({
             <>
               <input
                 className="input"
-                placeholder="Optional note"
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
+                placeholder="Note (optional)"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
               />
               <input
                 type="file"
@@ -366,6 +466,15 @@ export default function ChangePanel({
           )}
 
           {mode === "member" && (
+            <input
+              className="input"
+              placeholder="Note (optional)"
+              value={memberNote}
+              onChange={(e) => setMemberNote(e.target.value)}
+            />
+          )}
+
+          {mode === "member" && (
             <>
               <input
                 className="input"
@@ -373,26 +482,7 @@ export default function ChangePanel({
                 value={githubUser}
                 onChange={(e) => setGithubUser(e.target.value)}
               />
-              <input
-                className="input"
-                placeholder="Role / note (optional)"
-                value={memberNote}
-                onChange={(e) => setMemberNote(e.target.value)}
-              />
-              <p className="text-xs text-slate-500">
-                Type any person — you are not limited to one preset name. Prefer the Partners page
-                join form for the same fields.
-              </p>
             </>
-          )}
-
-          {mode === "folder" && (
-            <input
-              className="input"
-              placeholder="Note (optional)"
-              value={memberNote}
-              onChange={(e) => setMemberNote(e.target.value)}
-            />
           )}
 
           {!allowPublicContribution && unlocked && (
@@ -423,7 +513,7 @@ export default function ChangePanel({
                 <Link href="/login" className="font-medium underline">
                   /login
                 </Link>{" "}
-                once — then this field stays hidden.
+                once — then this field stays hidden. Master code can also add members.
               </p>
             </div>
           )}

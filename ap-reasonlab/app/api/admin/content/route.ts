@@ -6,7 +6,7 @@ import {
   isFullAdmin,
   setGithubTokenCookie,
 } from "@/lib/auth";
-import { loadManagedContent, saveManagedContent, uid, type ManagedContent } from "@/lib/managed-store";
+import { loadManagedContent, saveManagedContent, uid, normalizeManagedContent, type ManagedContent } from "@/lib/managed-store";
 
 async function publishToken(bodyToken?: string) {
   const fromBody = bodyToken?.trim();
@@ -36,33 +36,39 @@ export async function POST(req: NextRequest) {
     };
     const token = await publishToken(body.githubToken);
     const current = await loadManagedContent(token);
-    const next: ManagedContent = body.replace
-      ? {
-          concepts: body.concepts || [],
-          formulas: body.formulas || [],
-          documents: body.documents || [],
-          files: body.files || [],
-          members: body.members || current.members || [],
-          folders: body.folders || current.folders || [],
-          subjects: body.subjects || current.subjects || [],
-          units: body.units || current.units || [],
-          contentItems: body.contentItems || current.contentItems || [],
-          forumPosts: body.forumPosts || current.forumPosts || [],
-          updatedAt: Date.now(),
-        }
-      : {
-          concepts: body.concepts ?? current.concepts,
-          formulas: body.formulas ?? current.formulas,
-          documents: body.documents ?? current.documents,
-          files: body.files ?? current.files,
-          members: body.members ?? current.members ?? [],
-          folders: body.folders ?? current.folders ?? [],
-          subjects: body.subjects ?? current.subjects ?? [],
-          units: body.units ?? current.units ?? [],
-          contentItems: body.contentItems ?? current.contentItems ?? [],
-          forumPosts: body.forumPosts ?? current.forumPosts ?? [],
-          updatedAt: Date.now(),
-        };
+    const next: ManagedContent = normalizeManagedContent(
+      body.replace
+        ? {
+            concepts: body.concepts || [],
+            formulas: body.formulas || [],
+            documents: body.documents || [],
+            files: body.files || [],
+            members: body.members || current.members || [],
+            folders: body.folders || current.folders || [],
+            subjects: body.subjects || [],
+            units: body.units || current.units || [],
+            contentItems: body.contentItems || current.contentItems || [],
+            forumPosts: body.forumPosts || current.forumPosts || [],
+            questionnaires: body.questionnaires || [],
+            topics: body.topics || [],
+            updatedAt: Date.now(),
+          }
+        : {
+            concepts: body.concepts ?? current.concepts,
+            formulas: body.formulas ?? current.formulas,
+            documents: body.documents ?? current.documents,
+            files: body.files ?? current.files,
+            members: body.members ?? current.members ?? [],
+            folders: body.folders ?? current.folders ?? [],
+            subjects: body.subjects ?? current.subjects ?? [],
+            units: body.units ?? current.units ?? [],
+            contentItems: body.contentItems ?? current.contentItems ?? [],
+            forumPosts: body.forumPosts ?? current.forumPosts ?? [],
+            questionnaires: body.questionnaires ?? current.questionnaires ?? [],
+            topics: body.topics ?? current.topics ?? [],
+            updatedAt: Date.now(),
+          }
+    );
 
     if (body.replace && !isFullAdmin(session.role)) {
       return NextResponse.json({ error: "Only full admin can replace all content" }, { status: 403 });
