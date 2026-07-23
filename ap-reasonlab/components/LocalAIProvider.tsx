@@ -167,11 +167,11 @@ const LOCAL_MODELS: LocalModelOption[] = [
 ];
 
 async function detectWebGPU(): Promise<boolean> {
-  if (typeof navigator === "undefined" || !("gpu" in navigator) || !navigator.gpu) {
-    return false;
-  }
+  if (typeof navigator === "undefined") return false;
+  const gpu = (navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } }).gpu;
+  if (!gpu?.requestAdapter) return false;
   try {
-    const adapter = await navigator.gpu.requestAdapter();
+    const adapter = await gpu.requestAdapter();
     return Boolean(adapter);
   } catch {
     return false;
