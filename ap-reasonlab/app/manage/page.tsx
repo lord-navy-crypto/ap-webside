@@ -98,12 +98,8 @@ export default function ManagePage() {
     { id: "subjects", label: "Subjects", count: subjects.length },
     { id: "units", label: "Units", count: data.units?.length || 0 },
     { id: "trash", label: "Recycle Bin", count: trash.length },
-    ...(editor?.level === "master"
-      ? [
-          { id: "ai" as const, label: "AI Developer" },
-          { id: "history" as const, label: "History & Undo" },
-        ]
-      : []),
+    { id: "ai", label: "AI Developer" },
+    { id: "history", label: "History & Undo" },
   ];
 
   if (!editMode) {
@@ -204,24 +200,36 @@ export default function ManagePage() {
         <section className="space-y-3"><div><h2 className="section-title">Recycle Bin</h2><p className="mt-1 text-sm text-slate-500">Deleted manager content stays recoverable here.</p></div>{trash.map((item) => <div key={item.id} className="card flex flex-wrap items-center justify-between gap-3"><div><span className="badge">{item.type}</span><h3 className="mt-2 font-semibold">{item.title}</h3></div><button className="btn-secondary" onClick={() => mutate("restore_content_item", { id: item.id })}>Restore</button></div>)}{trash.length === 0 && <div className="card text-sm text-slate-500">Recycle Bin is empty.</div>}</section>
       )}
 
-      {tab === "ai" && editor?.level === "master" && (
-        <AIDeveloperBlocks
-          embedded
-          onWebsiteChanged={(content) => {
-            setData(content);
-            setMessage("AI Developer change applied. Open History & Undo to restore it.");
-          }}
-        />
-      )}
+      {tab === "ai" &&
+        (editor?.level === "master" ? (
+          <AIDeveloperBlocks
+            embedded
+            onWebsiteChanged={(content) => {
+              setData(content);
+              setMessage("AI Developer change applied. Open History & Undo to restore it.");
+            }}
+          />
+        ) : (
+          <div className="card text-sm text-slate-600">
+            Prefer the ✎ circle → <strong>AI Developer</strong> (also in the top edit bar). Master
+            code is required to apply changes.
+          </div>
+        ))}
 
-      {tab === "history" && editor?.level === "master" && (
-        <EditHistory
-          onRestored={(content) => {
-            setData(content);
-            setMessage("A previous website-content version was restored.");
-          }}
-        />
-      )}
+      {tab === "history" &&
+        (editor?.level === "master" ? (
+          <EditHistory
+            onRestored={(content) => {
+              setData(content);
+              setMessage("A previous website-content version was restored.");
+            }}
+          />
+        ) : (
+          <div className="card text-sm text-slate-600">
+            Prefer the ✎ circle → <strong>History &amp; Undo</strong> (also in the top edit bar).
+            Master code is required to restore versions.
+          </div>
+        ))}
     </div>
   );
 }
