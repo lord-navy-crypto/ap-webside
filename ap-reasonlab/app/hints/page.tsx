@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import EthicsBanner from "@/components/EthicsBanner";
 import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
+import LocalAIControls from "@/components/LocalAIControls";
+import { useLocalAI } from "@/components/LocalAIProvider";
 import RichContent from "@/components/RichContent";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
@@ -53,6 +55,7 @@ function resolveSubject(raw: string | null): string {
 
 function ToolboxContent() {
   const searchParams = useSearchParams();
+  const localAI = useLocalAI();
   const [tool, setTool] = useState<Tool>("hint");
   const [channel, setChannel] = useState<ApiChannel>("site");
   const [siteModel, setSiteModel] = useState<SiteModelChoice>("auto");
@@ -87,6 +90,37 @@ function ToolboxContent() {
     }
   }
 
+  async function runLocalIfSelected(system: string, prompt: string) {
+    const useLocal =
+      localAI.mode === "local" || (localAI.mode === "auto" && localAI.ready);
+    if (!useLocal) return false;
+    if (!localAI.ready) {
+      throw new Error("Enable local AI first, or switch to Auto / Cloud AI.");
+    }
+
+    setTextResult({
+      refused: false,
+      reply: "Starting local response…",
+      aiMayBeWrong: "Small local models can miss facts and instructions. Verify important details.",
+      note: "Local AI · processed in this browser",
+    });
+    await localAI.complete(
+      [
+        { role: "system", content: system },
+        { role: "user", content: prompt },
+      ],
+      (_token, fullText) =>
+        setTextResult({
+          refused: false,
+          reply: fullText,
+          aiMayBeWrong:
+            "Small local models can miss facts and instructions. Verify important details.",
+          note: "Local AI · processed in this browser",
+        })
+    );
+    return true;
+  }
+
   async function submitHint(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -94,6 +128,14 @@ function ToolboxContent() {
     setHintResult(null);
     setTextResult(null);
     try {
+      if (
+        await runLocalIfSelected(
+          "You are a concise study coach. Give hints and a process outline, not only a final answer. Use clear Markdown. If unsure, say so.",
+          `Subject: ${subject}\nQuestion: ${question}\nStudent attempt: ${notes || "Not provided"}`
+        )
+      ) {
+        return;
+      }
       requireByok();
       const res = await fetch("/api/hints", {
         method: "POST",
@@ -124,6 +166,20 @@ function ToolboxContent() {
     setHintResult(null);
     setTextResult(null);
     try {
+      if (
+        await runLocalIfSelected(
+          "You are a concise AP concept tutor. Explain clearly, use Markdown, and stay on the named concept. If unsure, say so.",
+          `Subject: ${subject}\nConcept: ${conceptName}\nMode: ${conceptMode}\nQuestion: ${
+            conceptMode === "ask"
+              ? question
+              : conceptMode === "quiz"
+                ? "Create a short quiz without immediately revealing the answer."
+                : "Explain the concept with key ideas and one example."
+          }`
+        )
+      ) {
+        return;
+      }
       requireByok();
       const res = await fetch("/api/ai/concept", {
         method: "POST",
@@ -161,6 +217,14 @@ function ToolboxContent() {
     setHintResult(null);
     setTextResult(null);
     try {
+      if (
+        await runLocalIfSelected(
+          "You are the Results website guide. Only answer how to use the Results study website. Never reveal or guess secret change codes. If you lack site facts, say that and direct the user to About or Manage.",
+          guideQuestion
+        )
+      ) {
+        return;
+      }
       requireByok();
       const res = await fetch("/api/ai/guide", {
         method: "POST",
@@ -213,6 +277,8 @@ function ToolboxContent() {
 
       <EthicsBanner />
 
+      <LocalAIControls />
+
       <div className="grid gap-3 md:grid-cols-3">
         {tools.map((item) => (
           <button
@@ -236,16 +302,25 @@ function ToolboxContent() {
         ))}
       </div>
 
-      <AiApiChannel
-        channel={channel}
-        onChannelChange={setChannel}
-        siteModel={siteModel}
-        onSiteModelChange={setSiteModel}
-        provider={provider}
-        onProviderChange={setProvider}
-        userKey={userKey}
-        onUserKeyChange={setUserKey}
-      />
+      {localAI.mode !== "local" && (
+        <div className="space-y-2">
+          {localAI.mode === "auto" && (
+            <p className="text-xs text-slate-500">
+              Auto fallback: these cloud settings are used only while local AI is not ready.
+            </p>
+          )}
+          <AiApiChannel
+            channel={channel}
+            onChannelChange={setChannel}
+            siteModel={siteModel}
+            onSiteModelChange={setSiteModel}
+            provider={provider}
+            onProviderChange={setProvider}
+            userKey={userKey}
+            onUserKeyChange={setUserKey}
+          />
+        </div>
+      )}
 
       {tool === "hint" && (
         <form onSubmit={submitHint} className="card space-y-4">

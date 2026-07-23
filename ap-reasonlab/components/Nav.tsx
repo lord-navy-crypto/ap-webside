@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { brand } from "@/data/brand";
+import { useEditorMode } from "@/components/EditorModeProvider";
 
 const primaryLinks = [
   { href: "/ap", label: "AP" },
@@ -35,10 +36,6 @@ const moreGroups = [
   },
 ] as const;
 
-const moreLinks: ReadonlyArray<{ href: string; label: string }> = moreGroups.reduce<
-  Array<{ href: string; label: string }>
->((links, group) => [...links, ...group.links], []);
-
 function linkIsActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -46,6 +43,7 @@ function linkIsActive(pathname: string, href: string) {
 
 export default function Nav() {
   const pathname = usePathname();
+  const { editor } = useEditorMode();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +69,17 @@ export default function Nav() {
     };
   }, [moreOpen]);
 
-  const moreActive = moreLinks.some((link) => linkIsActive(pathname, link.href));
+  const visibleMoreGroups = moreGroups.map((group) =>
+    group.label === "Admin & developer" && editor?.level === "master"
+      ? {
+          ...group,
+          links: [...group.links, { href: "/ai-developer", label: "AI Developer Blocks" }],
+        }
+      : group
+  );
+  const moreActive = visibleMoreGroups.some((group) =>
+    group.links.some((link) => linkIsActive(pathname, link.href))
+  );
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
@@ -121,7 +129,7 @@ export default function Nav() {
                 role="menu"
                 className="absolute right-0 z-50 mt-2 min-w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
               >
-                {moreGroups.map((group, index) => (
+                {visibleMoreGroups.map((group, index) => (
                   <div
                     key={group.label}
                     className={index > 0 ? "mt-2 border-t border-slate-100 pt-2" : undefined}
