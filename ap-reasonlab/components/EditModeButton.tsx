@@ -7,11 +7,11 @@ import { useEditorMode } from "@/components/EditorModeProvider";
 
 /**
  * Small edit circle on every page.
- * Closed → click to open. Open → enter content code (if needed) or jump into edit tools.
+ * Opens unlock / edit controls, plus direct AI Developer and History panels.
  */
 export default function EditModeButton() {
   const pathname = usePathname();
-  const { active, setActive, unlocked, editor, refresh } = useEditorMode();
+  const { active, setActive, unlocked, editor, refresh, openTools } = useEditorMode();
   const [open, setOpen] = useState(false);
   const [changeCode, setChangeCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -39,7 +39,7 @@ export default function EditModeButton() {
       if (!res.ok) throw new Error(data.error || "Unlock failed");
       setNote(
         data.level === "master"
-          ? "Master unlocked. AI Developer and History & Undo are available on Manage."
+          ? "Master unlocked. Use AI Developer / History from this menu or the top edit bar."
           : data.note || "Unlocked."
       );
       setChangeCode("");
@@ -61,13 +61,22 @@ export default function EditModeButton() {
 
   function turnOnEditMode() {
     setActive(!active);
-    setNote(active ? "Edit controls hidden." : "Edit mode on — management controls are now visible.");
+    setNote(
+      active
+        ? "Edit controls hidden."
+        : "Edit mode on — top bar shows AI Developer and History."
+    );
+  }
+
+  function openPanel(panel: "ai" | "history") {
+    openTools(panel);
+    setOpen(false);
   }
 
   return (
     <div className="fixed bottom-20 right-3 z-50 md:bottom-6">
       {open && (
-        <div className="mb-3 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+        <div className="mb-3 w-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
           <div className="mb-3 flex items-center justify-between gap-2">
             <p className="text-sm font-semibold text-slate-900">Page edit</p>
             <button
@@ -83,18 +92,36 @@ export default function EditModeButton() {
             <div className="space-y-3 text-sm">
               <p className="rounded-xl bg-emerald-50 px-3 py-2 text-emerald-900">
                 Unlocked as <strong>{editor?.level}</strong> editor.
-                {editor?.level === "content" && (
-                  <span className="mt-1 block text-xs">
-                    AI Developer / History need Master — enter Master code below to upgrade.
-                  </span>
-                )}
               </p>
-              <button type="button" className={active ? "btn-secondary w-full" : "btn-primary w-full"} onClick={turnOnEditMode}>
+              <button
+                type="button"
+                className={active ? "btn-secondary w-full" : "btn-primary w-full"}
+                onClick={turnOnEditMode}
+              >
                 {active ? "Hide edit controls" : "Start editing this page"}
               </button>
-              <Link href="/manage" className="btn-secondary block w-full text-center" onClick={() => setOpen(false)}>
+
+              <div className="grid gap-2">
+                <button type="button" className="btn-primary w-full" onClick={() => openPanel("ai")}>
+                  AI Developer
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary w-full"
+                  onClick={() => openPanel("history")}
+                >
+                  History &amp; Undo
+                </button>
+              </div>
+
+              <Link
+                href="/manage"
+                className="btn-ghost block w-full text-center"
+                onClick={() => setOpen(false)}
+              >
                 Open Manage
               </Link>
+
               <form onSubmit={unlock} className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <p className="text-xs font-medium text-slate-700">Switch / upgrade code</p>
                 <input
@@ -104,13 +131,15 @@ export default function EditModeButton() {
                   onChange={(e) => setChangeCode(e.target.value)}
                   placeholder="Content or Master code"
                 />
-                <button type="submit" className="btn-secondary w-full" disabled={busy || !changeCode.trim()}>
+                <button
+                  type="submit"
+                  className="btn-secondary w-full"
+                  disabled={busy || !changeCode.trim()}
+                >
                   {busy ? "Checking…" : "Re-unlock"}
                 </button>
               </form>
-              <Link href="/partners" className="btn-ghost block w-full text-center" onClick={() => setOpen(false)}>
-                Partners / join people
-              </Link>
+
               <button type="button" className="btn-ghost w-full" onClick={lock}>
                 Lock editor
               </button>
@@ -118,8 +147,7 @@ export default function EditModeButton() {
           ) : (
             <form onSubmit={unlock} className="space-y-3">
               <p className="text-xs text-slate-600">
-                Enter the <strong>content</strong> or <strong>master</strong> change code once. Then
-                you can edit without typing it on every save.
+                Enter the <strong>content</strong> or <strong>master</strong> change code once.
               </p>
               <input
                 type="password"
@@ -130,10 +158,18 @@ export default function EditModeButton() {
                 required
                 autoFocus
               />
-              <button type="submit" className="btn-primary w-full" disabled={busy || !changeCode.trim()}>
+              <button
+                type="submit"
+                className="btn-primary w-full"
+                disabled={busy || !changeCode.trim()}
+              >
                 {busy ? "Checking…" : "Unlock edit"}
               </button>
-              <Link href="/login" className="btn-ghost block w-full text-center" onClick={() => setOpen(false)}>
+              <Link
+                href="/login"
+                className="btn-ghost block w-full text-center"
+                onClick={() => setOpen(false)}
+              >
                 Full login page
               </Link>
             </form>
@@ -158,11 +194,6 @@ export default function EditModeButton() {
       >
         ✎
       </button>
-      {active && (
-        <div className="pointer-events-none absolute bottom-14 right-0 whitespace-nowrap rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-lg">
-          Edit mode · {editor?.level}
-        </div>
-      )}
     </div>
   );
 }

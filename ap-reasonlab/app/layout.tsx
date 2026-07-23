@@ -5,6 +5,7 @@ import Nav from "@/components/Nav";
 import MobileActionBar from "@/components/MobileActionBar";
 import RandomPageButton from "@/components/RandomPageButton";
 import EditModeButton from "@/components/EditModeButton";
+import EditorToolsChrome from "@/components/EditorToolsChrome";
 import { EditorModeProvider } from "@/components/EditorModeProvider";
 import { LocalAIProvider } from "@/components/LocalAIProvider";
 import { brand } from "@/data/brand";
@@ -25,6 +26,7 @@ export default function RootLayout({
         <EditorModeProvider>
           <LocalAIProvider>
             <Nav />
+            <EditorToolsChrome />
             <main className="mx-auto max-w-6xl px-4 py-8 pb-24 md:pb-8">{children}</main>
             <RandomPageButton />
             <EditModeButton />

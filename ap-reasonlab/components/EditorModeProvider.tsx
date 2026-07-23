@@ -1,7 +1,9 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useContentEditor } from "@/components/useContentEditor";
+
+export type EditorToolsPanel = null | "ai" | "history";
 
 type EditorModeValue = {
   active: boolean;
@@ -10,6 +12,9 @@ type EditorModeValue = {
   editor: ReturnType<typeof useContentEditor>["editor"];
   loading: boolean;
   refresh: () => Promise<void>;
+  toolsPanel: EditorToolsPanel;
+  openTools: (panel: Exclude<EditorToolsPanel, null>) => void;
+  closeTools: () => void;
 };
 
 const EditorModeContext = createContext<EditorModeValue | null>(null);
@@ -17,6 +22,7 @@ const EditorModeContext = createContext<EditorModeValue | null>(null);
 export function EditorModeProvider({ children }: { children: React.ReactNode }) {
   const session = useContentEditor();
   const [active, setActiveState] = useState(false);
+  const [toolsPanel, setToolsPanel] = useState<EditorToolsPanel>(null);
 
   useEffect(() => {
     setActiveState(sessionStorage.getItem("results-editor-ui") === "on");
@@ -26,15 +32,34 @@ export function EditorModeProvider({ children }: { children: React.ReactNode }) 
     if (!session.loading && !session.unlocked && active) {
       setActiveState(false);
       sessionStorage.removeItem("results-editor-ui");
+      setToolsPanel(null);
     }
   }, [active, session.loading, session.unlocked]);
 
-  function setActive(next: boolean) {
-    const safeNext = next && session.unlocked;
-    setActiveState(safeNext);
-    if (safeNext) sessionStorage.setItem("results-editor-ui", "on");
-    else sessionStorage.removeItem("results-editor-ui");
-  }
+  const setActive = useCallback(
+    (next: boolean) => {
+      const safeNext = next && session.unlocked;
+      setActiveState(safeNext);
+      if (safeNext) sessionStorage.setItem("results-editor-ui", "on");
+      else {
+        sessionStorage.removeItem("results-editor-ui");
+        setToolsPanel(null);
+      }
+    },
+    [session.unlocked]
+  );
+
+  const openTools = useCallback(
+    (panel: Exclude<EditorToolsPanel, null>) => {
+      if (!session.unlocked) return;
+      setActiveState(true);
+      sessionStorage.setItem("results-editor-ui", "on");
+      setToolsPanel(panel);
+    },
+    [session.unlocked]
+  );
+
+  const closeTools = useCallback(() => setToolsPanel(null), []);
 
   const value = useMemo(
     () => ({
@@ -44,8 +69,21 @@ export function EditorModeProvider({ children }: { children: React.ReactNode }) 
       editor: session.editor,
       loading: session.loading,
       refresh: session.refresh,
+      toolsPanel,
+      openTools,
+      closeTools,
     }),
-    [active, session.editor, session.loading, session.refresh, session.unlocked]
+    [
+      active,
+      closeTools,
+      openTools,
+      session.editor,
+      session.loading,
+      session.refresh,
+      session.unlocked,
+      setActive,
+      toolsPanel,
+    ]
   );
 
   return <EditorModeContext.Provider value={value}>{children}</EditorModeContext.Provider>;
@@ -56,4 +94,3 @@ export function useEditorMode() {
   if (!value) throw new Error("useEditorMode must be used inside EditorModeProvider");
   return value;
 }
-
