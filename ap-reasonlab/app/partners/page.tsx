@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import UploadAndShow from "@/components/UploadAndShow";
-import { useContentEditor } from "@/components/useContentEditor";
+import { useEditorMode } from "@/components/EditorModeProvider";
 import { trueJetMembers } from "@/data/brand";
 
 type Member = { id: string; name: string; note?: string; addedAt: number };
@@ -20,7 +20,7 @@ function displayGithubHandle(url: string): string {
 }
 
 export default function PartnersPage() {
-  const { unlocked, refresh: refreshEditor } = useContentEditor();
+  const { active: editMode, unlocked, refresh: refreshEditor } = useEditorMode();
   const [members, setMembers] = useState<Member[]>([]);
   const [name, setName] = useState("");
   const [githubUser, setGithubUser] = useState("");
@@ -161,7 +161,7 @@ export default function PartnersPage() {
         </ul>
       </section>
 
-      <section className="card space-y-4">
+      {editMode && <section className="card space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Join / add a person</h2>
           <p className="mt-1 text-sm text-slate-600">
@@ -230,7 +230,7 @@ export default function PartnersPage() {
             )}
           </div>
         </form>
-      </section>
+      </section>}
 
       <UploadAndShow
         alsoShow={["document", "folder"]}

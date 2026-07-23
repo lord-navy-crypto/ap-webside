@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ManagedUnit } from "@/lib/managed-types";
 import RichContent from "@/components/RichContent";
-import { useContentEditor } from "@/components/useContentEditor";
+import { useEditorMode } from "@/components/EditorModeProvider";
 
 type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "folder";
 
@@ -32,7 +32,7 @@ export default function UnifiedAddContent({
   onSaved,
   label = "+ Add content",
 }: Props) {
-  const { unlocked } = useContentEditor();
+  const { active: editMode, unlocked } = useEditorMode();
   const storageKey = useMemo(() => `results-content-draft:${subjectId || "general"}`, [subjectId]);
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<ContentType>("concept");
@@ -143,6 +143,8 @@ export default function UnifiedAddContent({
       setBusy(false);
     }
   }
+
+  if (!editMode) return null;
 
   return (
     <>
