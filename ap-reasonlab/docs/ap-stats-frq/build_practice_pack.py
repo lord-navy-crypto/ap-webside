@@ -642,7 +642,11 @@ Fail to reject - data are not inconsistent with the acceptable probabilities."""
     },
 ]
 
-DIFF_LABEL = {1: "Foundation *", 2: "Standard **", 3: "Challenge ***"}
+DIFF_LABEL = {
+    1: "Foundation (Level 1)",
+    2: "Standard (Level 2)",
+    3: "Challenge (Level 3)",
+}
 
 
 def build_markdown() -> str:
@@ -658,9 +662,9 @@ def build_markdown() -> str:
         "",
         "1. **Four topics kept intact** (Exploring Data → Collecting Data → Probability & RVs → Inference).",
         "2. **Within each topic, problems are ordered by difficulty**:",
-        "   - * Foundation - identify / interpret / short explanation",
-        "   - ** Standard - calculation + justification in context",
-        "   - *** Challenge - full multi-step inference or layered probability",
+        "   - Level 1 Foundation — identify / interpret / short explanation",
+        "   - Level 2 Standard — calculation + justification in context",
+        "   - Level 3 Challenge — full multi-step inference or layered probability",
         "3. **Substantive stems unchanged** (cleaned for OCR/layout only).",
         "4. **Part II** contains **reference answers** for every problem (worked solutions for self-check).",
         "",
