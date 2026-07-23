@@ -121,24 +121,14 @@ export default function ManagePage() {
     <div className="space-y-7">
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Manage" }]} />
       <section className="rounded-3xl bg-slate-950 p-6 text-white md:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-5"><div><span className="text-xs font-semibold uppercase tracking-wider text-blue-300">RESULTS CONTROL CENTER</span><h1 className="mt-2 text-3xl font-bold">Manage the site without changing code</h1><p className="mt-2 max-w-2xl text-slate-300">Create and edit content, use the master-only AI Developer, review modification history, and safely undo a change.</p></div><UnifiedAddContent subjectId={selectedSubject?.id} subjectName={selectedSubject?.name} units={units} onSaved={refresh} /></div>
+        <div className="flex flex-wrap items-end justify-between gap-5"><div><span className="text-xs font-semibold uppercase tracking-wider text-blue-300">RESULTS CONTROL CENTER</span><h1 className="mt-2 text-3xl font-bold">Manage the site without changing code</h1><p className="mt-2 max-w-2xl text-slate-300">Create and edit content, use AI Developer, review modification history, and safely undo a change. Content change code is enough.</p></div><UnifiedAddContent subjectId={selectedSubject?.id} subjectName={selectedSubject?.name} units={units} onSaved={refresh} /></div>
       </section>
 
       <section className="card grid gap-3 md:grid-cols-2">
         {unlocked ? (
           <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 md:col-span-2">
-            Editor unlocked ({editor?.level}). Manage actions use your session — no content code
-            each time.{" "}
-            {editor?.level === "content" && (
-              <span className="block mt-1 text-xs">
-                To show <strong>AI Developer</strong> and <strong>History &amp; Undo</strong>, open
-                the ✎ button or{" "}
-                <Link href="/login?next=/manage" className="font-medium underline">
-                  /login
-                </Link>{" "}
-                and re-unlock with the <strong>Master code</strong>.
-              </span>
-            )}
+            Editor unlocked ({editor?.level}). Manage, AI Developer, and History use your content-code
+            session.{" "}
             <Link href="/login?next=/manage" className="font-medium underline">
               Lock / re-login
             </Link>
@@ -200,36 +190,24 @@ export default function ManagePage() {
         <section className="space-y-3"><div><h2 className="section-title">Recycle Bin</h2><p className="mt-1 text-sm text-slate-500">Deleted manager content stays recoverable here.</p></div>{trash.map((item) => <div key={item.id} className="card flex flex-wrap items-center justify-between gap-3"><div><span className="badge">{item.type}</span><h3 className="mt-2 font-semibold">{item.title}</h3></div><button className="btn-secondary" onClick={() => mutate("restore_content_item", { id: item.id })}>Restore</button></div>)}{trash.length === 0 && <div className="card text-sm text-slate-500">Recycle Bin is empty.</div>}</section>
       )}
 
-      {tab === "ai" &&
-        (editor?.level === "master" ? (
-          <AIDeveloperBlocks
-            embedded
-            onWebsiteChanged={(content) => {
-              setData(content);
-              setMessage("AI Developer change applied. Open History & Undo to restore it.");
-            }}
-          />
-        ) : (
-          <div className="card text-sm text-slate-600">
-            Prefer the ✎ circle → <strong>AI Developer</strong> (also in the top edit bar). Master
-            code is required to apply changes.
-          </div>
-        ))}
+      {tab === "ai" && (
+        <AIDeveloperBlocks
+          embedded
+          onWebsiteChanged={(content) => {
+            setData(content);
+            setMessage("AI Developer change applied. Open History & Undo to restore it.");
+          }}
+        />
+      )}
 
-      {tab === "history" &&
-        (editor?.level === "master" ? (
-          <EditHistory
-            onRestored={(content) => {
-              setData(content);
-              setMessage("A previous website-content version was restored.");
-            }}
-          />
-        ) : (
-          <div className="card text-sm text-slate-600">
-            Prefer the ✎ circle → <strong>History &amp; Undo</strong> (also in the top edit bar).
-            Master code is required to restore versions.
-          </div>
-        ))}
+      {tab === "history" && (
+        <EditHistory
+          onRestored={(content) => {
+            setData(content);
+            setMessage("A previous website-content version was restored.");
+          }}
+        />
+      )}
     </div>
   );
 }

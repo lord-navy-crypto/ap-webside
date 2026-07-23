@@ -292,19 +292,19 @@ export default function AIDeveloperBlocks({
       {!embedded && (
         <header>
           <p className="text-xs font-semibold uppercase tracking-wider text-violet-700">
-            Master-only workspace
+            Editor workspace
           </p>
           <h1 className="mt-1 text-3xl font-bold">AI Developer</h1>
           <p className="mt-2 max-w-3xl text-slate-600">
             Select managed website content, generate a local or cloud AI proposal, review it, then
-            explicitly apply it. Every applied change can be restored from Manager history.
+            explicitly apply it. Every applied change can be restored from History &amp; Undo.
           </p>
         </header>
       )}
 
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-        Master Manager session verified. Ordinary visitors and content-only editors cannot open or
-        call this AI.
+        Content-code editor unlocked. Use AI Developer from the ✎ menu or the top edit bar on any
+        page.
       </div>
 
       <LocalAIControls />

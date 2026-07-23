@@ -33,7 +33,7 @@ export default function MobileActionBar() {
   const { editor } = useEditorMode();
   const [moreOpen, setMoreOpen] = useState(false);
   const visibleMoreGroups = moreGroups.map((group) =>
-    group.label === "Admin & developer" && editor?.level === "master"
+    group.label === "Admin & developer" && editor
       ? {
           ...group,
           links: [...group.links, { href: "/ai-developer", label: "AI Developer" }],

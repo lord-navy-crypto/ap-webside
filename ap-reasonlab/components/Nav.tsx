@@ -70,7 +70,7 @@ export default function Nav() {
   }, [moreOpen]);
 
   const visibleMoreGroups = moreGroups.map((group) =>
-    group.label === "Admin & developer" && editor?.level === "master"
+    group.label === "Admin & developer" && editor
       ? {
           ...group,
           links: [...group.links, { href: "/ai-developer", label: "AI Developer" }],

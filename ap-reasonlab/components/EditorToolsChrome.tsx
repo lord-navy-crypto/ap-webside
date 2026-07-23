@@ -6,16 +6,14 @@ import EditHistory from "@/components/EditHistory";
 import { useEditorMode } from "@/components/EditorModeProvider";
 
 /**
- * Always-visible editor chrome once unlocked:
+ * Always-visible editor chrome once unlocked with the content code:
  * - Top bar in edit mode with AI Developer + History
- * - Full-screen overlay panels (not buried in Manage tabs)
+ * - Full-screen overlay panels
  */
 export default function EditorToolsChrome() {
   const { active, unlocked, editor, toolsPanel, openTools, closeTools } = useEditorMode();
 
   if (!unlocked) return null;
-
-  const needsMaster = editor?.level !== "master";
 
   return (
     <>
@@ -34,11 +32,6 @@ export default function EditorToolsChrome() {
             <Link href="/manage" className="btn-ghost">
               Open Manage
             </Link>
-            {needsMaster && (
-              <span className="text-xs text-amber-800">
-                Master code unlocks apply/undo actions inside these tools.
-              </span>
-            )}
           </div>
         </div>
       )}
@@ -77,22 +70,7 @@ export default function EditorToolsChrome() {
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
-              {needsMaster ? (
-                <div className="card mx-auto max-w-xl space-y-3 text-center">
-                  <h3 className="text-xl font-bold">Master code required for this tool</h3>
-                  <p className="text-sm text-slate-600">
-                    You are unlocked as <strong>content</strong>. Open the ✎ circle, enter the{" "}
-                    <strong>Master code</strong>, click Re-unlock, then open this tool again.
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    The buttons stay here in edit mode so you do not need Manage tabs.
-                  </p>
-                </div>
-              ) : toolsPanel === "ai" ? (
-                <AIDeveloperBlocks embedded />
-              ) : (
-                <EditHistory />
-              )}
+              {toolsPanel === "ai" ? <AIDeveloperBlocks embedded /> : <EditHistory />}
             </div>
           </div>
         </div>
