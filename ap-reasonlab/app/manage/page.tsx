@@ -133,7 +133,17 @@ export default function ManagePage() {
           <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 md:col-span-2">
             Editor unlocked ({editor?.level}). Manage actions use your session — no content code
             each time.{" "}
-            <Link href="/login" className="font-medium underline">
+            {editor?.level === "content" && (
+              <span className="block mt-1 text-xs">
+                To show <strong>AI Developer</strong> and <strong>History &amp; Undo</strong>, open
+                the ✎ button or{" "}
+                <Link href="/login?next=/manage" className="font-medium underline">
+                  /login
+                </Link>{" "}
+                and re-unlock with the <strong>Master code</strong>.
+              </span>
+            )}
+            <Link href="/login?next=/manage" className="font-medium underline">
               Lock / re-login
             </Link>
           </div>
