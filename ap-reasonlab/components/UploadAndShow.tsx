@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ChangePanel from "@/components/ChangePanel";
 import RichContent from "@/components/RichContent";
-import { useContentEditor } from "@/components/useContentEditor";
+import { useEditorMode } from "@/components/EditorModeProvider";
 import type {
   ManagedContent,
   ManagedDocument,
@@ -61,7 +61,7 @@ export default function UploadAndShow({
   collapsedByDefault = false,
   allowPublicContributions = false,
 }: Props) {
-  const { unlocked } = useContentEditor();
+  const { active: editMode, unlocked } = useEditorMode();
   const [allFiles, setAllFiles] = useState<ManagedFile[]>([]);
   const [allDocuments, setAllDocuments] = useState<ManagedDocument[]>([]);
   const [allFolders, setAllFolders] = useState<ManagedFolder[]>([]);
@@ -126,13 +126,8 @@ export default function UploadAndShow({
   }, [refresh]);
 
   useEffect(() => {
-    function onEditMode(event: Event) {
-      const detail = (event as CustomEvent<{ on?: boolean }>).detail;
-      if (detail?.on) setExpanded(true);
-    }
-    window.addEventListener("results-edit-mode", onEditMode);
-    return () => window.removeEventListener("results-edit-mode", onEditMode);
-  }, []);
+    if (editMode) setExpanded(true);
+  }, [editMode]);
 
   const onSaved = (content?: unknown) => {
     if (content) applyContent(content as ManagedContent);
@@ -239,7 +234,7 @@ export default function UploadAndShow({
         <div>
           <p className="text-sm font-semibold text-slate-800">{panelTitle}</p>
           <p className="text-xs text-slate-500">
-            Uploads stay in this panel only. Open when you need to add or manage files.
+            Browse this page's documents and downloadable files.
           </p>
         </div>
         <button
@@ -248,7 +243,7 @@ export default function UploadAndShow({
           className="btn-secondary"
           aria-expanded={expanded}
         >
-          {expanded ? "Hide storage" : "Show storage & uploads"}
+          {expanded ? "Hide resources" : "Show resources"}
         </button>
       </div>
 
@@ -261,8 +256,8 @@ export default function UploadAndShow({
         other areas or other subject folders.
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="space-y-3">
+      <div className={editMode || allowPublicContributions ? "grid gap-4 lg:grid-cols-2" : "grid gap-4"}>
+        {(editMode || allowPublicContributions) && <div className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Add / upload in this folder only
           </h2>
@@ -348,7 +343,7 @@ export default function UploadAndShow({
               />
             )}
           </div>
-          <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          {editMode && <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
             {unlocked ? (
               <p className="text-xs text-emerald-800">
                 Editor unlocked — delete uses your session. Optional code override below.
@@ -358,13 +353,13 @@ export default function UploadAndShow({
                 Change code (needed to delete with −)
               </label>
             )}
-            <input
+            {!unlocked && <input
               type="password"
               className="input"
               placeholder="Content or master change code"
               value={changeCode}
               onChange={(e) => setChangeCode(e.target.value)}
-            />
+            />}
             <details className="text-xs text-slate-500">
               <summary className="cursor-pointer">GitHub token (optional)</summary>
               <input
@@ -375,13 +370,13 @@ export default function UploadAndShow({
                 onChange={(e) => setGithubToken(e.target.value)}
               />
             </details>
-          </div>
+          </div>}
           {allSubjects.length > 0 && alsoShow.includes("subject") && (
             <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-xs text-emerald-900">
               Custom subjects saved: {allSubjects.join(" · ")}
             </div>
           )}
-        </div>
+        </div>}
 
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
@@ -434,7 +429,7 @@ export default function UploadAndShow({
                           title="Delete folder"
                           disabled={deletingId === f.id}
                           onClick={() => handleDelete("folder", f.id)}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50"
+                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50`}
                         >
                           −
                         </button>
@@ -471,7 +466,7 @@ export default function UploadAndShow({
                           onClick={() =>
                             handleDelete(c.id.startsWith("m-topic") ? "topic" : "concept", c.id)
                           }
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50"
+                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50`}
                         >
                           −
                         </button>
@@ -501,7 +496,7 @@ export default function UploadAndShow({
                           title="Delete formula"
                           disabled={deletingId === f.id}
                           onClick={() => handleDelete("formula", f.id)}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50"
+                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50`}
                         >
                           −
                         </button>
@@ -538,7 +533,7 @@ export default function UploadAndShow({
                           title="Delete set"
                           disabled={deletingId === q.id}
                           onClick={() => handleDelete("questionnaire", q.id)}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50"
+                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50`}
                         >
                           −
                         </button>
@@ -592,7 +587,7 @@ export default function UploadAndShow({
                           title="Delete file"
                           disabled={deletingId === f.id}
                           onClick={() => handleDelete("file", f.id)}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50"
+                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50`}
                         >
                           −
                         </button>
@@ -609,23 +604,28 @@ export default function UploadAndShow({
                   </h3>
                   <ul className="space-y-2">
                     {documents.map((d) => (
-                      <li
-                        key={d.id}
-                        className="flex items-start justify-between gap-2 rounded-xl border border-slate-100 bg-white p-3"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{d.title}</p>
-                          <p className="text-xs text-slate-500">{d.category}</p>
-                          <RichContent clampLines={4} className="mt-1 text-sm text-slate-600">
-                            {d.content}
-                          </RichContent>
-                        </div>
+                      <li key={d.id} className="flex items-start gap-2 rounded-xl border border-slate-100 bg-white p-3">
+                        <details className="group min-w-0 flex-1">
+                          <summary className="cursor-pointer list-none rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+                            <span className="flex items-center justify-between gap-3">
+                              <span>
+                                <span className="block text-sm font-medium">{d.title}</span>
+                                <span className="block text-xs text-slate-500">{d.category}</span>
+                              </span>
+                              <span className="shrink-0 text-xs font-medium text-brand-700 group-open:hidden">Read document ↓</span>
+                              <span className="hidden shrink-0 text-xs font-medium text-brand-700 group-open:inline">Collapse ↑</span>
+                            </span>
+                          </summary>
+                          <div className="mt-3 max-h-80 overflow-y-auto overscroll-contain rounded-xl border border-slate-100 bg-slate-50 p-4">
+                            <RichContent className="text-sm text-slate-700">{d.content}</RichContent>
+                          </div>
+                        </details>
                         <button
                           type="button"
                           title="Delete document"
                           disabled={deletingId === d.id}
                           onClick={() => handleDelete("document", d.id)}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50"
+                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50`}
                         >
                           −
                         </button>

@@ -4,14 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
-import { useContentEditor } from "@/components/useContentEditor";
+import { useEditorMode } from "@/components/EditorModeProvider";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
 import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
 
 type Tab = "content" | "subjects" | "units" | "trash";
 
 export default function ManagePage() {
-  const { unlocked, editor, refresh: refreshEditor } = useContentEditor();
+  const { active: editMode, unlocked, editor, refresh: refreshEditor } = useEditorMode();
   const [data, setData] = useState<Partial<ManagedContent>>({});
   const [tab, setTab] = useState<Tab>("content");
   const [query, setQuery] = useState("");
@@ -96,6 +96,21 @@ export default function ManagePage() {
     { id: "units", label: "Units", count: data.units?.length || 0 },
     { id: "trash", label: "Recycle Bin", count: trash.length },
   ];
+
+  if (!editMode) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Manage" }]} />
+        <section className="card mx-auto max-w-2xl text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-xl text-brand-700">✎</span>
+          <h1 className="mt-4 text-2xl font-bold">Content manager is hidden</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Use the edit circle in the lower-right corner, pass the content-code check, then choose “Start editing this page”.
+          </p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-7">

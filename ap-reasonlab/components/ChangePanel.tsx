@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
-import { useContentEditor } from "@/components/useContentEditor";
+import { useEditorMode } from "@/components/EditorModeProvider";
 
 export type ChangeMode =
   | "concept"
@@ -43,7 +43,7 @@ export default function ChangePanel({
   onSaved,
   allowPublicContribution = false,
 }: Props) {
-  const { unlocked, editor, refresh } = useContentEditor();
+  const { active: editMode, unlocked, editor, refresh } = useEditorMode();
   const [open, setOpen] = useState(false);
   const [changeCode, setChangeCode] = useState("");
   const [githubToken, setGithubToken] = useState("");
@@ -262,6 +262,8 @@ export default function ChangePanel({
 
   const showSubjectField =
     mode === "concept" || mode === "topic" || mode === "formula" || mode === "questionnaire";
+
+  if (!editMode && !allowPublicContribution) return null;
 
   return (
     <div className="space-y-3">

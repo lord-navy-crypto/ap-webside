@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useContentEditor } from "@/components/useContentEditor";
+import { useEditorMode } from "@/components/EditorModeProvider";
 
 /**
  * Small edit circle on every page.
@@ -11,7 +11,7 @@ import { useContentEditor } from "@/components/useContentEditor";
  */
 export default function EditModeButton() {
   const pathname = usePathname();
-  const { unlocked, editor, refresh } = useContentEditor();
+  const { active, setActive, unlocked, editor, refresh } = useEditorMode();
   const [open, setOpen] = useState(false);
   const [changeCode, setChangeCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -40,7 +40,7 @@ export default function EditModeButton() {
       setNote(data.note || "Unlocked.");
       setChangeCode("");
       await refresh();
-      window.dispatchEvent(new CustomEvent("results-edit-mode", { detail: { on: true } }));
+      setActive(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unlock failed");
     } finally {
@@ -51,13 +51,13 @@ export default function EditModeButton() {
   async function lock() {
     await fetch("/api/auth/content-logout", { method: "POST" });
     await refresh();
+    setActive(false);
     setNote("Editor locked on this browser.");
-    window.dispatchEvent(new CustomEvent("results-edit-mode", { detail: { on: false } }));
   }
 
   function turnOnEditMode() {
-    window.dispatchEvent(new CustomEvent("results-edit-mode", { detail: { on: true } }));
-    setNote("Edit mode on — storage panels on this page will expand when present.");
+    setActive(!active);
+    setNote(active ? "Edit controls hidden." : "Edit mode on — management controls are now visible.");
   }
 
   return (
@@ -80,8 +80,8 @@ export default function EditModeButton() {
               <p className="rounded-xl bg-emerald-50 px-3 py-2 text-emerald-900">
                 Unlocked as <strong>{editor?.level}</strong> editor.
               </p>
-              <button type="button" className="btn-primary w-full" onClick={turnOnEditMode}>
-                Show edit panels on this page
+              <button type="button" className={active ? "btn-secondary w-full" : "btn-primary w-full"} onClick={turnOnEditMode}>
+                {active ? "Hide edit controls" : "Start editing this page"}
               </button>
               <Link href="/manage" className="btn-secondary block w-full text-center" onClick={() => setOpen(false)}>
                 Open Manage
@@ -129,13 +129,18 @@ export default function EditModeButton() {
         aria-label={unlocked ? "Open page edit menu" : "Unlock page edit"}
         aria-expanded={open}
         className={
-          unlocked
+          active
             ? "flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-lg font-bold text-white shadow-lg hover:bg-brand-700"
             : "flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-lg font-bold text-slate-700 shadow-lg hover:border-brand-300 hover:text-brand-700"
         }
       >
         ✎
       </button>
+      {active && (
+        <div className="pointer-events-none absolute bottom-14 right-0 whitespace-nowrap rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-lg">
+          Edit mode · {editor?.level}
+        </div>
+      )}
     </div>
   );
 }
