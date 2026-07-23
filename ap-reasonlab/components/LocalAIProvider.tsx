@@ -12,7 +12,7 @@ import {
 import type {
   ChatCompletionMessageParam,
   InitProgressReport,
-  WebWorkerMLCEngine,
+  MLCEngineInterface,
 } from "@mlc-ai/web-llm";
 
 export type AIMode = "auto" | "local" | "cloud";
@@ -166,6 +166,18 @@ const LOCAL_MODELS: LocalModelOption[] = [
   },
 ];
 
+async function detectWebGPU(): Promise<boolean> {
+  if (typeof navigator === "undefined") return false;
+  const gpu = (navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } }).gpu;
+  if (!gpu?.requestAdapter) return false;
+  try {
+    const adapter = await gpu.requestAdapter();
+    return Boolean(adapter);
+  } catch {
+    return false;
+  }
+}
+
 export function LocalAIProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<AIMode>("cloud");
   const [models, setModels] = useState<LocalModelOption[]>(LOCAL_MODELS);
@@ -173,16 +185,19 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
   const [loadedModelId, setLoadedModelId] = useState("");
   const [status, setStatus] = useState<LocalAIStatus>("idle");
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Local AI is not enabled.");
+  const [statusText, setStatusText] = useState(
+    "Local AI is off. Choose a model, then click Enable local AI."
+  );
   const [error, setError] = useState("");
   const [webGPUSupported, setWebGPUSupported] = useState<boolean | null>(null);
   const [cacheScanning, setCacheScanning] = useState(false);
-  const engineRef = useRef<WebWorkerMLCEngine | null>(null);
+  const engineRef = useRef<MLCEngineInterface | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const loadedModelRef = useRef("");
+  const enableLockRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
-    setWebGPUSupported("gpu" in navigator);
+    void detectWebGPU().then(setWebGPUSupported);
     const savedMode = localStorage.getItem(MODE_KEY);
     if (savedMode === "auto" || savedMode === "local" || savedMode === "cloud") {
       setModeState(savedMode);
@@ -216,58 +231,99 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
 
   const enable = useCallback(
     async (requestedModelId?: string) => {
-      const targetModelId = requestedModelId || selectedModelId;
-      if (!LOCAL_MODELS.some((item) => item.id === targetModelId)) {
-        throw new Error("Select a valid local model first.");
+      if (enableLockRef.current) {
+        await enableLockRef.current.catch(() => undefined);
       }
-      if (!("gpu" in navigator)) {
-        setStatus("error");
-        setError(
-          "This browser does not support WebGPU. Use current desktop Chrome/Edge or cloud AI."
-        );
-        throw new Error("WebGPU is not supported.");
-      }
-      if (engineRef.current && loadedModelRef.current === targetModelId) return;
 
-      setSelectedModelIdState(targetModelId);
-      localStorage.setItem(MODEL_KEY, targetModelId);
-      setStatus("loading");
-      setProgress(0);
-      setError("");
-      setStatusText("Preparing local AI…");
-      await releaseEngine();
+      const run = (async () => {
+        const targetModelId = requestedModelId || selectedModelId;
+        if (!LOCAL_MODELS.some((item) => item.id === targetModelId)) {
+          throw new Error("Select a valid local model first.");
+        }
 
-      try {
-        const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
-        const worker = new Worker(new URL("../workers/local-ai.worker.ts", import.meta.url), {
-          type: "module",
-        });
-        workerRef.current = worker;
-        const engine = await CreateWebWorkerMLCEngine(worker, targetModelId, {
-          initProgressCallback(report: InitProgressReport) {
-            const nextProgress = Math.max(0, Math.min(1, report.progress ?? 0));
-            setProgress(nextProgress);
-            setStatusText(report.text || `Loading local AI: ${Math.round(nextProgress * 100)}%`);
-          },
-        });
-        engineRef.current = engine;
-        loadedModelRef.current = targetModelId;
-        setLoadedModelId(targetModelId);
-        setStatus("ready");
-        setProgress(1);
-        setStatusText("Local AI is ready on this device.");
-        setModels((current) =>
-          current.map((item) => (item.id === targetModelId ? { ...item, cached: true } : item))
-        );
-      } catch (caught) {
-        workerRef.current?.terminate();
-        workerRef.current = null;
-        const message = caught instanceof Error ? caught.message : "Local AI failed to load.";
-        setStatus("error");
-        setError(message);
-        setStatusText("Local AI could not start.");
-        throw caught;
-      }
+        const gpuOk = await detectWebGPU();
+        setWebGPUSupported(gpuOk);
+        if (!gpuOk) {
+          setStatus("error");
+          setError(
+            "WebGPU is unavailable (need a desktop Chrome/Edge with GPU acceleration, or a compatible GPU). Switch to Cloud AI meanwhile."
+          );
+          setStatusText("Local AI could not start — WebGPU missing.");
+          throw new Error("WebGPU is not supported.");
+        }
+
+        if (engineRef.current && loadedModelRef.current === targetModelId) {
+          setStatus("ready");
+          setStatusText("Local AI is already ready on this device.");
+          return;
+        }
+
+        setSelectedModelIdState(targetModelId);
+        localStorage.setItem(MODEL_KEY, targetModelId);
+        setStatus("loading");
+        setProgress(0);
+        setError("");
+        setStatusText("Preparing local AI…");
+        await releaseEngine();
+
+        const onProgress = (report: InitProgressReport) => {
+          const nextProgress = Math.max(0, Math.min(1, report.progress ?? 0));
+          setProgress(nextProgress);
+          setStatusText(report.text || `Loading local AI: ${Math.round(nextProgress * 100)}%`);
+        };
+
+        try {
+          const webllm = await import("@mlc-ai/web-llm");
+          let engine: MLCEngineInterface | null = null;
+
+          try {
+            setStatusText("Starting local AI worker…");
+            const worker = new Worker(new URL("../workers/local-ai.worker.ts", import.meta.url), {
+              type: "module",
+            });
+            workerRef.current = worker;
+            engine = await webllm.CreateWebWorkerMLCEngine(worker, targetModelId, {
+              initProgressCallback: onProgress,
+            });
+          } catch (workerError) {
+            workerRef.current?.terminate();
+            workerRef.current = null;
+            const workerMessage =
+              workerError instanceof Error ? workerError.message : String(workerError);
+            setStatusText(`Worker failed (${workerMessage}). Trying main-thread engine…`);
+            engine = await webllm.CreateMLCEngine(targetModelId, {
+              initProgressCallback: onProgress,
+            });
+          }
+
+          engineRef.current = engine;
+          loadedModelRef.current = targetModelId;
+          setLoadedModelId(targetModelId);
+          setStatus("ready");
+          setProgress(1);
+          setError("");
+          setStatusText("Local AI is ready on this device.");
+          setModels((current) =>
+            current.map((item) => (item.id === targetModelId ? { ...item, cached: true } : item))
+          );
+        } catch (caught) {
+          workerRef.current?.terminate();
+          workerRef.current = null;
+          engineRef.current = null;
+          loadedModelRef.current = "";
+          setLoadedModelId("");
+          const message = caught instanceof Error ? caught.message : "Local AI failed to load.";
+          setStatus("error");
+          setError(message);
+          setStatusText("Local AI could not start. See the error below, or use Cloud AI.");
+          throw caught;
+        }
+      })();
+
+      enableLockRef.current = run.finally(() => {
+        enableLockRef.current = null;
+      });
+      await enableLockRef.current;
     },
     [releaseEngine, selectedModelId]
   );
@@ -277,7 +333,7 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
     setStatus("idle");
     setProgress(0);
     setError("");
-    setStatusText("Local AI stopped. Downloaded model files remain cached.");
+    setStatusText("Local AI stopped. Downloaded model files remain cached until you remove them.");
   }, [releaseEngine]);
 
   const refreshCacheStatus = useCallback(async () => {
@@ -346,8 +402,13 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
           onToken?.(token, answer);
         }
         return answer.trim();
+      } catch (caught) {
+        const message = caught instanceof Error ? caught.message : "Local generation failed.";
+        setStatus("error");
+        setError(message);
+        throw caught;
       } finally {
-        setStatus("ready");
+        if (engineRef.current) setStatus("ready");
       }
     },
     []

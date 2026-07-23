@@ -105,7 +105,9 @@ function ToolboxContent() {
       localAI.mode === "local" || (localAI.mode === "auto" && localAI.ready);
     if (!useLocal) return false;
     if (!localAI.ready) {
-      throw new Error("Enable local AI first, or switch to Auto / Cloud AI.");
+      throw new Error(
+        "Local AI mode is on, but the model is not enabled yet. In Local model library click “Enable local AI”, or switch mode to Cloud AI / Auto."
+      );
     }
 
     setTextResult({

@@ -11,17 +11,17 @@ const MODES: Array<{ value: AIMode; label: string; detail: string }> = [
   {
     value: "auto",
     label: "Auto",
-    detail: "Uses local AI when it is ready; otherwise uses the selected cloud channel.",
+    detail: "Uses local AI only after it is enabled below; otherwise uses cloud.",
   },
   {
     value: "local",
     label: "Local AI",
-    detail: "Runs only in this browser. Your prompt is not sent to the website AI server.",
+    detail: "Prefers on-device models. You still must Enable / load a model below.",
   },
   {
     value: "cloud",
     label: "Cloud AI",
-    detail: "Uses the website API or your selected bring-your-own-key provider.",
+    detail: "Uses the website API or your bring-your-own-key provider.",
   },
 ];
 
@@ -38,6 +38,7 @@ export default function LocalAIControls() {
   const [confirmLoad, setConfirmLoad] = useState(false);
   const [confirmRemoveId, setConfirmRemoveId] = useState("");
   const [showDownloads, setShowDownloads] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const selected = localAI.models.find((model) => model.id === localAI.selectedModelId);
   const loaded = localAI.models.find((model) => model.id === localAI.loadedModelId);
   const target = localAI.models.find(
@@ -47,26 +48,45 @@ export default function LocalAIControls() {
   const cachedModels = localAI.models.filter((model) => model.cached);
   const cacheChecked = localAI.models.every((model) => model.cached !== null);
   const busy = localAI.status === "loading" || localAI.status === "generating";
+  const modeNeedsModel =
+    (localAI.mode === "local" || localAI.mode === "auto") && !localAI.ready;
 
   function requestModel(modelId: string) {
     if (localAI.ready && modelId !== localAI.loadedModelId) {
       setPendingModelId(modelId);
       setConfirmLoad(true);
+      setLoadError("");
       return;
     }
     localAI.setSelectedModelId(modelId);
   }
 
-  function openLoadConfirmation() {
-    setPendingModelId(localAI.selectedModelId);
+  function openLoadConfirmation(modelId?: string) {
+    setPendingModelId(modelId || localAI.selectedModelId);
     setConfirmLoad(true);
+    setLoadError("");
+  }
+
+  function selectMode(next: AIMode) {
+    localAI.setMode(next);
+    // Choosing Local / Auto does NOT load a model by itself — prompt Enable.
+    if ((next === "local" || next === "auto") && !localAI.ready && !busy) {
+      openLoadConfirmation(localAI.selectedModelId);
+    }
   }
 
   async function confirmModelLoad() {
     const modelId = pendingModelId || localAI.selectedModelId;
     setConfirmLoad(false);
     setPendingModelId("");
-    await localAI.enable(modelId).catch(() => undefined);
+    setLoadError("");
+    try {
+      // Prefer local once the user explicitly enables a model.
+      if (localAI.mode === "cloud") localAI.setMode("auto");
+      await localAI.enable(modelId);
+    } catch (caught) {
+      setLoadError(caught instanceof Error ? caught.message : "Could not enable local AI.");
+    }
   }
 
   async function openDownloads() {
@@ -87,7 +107,7 @@ export default function LocalAIControls() {
             <button
               key={item.value}
               type="button"
-              onClick={() => localAI.setMode(item.value)}
+              onClick={() => selectMode(item.value)}
               className={
                 localAI.mode === item.value
                   ? "rounded-xl bg-violet-700 px-4 py-3 text-left text-white shadow"
@@ -107,13 +127,23 @@ export default function LocalAIControls() {
         </div>
       </div>
 
+      {modeNeedsModel && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <strong>Local mode is selected, but no model is loaded yet.</strong>
+          <p className="mt-1">
+            Clicking Local AI only sets preference. Press <strong>Enable local AI</strong> to
+            download/load a model in this browser.
+          </p>
+        </div>
+      )}
+
       <div className="rounded-xl border border-violet-200 bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="font-semibold text-slate-900">Local model library</h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Choose a model for speed, Chinese, study, or developer work. Switching unloads the
-              active model first; downloaded files remain in this browser until you remove them.
+              Customize which on-device model to use (tiny / Chinese / math / coder). Enabling loads
+              it with WebGPU; files stay cached in this browser until you remove them.
             </p>
           </div>
           <span
@@ -122,14 +152,18 @@ export default function LocalAIControls() {
                 ? "bg-emerald-100 text-emerald-800"
                 : localAI.webGPUSupported === false
                   ? "bg-red-100 text-red-700"
-                  : "bg-slate-100 text-slate-600"
+                  : localAI.status === "loading"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-slate-100 text-slate-600"
             }`}
           >
             {localAI.ready
-              ? `Ready · ${loaded?.parameterSize || "model"}`
-              : localAI.webGPUSupported === false
-                ? "WebGPU unavailable"
-                : "Not enabled"}
+              ? `Enabled · ${loaded?.parameterSize || "model"}`
+              : localAI.status === "loading"
+                ? "Enabling…"
+                : localAI.webGPUSupported === false
+                  ? "WebGPU unavailable"
+                  : "Not enabled"}
           </span>
         </div>
 
@@ -138,7 +172,7 @@ export default function LocalAIControls() {
             <label className="mb-1 block text-sm font-medium">Choose local model</label>
             <select
               className="input"
-              value={localAI.loadedModelId || localAI.selectedModelId}
+              value={localAI.selectedModelId}
               onChange={(event) => requestModel(event.target.value)}
               disabled={busy}
             >
@@ -151,6 +185,7 @@ export default function LocalAIControls() {
                         {model.label} · {model.parameterSize} · about {model.vramMB} MB memory
                         {model.recommended ? " · recommended" : ""}
                         {model.cached ? " · downloaded" : ""}
+                        {model.id === localAI.loadedModelId ? " · active" : ""}
                       </option>
                     ))}
                 </optgroup>
@@ -163,13 +198,13 @@ export default function LocalAIControls() {
                 type="button"
                 className="btn-primary"
                 disabled={busy || !localAI.selectedModelId || localAI.webGPUSupported === false}
-                onClick={openLoadConfirmation}
+                onClick={() => openLoadConfirmation()}
               >
                 {localAI.status === "loading"
-                  ? "Loading…"
+                  ? "Enabling…"
                   : selected?.cached
-                    ? "Load model"
-                    : "Download / load"}
+                    ? "Enable local AI"
+                    : "Enable / download"}
               </button>
             ) : (
               <button type="button" className="btn-secondary" onClick={() => void localAI.stop()}>
@@ -218,15 +253,14 @@ export default function LocalAIControls() {
             <strong>Active: {loaded.label}</strong>
             <p className="mt-1">{loaded.bestFor}.</p>
             <p className="mt-1 text-xs text-emerald-800">
-              Select a different model above to switch. You will confirm before the current model is
-              unloaded.
+              Pick another model above to switch. You will confirm before the current model unloads.
             </p>
           </div>
         )}
 
         <p className="mt-3 text-xs text-slate-500">
-          Memory is not download size. The first load needs internet; later loads usually reuse the
-          browser cache. Larger models can be slower or fail on low-memory devices.
+          Desktop Chrome/Edge with GPU acceleration works best. First enable may download hundreds of
+          MB; later loads reuse this browser cache.
         </p>
 
         {localAI.status === "loading" && (
@@ -243,7 +277,11 @@ export default function LocalAIControls() {
             {localAI.statusText}
           </p>
         )}
-        {localAI.error && <p className="mt-2 text-sm text-red-700">{localAI.error}</p>}
+        {(localAI.error || loadError) && (
+          <p className="mt-2 whitespace-pre-wrap text-sm text-red-700" role="alert">
+            {loadError || localAI.error}
+          </p>
+        )}
 
         {showDownloads && (
           <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -296,14 +334,14 @@ export default function LocalAIControls() {
 
       {confirmLoad && target && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4"
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/40 p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="local-ai-load-title"
         >
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
             <h2 id="local-ai-load-title" className="text-xl font-semibold">
-              {localAI.ready ? "Switch local model" : "Load local model"}
+              {localAI.ready ? "Switch local model" : "Enable local AI"}
             </h2>
             <div className="mt-3 space-y-2 text-sm text-slate-600">
               {localAI.ready && loaded && (
@@ -313,16 +351,16 @@ export default function LocalAIControls() {
                 </p>
               )}
               <p>
-                {target.cached
-                  ? "This model appears to be downloaded and should normally load from browser cache."
-                  : "If this model is not cached, the browser will download its files before loading it."}
+                Model: <strong>{target.label}</strong> ({target.parameterSize}). Estimated device
+                memory: <strong>{target.vramMB} MB</strong>.
               </p>
               <p>
-                Estimated device memory: <strong>{target.vramMB} MB</strong>. Actual download size
-                is different and may vary.
+                {target.cached
+                  ? "This model looks cached and should load from this browser."
+                  : "First enable downloads model files (needs internet). Later visits reuse the cache."}
               </p>
               <p className="font-medium text-slate-800">
-                Local prompts stay on this device and are not sent to the Knowledge Explorer AI server.
+                Prompts stay on this device while local AI is active.
               </p>
             </div>
             <div className="mt-5 flex justify-end gap-2">
@@ -337,7 +375,7 @@ export default function LocalAIControls() {
                 Cancel
               </button>
               <button type="button" className="btn-primary" onClick={() => void confirmModelLoad()}>
-                {target.cached ? "Load model" : "Download / load"}
+                {target.cached ? "Enable now" : "Download & enable"}
               </button>
             </div>
           </div>
@@ -346,7 +384,7 @@ export default function LocalAIControls() {
 
       {confirmRemoveId && removeTarget && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/40 p-4"
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/40 p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="local-ai-remove-title"
