@@ -18,6 +18,16 @@ const styles: Array<{
     name: "Cyberpunk Red",
     blurb: "Dark chrome with red box frames — neon control deck.",
   },
+  {
+    id: "luxury",
+    name: "Luxury Gold",
+    blurb: "Reflective gold & silver metallic shine — premium chrome.",
+  },
+  {
+    id: "pastel",
+    name: "Pastel Cute",
+    blurb: "Soft pink, purple, and blush — light kawaii study vibe.",
+  },
 ];
 
 /**
@@ -98,10 +108,10 @@ export default function StyleWindow() {
             {!minimized && (
               <div className="style-window-body">
                 <p className="style-window-lead">
-                  Keep AP Classic, or switch to Cyberpunk Red box decoration. Choice is saved in this
-                  browser.
+                  Four looks: AP Classic, Cyberpunk Red, Luxury Gold, and Pastel Cute. Choice is
+                  saved in this browser.
                 </p>
-                <div className="style-window-grid">
+                <div className="style-window-grid style-window-grid--4">
                   {styles.map((item) => {
                     const active = theme === item.id;
                     return (
