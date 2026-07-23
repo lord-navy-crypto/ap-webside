@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ChangePanel from "@/components/ChangePanel";
 import RichContent from "@/components/RichContent";
+import ResourceEditor from "@/components/ResourceEditor";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import type {
   ManagedContent,
@@ -302,7 +303,7 @@ export default function UploadAndShow({
             {alsoShow.includes("concept") && (
               <ChangePanel
                 mode="concept"
-                label="+ Add concept (AI sort)"
+                label="+ Add concept"
                 defaultSubject={subjectForForms}
                 folderArea={folderArea}
                 spaceKey={scopedSpace}
@@ -424,15 +425,10 @@ export default function UploadAndShow({
                           )}
                           {f.note && <p className="text-xs text-slate-500">{f.note}</p>}
                         </div>
-                        <button
-                          type="button"
-                          title="Delete folder"
-                          disabled={deletingId === f.id}
-                          onClick={() => handleDelete("folder", f.id)}
-                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50`}
-                        >
-                          −
-                        </button>
+                        {editMode && <div className="flex shrink-0 items-center gap-1">
+                          <ResourceEditor target="folder" item={f} onSaved={(content) => applyContent(content as ManagedContent)} />
+                          <button type="button" title="Delete folder" disabled={deletingId === f.id} onClick={() => handleDelete("folder", f.id)} className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50">−</button>
+                        </div>}
                       </li>
                     ))}
                   </ul>
@@ -459,17 +455,10 @@ export default function UploadAndShow({
                           </Link>
                           <p className="mt-1 line-clamp-2 text-xs text-slate-600">{c.summary}</p>
                         </div>
-                        <button
-                          type="button"
-                          title="Delete topic/concept"
-                          disabled={deletingId === c.id}
-                          onClick={() =>
-                            handleDelete(c.id.startsWith("m-topic") ? "topic" : "concept", c.id)
-                          }
-                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50`}
-                        >
-                          −
-                        </button>
+                        {editMode && <div className="flex shrink-0 items-center gap-1">
+                          <ResourceEditor target={c.id.startsWith("m-topic") ? "topic" : "concept"} item={c} onSaved={(content) => applyContent(content as ManagedContent)} />
+                          <button type="button" title="Delete topic/concept" disabled={deletingId === c.id} onClick={() => handleDelete(c.id.startsWith("m-topic") ? "topic" : "concept", c.id)} className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50">−</button>
+                        </div>}
                       </li>
                     ))}
                   </ul>
@@ -489,17 +478,16 @@ export default function UploadAndShow({
                       >
                         <div className="min-w-0">
                           <p className="text-sm font-medium">{f.name}</p>
-                          <p className="font-mono text-xs text-slate-600">{f.expression}</p>
+                          {f.content ? (
+                            <RichContent clampLines={3} className="mt-1 text-xs text-slate-600">{f.content}</RichContent>
+                          ) : (
+                            <p className="overflow-x-auto font-mono text-xs text-slate-600">{f.expression}</p>
+                          )}
                         </div>
-                        <button
-                          type="button"
-                          title="Delete formula"
-                          disabled={deletingId === f.id}
-                          onClick={() => handleDelete("formula", f.id)}
-                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50`}
-                        >
-                          −
-                        </button>
+                        {editMode && <div className="flex shrink-0 items-center gap-1">
+                          <ResourceEditor target="formula" item={f} onSaved={(content) => applyContent(content as ManagedContent)} />
+                          <button type="button" title="Delete formula" disabled={deletingId === f.id} onClick={() => handleDelete("formula", f.id)} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50">−</button>
+                        </div>}
                       </li>
                     ))}
                   </ul>
@@ -528,15 +516,10 @@ export default function UploadAndShow({
                             {q.description || q.subject}
                           </p>
                         </div>
-                        <button
-                          type="button"
-                          title="Delete set"
-                          disabled={deletingId === q.id}
-                          onClick={() => handleDelete("questionnaire", q.id)}
-                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50`}
-                        >
-                          −
-                        </button>
+                        {editMode && <div className="flex shrink-0 items-center gap-1">
+                          <ResourceEditor target="questionnaire" item={q} onSaved={(content) => applyContent(content as ManagedContent)} />
+                          <button type="button" title="Delete set" disabled={deletingId === q.id} onClick={() => handleDelete("questionnaire", q.id)} className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50">−</button>
+                        </div>}
                       </li>
                     ))}
                   </ul>
@@ -582,15 +565,10 @@ export default function UploadAndShow({
                             </a>
                           )}
                         </div>
-                        <button
-                          type="button"
-                          title="Delete file"
-                          disabled={deletingId === f.id}
-                          onClick={() => handleDelete("file", f.id)}
-                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50`}
-                        >
-                          −
-                        </button>
+                        {editMode && <div className="flex shrink-0 items-center gap-1">
+                          <ResourceEditor target="file" item={f} label="Change / replace" onSaved={(content) => applyContent(content as ManagedContent)} />
+                          <button type="button" title="Delete file" disabled={deletingId === f.id} onClick={() => handleDelete("file", f.id)} className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow-sm hover:bg-red-50">−</button>
+                        </div>}
                       </li>
                     ))}
                   </ul>
@@ -616,19 +594,14 @@ export default function UploadAndShow({
                               <span className="hidden shrink-0 text-xs font-medium text-brand-700 group-open:inline">Collapse ↑</span>
                             </span>
                           </summary>
-                          <div className="mt-3 max-h-80 overflow-y-auto overscroll-contain rounded-xl border border-slate-100 bg-slate-50 p-4">
+                          <div className="mt-3 max-h-[65vh] overflow-auto overscroll-contain rounded-xl border border-slate-100 bg-slate-50 p-4">
                             <RichContent className="text-sm text-slate-700">{d.content}</RichContent>
                           </div>
                         </details>
-                        <button
-                          type="button"
-                          title="Delete document"
-                          disabled={deletingId === d.id}
-                          onClick={() => handleDelete("document", d.id)}
-                          className={`${editMode ? "flex" : "hidden"} h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50`}
-                        >
-                          −
-                        </button>
+                        {editMode && <div className="flex shrink-0 items-center gap-1">
+                          <ResourceEditor target="document" item={d} onSaved={(content) => applyContent(content as ManagedContent)} />
+                          <button type="button" title="Delete document" disabled={deletingId === d.id} onClick={() => handleDelete("document", d.id)} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-lg font-bold text-red-600 hover:bg-red-50">−</button>
+                        </div>}
                       </li>
                     ))}
                   </ul>

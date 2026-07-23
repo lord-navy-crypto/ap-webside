@@ -28,7 +28,6 @@ const contentTypes: Array<{ value: ContentType; label: string }> = [
 export default function UnifiedAddContent({
   subjectId = "",
   subjectName = "",
-  units = [],
   onSaved,
   label = "+ Add content",
 }: Props) {
@@ -38,10 +37,6 @@ export default function UnifiedAddContent({
   const [type, setType] = useState<ContentType>("concept");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [unitId, setUnitId] = useState("");
-  const [tags, setTags] = useState("");
-  const [difficulty, setDifficulty] = useState("standard");
-  const [source, setSource] = useState("");
   const [changeCode, setChangeCode] = useState("");
   const [githubToken, setGithubToken] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -57,10 +52,6 @@ export default function UnifiedAddContent({
       setType((draft.type as ContentType) || "concept");
       setTitle(draft.title || "");
       setContent(draft.content || "");
-      setUnitId(draft.unitId || "");
-      setTags(draft.tags || "");
-      setDifficulty(draft.difficulty || "standard");
-      setSource(draft.source || "");
     } catch {
       localStorage.removeItem(storageKey);
     }
@@ -70,9 +61,9 @@ export default function UnifiedAddContent({
     if (!open) return;
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ type, title, content, unitId, tags, difficulty, source })
+      JSON.stringify({ type, title, content })
     );
-  }, [content, difficulty, open, source, storageKey, tags, title, type, unitId]);
+  }, [content, open, storageKey, title, type]);
 
   async function fileAsDataUrl(selected: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -93,13 +84,11 @@ export default function UnifiedAddContent({
       const action = type === "file" ? "add_files" : type === "folder" ? "add_folder" : "add_content_item";
       let item: Record<string, unknown> = {
         subjectId,
-        unitId: unitId || undefined,
         type,
         title,
         content,
-        tags,
-        difficulty,
-        source,
+        tags: [],
+        difficulty: "standard",
         status: requestedStatus,
       };
       let items: Record<string, unknown>[] | undefined;
@@ -132,8 +121,6 @@ export default function UnifiedAddContent({
       localStorage.removeItem(storageKey);
       setTitle("");
       setContent("");
-      setTags("");
-      setSource("");
       setFiles([]);
       setMessage(requestedStatus === "draft" ? "Draft saved." : "Published successfully.");
       onSaved?.();
@@ -171,29 +158,18 @@ export default function UnifiedAddContent({
               </div>
             </fieldset>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm font-medium">Subject<input className="input mt-1" value={subjectName || subjectId} disabled /></label>
-              <label className="text-sm font-medium">Unit<select className="input mt-1" value={unitId} onChange={(event) => setUnitId(event.target.value)}><option value="">No unit</option>{units.map((unit) => <option key={unit.id} value={unit.id}>{unit.title}</option>)}</select></label>
-            </div>
+            <label className="block text-sm font-medium">Subject<input className="input mt-1" value={subjectName || subjectId} disabled /></label>
 
             {type === "file" ? (
               <label className="block text-sm font-medium">Choose up to 10 files<input className="mt-2 block w-full text-sm" type="file" multiple onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 10))} required /><span className="mt-1 block text-xs text-slate-500">{files.length} selected · each file must stay under ~1MB</span></label>
             ) : null}
             <input className="input" placeholder={type === "file" ? "File note" : `${type} title`} value={title} onChange={(event) => setTitle(event.target.value)} required />
-            {type !== "file" && <textarea className="textarea" placeholder="Content or description (Markdown and math supported)" value={content} onChange={(event) => setContent(event.target.value)} required={type !== "folder"} />}
-
-            {!(["file", "folder"] as ContentType[]).includes(type) && (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input className="input" placeholder="Tags, separated by commas" value={tags} onChange={(event) => setTags(event.target.value)} />
-                <select className="input" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="intro">Intro</option><option value="standard">Standard</option><option value="challenge">Challenge</option></select>
-                <input className="input sm:col-span-2" placeholder="Source or note (optional)" value={source} onChange={(event) => setSource(event.target.value)} />
-              </div>
-            )}
+            {type !== "file" && <textarea className="textarea min-h-[20rem] resize-y" placeholder="Paste the complete content here. Markdown is supported; use $...$ or $$...$$ for LaTeX math." value={content} onChange={(event) => setContent(event.target.value)} required={type !== "folder"} />}
 
             {type !== "file" && content && (
               <div className="rounded-2xl border border-slate-200">
                 <button type="button" className="flex w-full items-center justify-between p-4 text-sm font-semibold" onClick={() => setPreview((value) => !value)}>Preview before publishing <span>{preview ? "−" : "+"}</span></button>
-                {preview && <div className="border-t border-slate-200 p-4"><h3 className="text-lg font-semibold">{title || "Untitled"}</h3><RichContent className="mt-2">{content}</RichContent></div>}
+                {preview && <div className="max-h-[45vh] overflow-auto border-t border-slate-200 p-4"><h3 className="text-lg font-semibold">{title || "Untitled"}</h3><RichContent className="mt-2">{content}</RichContent></div>}
               </div>
             )}
 

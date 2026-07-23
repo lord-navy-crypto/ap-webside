@@ -7,6 +7,8 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import RichContent from "@/components/RichContent";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
 import UploadAndShow from "@/components/UploadAndShow";
+import ResourceEditor from "@/components/ResourceEditor";
+import { useEditorMode } from "@/components/EditorModeProvider";
 import { concepts } from "@/data/content";
 import { formulas } from "@/data/formulas";
 import { questionnaires } from "@/data/questionnaires";
@@ -24,6 +26,7 @@ const sectionConfig = [
 ] as const;
 
 function SubjectWorkspaceContent() {
+  const { active: editMode } = useEditorMode();
   const params = useParams<{ subject: string }>();
   const searchParams = useSearchParams();
   const builtIn = getSubjectBySlug(params.subject);
@@ -39,6 +42,7 @@ function SubjectWorkspaceContent() {
       : "all";
   });
   const [unitId, setUnitId] = useState("all");
+  const [actionError, setActionError] = useState("");
 
   const refresh = useCallback(() => {
     fetch("/api/edit", { cache: "no-store" })
@@ -138,6 +142,23 @@ function SubjectWorkspaceContent() {
       )
       .sort((a, b) => a.order - b.order || b.updatedAt - a.updatedAt);
   }, [items, query, type, unitId]);
+
+  async function deleteContentItem(item: ManagedContentItem) {
+    if (!window.confirm(`Delete “${item.title}”? It can be restored from Manage → Recycle Bin.`)) return;
+    setActionError("");
+    try {
+      const response = await fetch("/api/edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", target: "content_item", id: item.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Delete failed");
+      setManaged(data.content || {});
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Delete failed");
+    }
+  }
 
   if (!subject) {
     return (
@@ -278,15 +299,24 @@ function SubjectWorkspaceContent() {
             ))}
           </select>
         </div>
+        {actionError && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{actionError}</p>}
         <div className="grid gap-4 md:grid-cols-2">
           {filteredItems.map((item: ManagedContentItem) => (
-            <article key={item.id} className="card">
-              <div className="flex flex-wrap gap-2">
-                <span className="badge">{item.type}</span>
-                <span className="badge">{item.difficulty}</span>
+            <article key={item.id} className="card min-w-0">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <span className="badge">{item.type}</span>
+                  <span className="badge">{item.difficulty}</span>
+                </div>
+                {editMode && <div className="flex items-center gap-1">
+                  <ResourceEditor target="content_item" item={item} onSaved={(content) => setManaged(content as ManagedContent)} />
+                  <button type="button" className="btn-ghost px-2 py-1 text-xs text-red-600" onClick={() => void deleteContentItem(item)}>− Delete</button>
+                </div>}
               </div>
               <h3 className="mt-3 text-lg font-semibold">{item.title}</h3>
-              <RichContent className="mt-2 text-sm">{item.content}</RichContent>
+              <div className="mt-2 max-h-[65vh] overflow-auto overscroll-contain">
+                <RichContent className="text-sm">{item.content}</RichContent>
+              </div>
               {item.tags.length > 0 && (
                 <p className="mt-3 text-xs text-slate-500">{item.tags.join(" · ")}</p>
               )}

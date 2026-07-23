@@ -182,15 +182,21 @@ function FormulasContent() {
                           </Link>
                         )}
                       </div>
-                      <FormulaMath expression={f.expression} />
-                      <div className="text-sm text-slate-600">
+                      {f.content ? (
+                        <div className="max-h-[65vh] overflow-auto overscroll-contain rounded-xl border border-slate-100 bg-slate-50 p-4">
+                          <RichContent>{f.content}</RichContent>
+                        </div>
+                      ) : (
+                        <FormulaMath expression={f.expression} />
+                      )}
+                      {!f.content && <div className="text-sm text-slate-600">
                         <span className="font-medium">Variables:</span>{" "}
                         <RichContent className="inline [&>p]:inline">{f.variables}</RichContent>
-                      </div>
-                      <div className="text-sm text-slate-600">
+                      </div>}
+                      {!f.content && <div className="text-sm text-slate-600">
                         <span className="font-medium">When to use:</span>{" "}
                         <RichContent className="inline [&>p]:inline">{f.whenToUse}</RichContent>
-                      </div>
+                      </div>}
                       <p className="text-xs text-slate-400">{f.sourceNote}</p>
                     </article>
                   ))}

@@ -94,8 +94,18 @@ function uid(): string {
 }
 
 // ── Images ──
-export async function saveImage(image: Omit<StoredImage, "id" | "createdAt">): Promise<StoredImage> {
-  const record: StoredImage = { ...image, id: uid(), createdAt: Date.now() };
+export async function saveImage(
+  image: Omit<StoredImage, "id" | "createdAt"> & { id?: string }
+): Promise<StoredImage> {
+  if (image.id) {
+    const existing = await tx<StoredImage | undefined>("images", "readonly", (s) => s.get(image.id!));
+    if (existing) {
+      const updated: StoredImage = { ...existing, ...image, id: image.id };
+      await tx("images", "readwrite", (s) => s.put(updated));
+      return updated;
+    }
+  }
+  const record: StoredImage = { ...image, id: image.id ?? uid(), createdAt: Date.now() };
   await tx("images", "readwrite", (s) => s.add(record));
   return record;
 }

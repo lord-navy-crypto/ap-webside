@@ -5,6 +5,7 @@ import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
+import ResourceEditor from "@/components/ResourceEditor";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
 import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
 
@@ -163,7 +164,7 @@ export default function ManagePage() {
       {tab === "content" && (
         <section className="space-y-4">
           <div className="card grid gap-3 md:grid-cols-4"><input className="input md:col-span-2" type="search" placeholder="Search content…" value={query} onChange={(event) => setQuery(event.target.value)} /><select className="input" value={subjectId} onChange={(event) => setSubjectId(event.target.value)}><option value="all">All subjects</option>{subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select><select className="input" value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">All statuses</option><option value="draft">Draft</option><option value="published">Published</option></select></div>
-          <div className="space-y-3">{filtered.map((item) => <ContentRow key={item.id} item={item} subject={subjects.find((subject) => subject.id === item.subjectId)} onAction={mutate} />)}{filtered.length === 0 && <div className="card text-sm text-slate-500">No content matches these filters.</div>}</div>
+          <div className="space-y-3">{filtered.map((item) => <ContentRow key={item.id} item={item} subject={subjects.find((subject) => subject.id === item.subjectId)} onAction={mutate} onSaved={(content) => setData(content as ManagedContent)} />)}{filtered.length === 0 && <div className="card text-sm text-slate-500">No content matches these filters.</div>}</div>
         </section>
       )}
 
@@ -187,6 +188,6 @@ export default function ManagePage() {
     </div>
   );
 }
-function ContentRow({ item, subject, onAction }: { item: ManagedContentItem; subject?: SubjectDefinition; onAction: (action: string, extra: Record<string, unknown>) => Promise<boolean> }) {
-  return <article className="card flex flex-wrap items-center justify-between gap-4"><div className="min-w-0 flex-1"><div className="flex flex-wrap gap-2"><span className="badge">{item.type}</span><span className={item.status === "published" ? "badge" : "badge-generated"}>{item.status}</span></div><h3 className="mt-2 truncate font-semibold">{item.title}</h3><p className="mt-1 text-xs text-slate-500">{subject?.name || item.subjectId} · order {item.order}</p></div><div className="flex flex-wrap gap-2"><button className="btn-ghost" onClick={() => onAction("move_content_item", { id: item.id, order: item.order - 1 })}>↑</button><button className="btn-ghost" onClick={() => onAction("move_content_item", { id: item.id, order: item.order + 1 })}>↓</button><button className="btn-secondary" onClick={() => onAction("set_content_status", { id: item.id, status: item.status === "draft" ? "published" : "draft" })}>{item.status === "draft" ? "Publish" : "Unpublish"}</button><button className="btn-ghost text-red-600" onClick={() => onAction("delete", { target: "content_item", id: item.id })}>Delete</button></div></article>;
+function ContentRow({ item, subject, onAction, onSaved }: { item: ManagedContentItem; subject?: SubjectDefinition; onAction: (action: string, extra: Record<string, unknown>) => Promise<boolean>; onSaved: (content: unknown) => void }) {
+  return <article className="card flex flex-wrap items-center justify-between gap-4"><div className="min-w-0 flex-1"><div className="flex flex-wrap gap-2"><span className="badge">{item.type}</span><span className={item.status === "published" ? "badge" : "badge-generated"}>{item.status}</span></div><h3 className="mt-2 truncate font-semibold">{item.title}</h3><p className="mt-1 text-xs text-slate-500">{subject?.name || item.subjectId} · order {item.order}</p></div><div className="flex flex-wrap gap-2"><ResourceEditor target="content_item" item={item} onSaved={onSaved} /><button className="btn-ghost" onClick={() => onAction("move_content_item", { id: item.id, order: item.order - 1 })}>↑</button><button className="btn-ghost" onClick={() => onAction("move_content_item", { id: item.id, order: item.order + 1 })}>↓</button><button className="btn-secondary" onClick={() => onAction("set_content_status", { id: item.id, status: item.status === "draft" ? "published" : "draft" })}>{item.status === "draft" ? "Publish" : "Unpublish"}</button><button className="btn-ghost text-red-600" onClick={() => onAction("delete", { target: "content_item", id: item.id })}>Delete</button></div></article>;
 }

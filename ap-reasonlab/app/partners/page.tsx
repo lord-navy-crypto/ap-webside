@@ -5,6 +5,8 @@ import Link from "next/link";
 import UploadAndShow from "@/components/UploadAndShow";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import { trueJetMembers } from "@/data/brand";
+import ResourceEditor from "@/components/ResourceEditor";
+import type { ManagedContent } from "@/lib/managed-types";
 
 type Member = { id: string; name: string; note?: string; addedAt: number };
 
@@ -50,6 +52,7 @@ export default function PartnersPage() {
         name: m.name,
         role: m.note?.replace(/github:\s*[A-Za-z0-9-]+/i, "").trim() || "Partner",
         github: gh,
+        note: m.note,
         source: "managed" as const,
       };
     });
@@ -60,6 +63,7 @@ export default function PartnersPage() {
       github: m.github.startsWith("http") ? m.github : null,
       avatar: m.avatar || "",
       source: "truejet" as const,
+      note: m.role,
     }));
     // Prefer managed entry if same GitHub/name already listed statically
     const staticNames = new Set(staticOnes.map((s) => s.name.toLowerCase()));
@@ -104,6 +108,18 @@ export default function PartnersPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function deletePartner(id: string, name: string) {
+    if (!window.confirm(`Remove “${name}” from the managed partner list?`)) return;
+    const response = await fetch("/api/edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", target: "member", id }),
+    });
+    const data = await response.json();
+    if (!response.ok) return setMessage(data.error || "Delete failed");
+    setMembers(data.content?.members || []);
   }
 
   return (
@@ -154,6 +170,12 @@ export default function PartnersPage() {
                   <span className="mt-2 inline-block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                     TrueJet
                   </span>
+                )}
+                {editMode && person.source === "managed" && (
+                  <div className="mt-2 flex gap-2">
+                    <ResourceEditor target="member" item={{ id: person.id, name: person.name, note: person.note }} onSaved={(content) => setMembers((content as ManagedContent).members || [])} />
+                    <button type="button" className="btn-ghost px-2 py-1 text-xs text-red-600" onClick={() => void deletePartner(person.id, person.name)}>Delete</button>
+                  </div>
                 )}
               </div>
             </li>

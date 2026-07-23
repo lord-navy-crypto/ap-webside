@@ -15,6 +15,7 @@ import {
 } from "@/lib/managed-store";
 import { subjectSlug } from "@/data/ap-catalog";
 import type { QuestionFormat, QuestionnaireItem } from "@/lib/types";
+import { normalizeAuthoredText } from "@/lib/unicode-math";
 
 const forumWriteTimes = new Map<string, number>();
 
@@ -209,7 +210,7 @@ export async function POST(req: NextRequest) {
         unitId: item.unitId ? String(item.unitId) : undefined,
         type: String(item.type) as "concept" | "formula" | "practice" | "document" | "file" | "folder",
         title: String(item.title),
-        content: String(item.content || "").slice(0, 200_000),
+        content: normalizeAuthoredText(String(item.content || "")).slice(0, 200_000),
         tags: Array.isArray(item.tags)
           ? item.tags.map(String)
           : String(item.tags || "").split(",").map((tag) => tag.trim()).filter(Boolean),
@@ -222,6 +223,76 @@ export async function POST(req: NextRequest) {
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
+    } else if (action === "update") {
+      const target = String(body.target || "");
+      const id = String(body.id || "");
+      const update = body.item || {};
+      const text = (value: unknown, limit = 200_000) =>
+        normalizeAuthoredText(String(value ?? "")).slice(0, limit);
+      if (!id) return NextResponse.json({ error: "Item id required" }, { status: 400 });
+
+      if (target === "content_item") {
+        const found = current.contentItems.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "Content item not found" }, { status: 404 });
+        if (update.title !== undefined) found.title = text(update.title, 160);
+        if (update.content !== undefined) found.content = text(update.content);
+        found.updatedAt = Date.now();
+      } else if (target === "concept" || target === "topic") {
+        const found = current.concepts.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "Concept not found" }, { status: 404 });
+        if (update.title !== undefined) found.title = text(update.title, 160);
+        if (update.summary !== undefined) found.summary = text(update.summary);
+        const topic = current.topics.find((entry) => entry.id === id);
+        if (topic) {
+          topic.title = found.title;
+          topic.summary = found.summary;
+        }
+      } else if (target === "formula") {
+        const found = current.formulas.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "Formula not found" }, { status: 404 });
+        if (update.name !== undefined || update.title !== undefined) found.name = text(update.name ?? update.title, 160);
+        if (update.content !== undefined) found.content = text(update.content);
+      } else if (target === "document") {
+        const found = current.documents.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "Document not found" }, { status: 404 });
+        if (update.title !== undefined) found.title = text(update.title, 160);
+        if (update.content !== undefined) found.content = text(update.content);
+        if (update.category !== undefined) found.category = text(update.category, 80);
+        found.updatedAt = Date.now();
+      } else if (target === "file") {
+        const found = current.files.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "File not found" }, { status: 404 });
+        if (update.name !== undefined) found.name = text(update.name, 200);
+        if (update.note !== undefined) found.note = text(update.note, 2_000);
+        if (update.dataUrl !== undefined) {
+          if (String(update.dataUrl).length > 1_500_000) return NextResponse.json({ error: "Replacement file is too large" }, { status: 400 });
+          found.dataUrl = String(update.dataUrl);
+          found.mime = text(update.mime || "application/octet-stream", 120);
+          found.uploadedAt = Date.now();
+        }
+      } else if (target === "folder") {
+        const found = current.folders.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+        if (update.title !== undefined) found.title = text(update.title, 160);
+        if (update.note !== undefined) found.note = text(update.note, 2_000);
+      } else if (target === "questionnaire") {
+        const found = current.questionnaires.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "Practice set not found" }, { status: 404 });
+        if (update.title !== undefined) found.title = text(update.title, 160);
+        if (update.description !== undefined) found.description = text(update.description, 20_000);
+      } else if (target === "subject") {
+        const found = current.subjects.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "Subject not found" }, { status: 404 });
+        if (update.name !== undefined || update.title !== undefined) found.name = text(update.name ?? update.title, 160);
+        if (update.description !== undefined) found.description = text(update.description, 2_000);
+      } else if (target === "member") {
+        const found = current.members.find((entry) => entry.id === id);
+        if (!found) return NextResponse.json({ error: "Member not found" }, { status: 404 });
+        if (update.name !== undefined || update.title !== undefined) found.name = text(update.name ?? update.title, 160);
+        if (update.note !== undefined) found.note = text(update.note, 2_000);
+      } else {
+        return NextResponse.json({ error: "Unknown update target" }, { status: 400 });
+      }
     } else if (action === "set_content_status") {
       const target = current.contentItems.find((item) => item.id === String(body.id || ""));
       if (!target) return NextResponse.json({ error: "Content item not found" }, { status: 404 });
@@ -268,7 +339,7 @@ export async function POST(req: NextRequest) {
         id: conceptId,
         title: String(item.title),
         subject: String(item.subject),
-        summary: String(item.summary || ""),
+        summary: normalizeAuthoredText(String(item.summary || "")),
         keyPoints: Array.isArray(item.keyPoints) ? item.keyPoints.map(String) : [],
         commonMistakes: Array.isArray(item.commonMistakes) ? item.commonMistakes.map(String) : [],
         example: String(item.example || ""),
@@ -278,7 +349,7 @@ export async function POST(req: NextRequest) {
           id: conceptId,
           title: String(item.title),
           subject: String(item.subject),
-          summary: String(item.summary || ""),
+          summary: normalizeAuthoredText(String(item.summary || "")),
           createdAt: Date.now(),
           area: item.area ? String(item.area) : undefined,
           space: item.space ? String(item.space) : undefined,
@@ -347,15 +418,18 @@ export async function POST(req: NextRequest) {
       });
     } else if (action === "add_formula") {
       const item = body.item || {};
-      if (!item.name || !item.expression || !item.subject) {
-        return NextResponse.json({ error: "name, expression, subject required" }, { status: 400 });
+      if (!item.name || (!item.content && !item.expression) || !item.subject) {
+        return NextResponse.json({ error: "name, content, and subject required" }, { status: 400 });
       }
       current.formulas.push({
         id: uid("m-formula"),
         subject: String(item.subject),
         unit: String(item.unit || "Managed"),
         name: String(item.name),
-        expression: String(item.expression),
+        expression: String(item.expression || ""),
+        content: item.content
+          ? normalizeAuthoredText(String(item.content)).slice(0, 200_000)
+          : undefined,
         variables: String(item.variables || ""),
         whenToUse: String(item.whenToUse || ""),
         sourceNote: "Added via change-code edit",
@@ -371,7 +445,7 @@ export async function POST(req: NextRequest) {
       current.documents.push({
         id: uid("m-doc"),
         title: String(item.title).slice(0, 160),
-        content: String(item.content).slice(0, 200_000),
+        content: normalizeAuthoredText(String(item.content)).slice(0, 200_000),
         category: String(item.category || "Uploaded").slice(0, 80),
         updatedAt: Date.now(),
         area: item.area ? String(item.area) : undefined,
