@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getContentEditorLevel, getGithubTokenFromCookie } from "@/lib/auth";
+import { canEditContent } from "@/lib/change-codes";
 import {
   listManagedContentHistory,
   loadManagedContentAtRef,
   saveManagedContent,
 } from "@/lib/managed-store";
 
-async function requireMaster() {
-  return (await getContentEditorLevel()) === "master";
+async function requireEditor() {
+  return canEditContent(await getContentEditorLevel());
 }
 
 export async function GET() {
-  if (!(await requireMaster())) {
-    return NextResponse.json({ error: "Master Manager access required." }, { status: 403 });
+  if (!(await requireEditor())) {
+    return NextResponse.json(
+      { error: "Unlock with the content change code first." },
+      { status: 403 }
+    );
   }
   const token = await getGithubTokenFromCookie();
   const history = await listManagedContentHistory(token, 30);
@@ -27,8 +31,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    if (!(await requireMaster())) {
-      return NextResponse.json({ error: "Master Manager access required." }, { status: 403 });
+    if (!(await requireEditor())) {
+      return NextResponse.json(
+        { error: "Unlock with the content change code first." },
+        { status: 403 }
+      );
     }
     const body = await req.json();
     const sha = String(body.sha || "");

@@ -76,7 +76,7 @@ export default function EditHistory({
       <div className="card flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">
-            Master-only recovery
+            Content recovery
           </p>
           <h2 className="mt-1 text-2xl font-bold">Modification history</h2>
           <p className="mt-2 max-w-2xl text-sm text-slate-600">

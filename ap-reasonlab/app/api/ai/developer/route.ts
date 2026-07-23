@@ -5,6 +5,7 @@ import {
   runChatJson,
 } from "@/lib/ai-client";
 import { getContentEditorLevel, getGithubTokenFromCookie } from "@/lib/auth";
+import { canEditContent } from "@/lib/change-codes";
 import {
   loadManagedContent,
   normalizeManagedContent,
@@ -45,8 +46,11 @@ function findTarget(content: ManagedContent, target: EditableTarget, id: string)
 
 export async function POST(req: NextRequest) {
   try {
-    if ((await getContentEditorLevel()) !== "master") {
-      return NextResponse.json({ error: "Master Manager access required." }, { status: 403 });
+    if (!canEditContent(await getContentEditorLevel())) {
+      return NextResponse.json(
+        { error: "Unlock with the content change code first." },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

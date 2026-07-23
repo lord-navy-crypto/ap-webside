@@ -37,11 +37,7 @@ export default function EditModeButton() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Unlock failed");
-      setNote(
-        data.level === "master"
-          ? "Master unlocked. Use AI Developer / History from this menu or the top edit bar."
-          : data.note || "Unlocked."
-      );
+      setNote(data.note || "Unlocked. AI Developer and History are available from this menu.");
       setChangeCode("");
       await refresh();
       setActive(true);
@@ -129,7 +125,7 @@ export default function EditModeButton() {
                   className="input"
                   value={changeCode}
                   onChange={(e) => setChangeCode(e.target.value)}
-                  placeholder="Content or Master code"
+                  placeholder="Content change code"
                 />
                 <button
                   type="submit"
@@ -147,14 +143,14 @@ export default function EditModeButton() {
           ) : (
             <form onSubmit={unlock} className="space-y-3">
               <p className="text-xs text-slate-600">
-                Enter the <strong>content</strong> or <strong>master</strong> change code once.
+                Enter the <strong>content change code</strong> once.
               </p>
               <input
                 type="password"
                 className="input"
                 value={changeCode}
                 onChange={(e) => setChangeCode(e.target.value)}
-                placeholder="Content or Master code"
+                placeholder="Content change code"
                 required
                 autoFocus
               />
