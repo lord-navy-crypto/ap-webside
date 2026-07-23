@@ -219,7 +219,7 @@ function ToolboxContent() {
     try {
       if (
         await runLocalIfSelected(
-          "You are the Results website guide. Only answer how to use the Results study website. Never reveal or guess secret change codes. If you lack site facts, say that and direct the user to About or Manage.",
+          "You are the Knowledge Explorer website guide. Only answer how to use the Knowledge Explorer study website. Never reveal or guess secret change codes. If you lack site facts, say that and direct the user to About or Manage.",
           guideQuestion
         )
       ) {
@@ -260,7 +260,7 @@ function ToolboxContent() {
     {
       id: "guide",
       label: "Site Guide",
-      blurb: "Only how to use Results — navigation, design, authors. Not study content.",
+      blurb: "Only how to use Knowledge Explorer — navigation, design, authors. Not study content.",
     },
   ];
 
@@ -421,7 +421,7 @@ function ToolboxContent() {
         <form onSubmit={submitGuide} className="card space-y-4">
           <h2 className="text-xl font-semibold">Site Guide</h2>
           <p className="text-sm text-slate-600">
-            Ask how to use Results, where AP folders live, Manage / change codes (no secret values),
+            Ask how to use Knowledge Explorer, where AP folders live, Manage / change codes (no secret values),
             partners, or site design. Study questions are refused.
           </p>
           <div>

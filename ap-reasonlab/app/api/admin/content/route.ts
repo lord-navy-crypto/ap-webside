@@ -127,7 +127,7 @@ export async function PUT(req: NextRequest) {
         variables: String(formula.variables || ""),
         whenToUse: String(formula.whenToUse || ""),
         relatedConceptId: formula.relatedConceptId ? String(formula.relatedConceptId) : undefined,
-        sourceNote: String(formula.sourceNote || "Added via Results Admin UI"),
+        sourceNote: String(formula.sourceNote || "Added via Knowledge Explorer Admin UI"),
       };
       const idx = current.formulas.findIndex((f) => f.id === item.id);
       if (idx >= 0) current.formulas[idx] = item;

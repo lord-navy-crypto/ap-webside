@@ -322,7 +322,7 @@ export default function LocalAIControls() {
                 is different and may vary.
               </p>
               <p className="font-medium text-slate-800">
-                Local prompts stay on this device and are not sent to the Results AI server.
+                Local prompts stay on this device and are not sent to the Knowledge Explorer AI server.
               </p>
             </div>
             <div className="mt-5 flex justify-end gap-2">

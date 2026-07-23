@@ -269,7 +269,7 @@ export async function listManagedContentHistory(
         sha: String(row.sha),
         message: String(row.commit?.message || "Managed content update").split("\n")[0],
         author: String(
-          row.commit?.author?.name || row.commit?.committer?.name || "Results Manager"
+          row.commit?.author?.name || row.commit?.committer?.name || "Knowledge Explorer Manager"
         ),
         date: String(row.commit?.author?.date || row.commit?.committer?.date || ""),
         url: String(row.html_url || ""),

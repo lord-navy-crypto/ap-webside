@@ -121,7 +121,7 @@ export default function ManagePage() {
     <div className="space-y-7">
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Manage" }]} />
       <section className="rounded-3xl bg-slate-950 p-6 text-white md:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-5"><div><span className="text-xs font-semibold uppercase tracking-wider text-blue-300">RESULTS CONTROL CENTER</span><h1 className="mt-2 text-3xl font-bold">Manage the site without changing code</h1><p className="mt-2 max-w-2xl text-slate-300">Create and edit content, use AI Developer, review modification history, and safely undo a change. Content change code is enough.</p></div><UnifiedAddContent subjectId={selectedSubject?.id} subjectName={selectedSubject?.name} units={units} onSaved={refresh} /></div>
+        <div className="flex flex-wrap items-end justify-between gap-5"><div><span className="text-xs font-semibold uppercase tracking-wider text-blue-300">KNOWLEDGE EXPLORER CONTROL CENTER</span><h1 className="mt-2 text-3xl font-bold">Manage the site without changing code</h1><p className="mt-2 max-w-2xl text-slate-300">Create and edit content, use AI Developer, review modification history, and safely undo a change. Content change code is enough.</p></div><UnifiedAddContent subjectId={selectedSubject?.id} subjectName={selectedSubject?.name} units={units} onSaved={refresh} /></div>
       </section>
 
       <section className="card grid gap-3 md:grid-cols-2">

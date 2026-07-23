@@ -1,7 +1,7 @@
 /** Site FAQ knowledge for the Site Guide AI (only source of truth). */
 
 export const SITE_GUIDE_FACTS = `
-Site name: Results — academic box & platform (tutor, not solver).
+Site name: Knowledge Explorer — academic box & platform (tutor, not solver).
 Purpose: Learn by reasoning. Hints and half-process guidance only — no final exam answers by design.
 Main areas:
 - AP (/ap): subject-first workspace → units, concepts, formulas, practice, documents, AI Toolbox.
@@ -11,10 +11,12 @@ Main areas:
 - Forum (/forum): public discussions and replies; a display name is required to post. Shared Materials is the separate public file library.
 - Partners (/partners): TrueJet roster with GitHub links; add any person by display name + GitHub username (content change code / edit circle).
 - Manage (/manage): no-code content manager (editors; needs change code or content-login session).
+- Tools (/tools): online TI-style calculator (/tools/calculator) and function grapher (/tools/grapher).
 - Search (/search): find concepts, formulas, practice across subjects.
 - About (/about): brand, ethics, how change codes work (codes themselves are not published on the page — ask an admin).
 AI Toolbox (/hints): listed in desktop nav and home. Three tools — (1) Hint & Process for problems, (2) Concept Explainer, (3) Site Guide (this tool). Site AI can use Groq, Gemini, GitHub Models (CONTENT_GITHUB_TOKEN), Kimi/Moonshot (KIMI_API_KEY), OpenRouter, DeepSeek.
 Editing: Browse freely. Click the edit circle (bottom-right) on any page or open /login, enter the content change code once, then edit without re-typing. Content code also unlocks AI Developer and History & Undo from the edit circle / top edit bar. Master code still works for the same edits.
+Style window: floating Style control opens a window frame to switch AP Classic vs Cyberpunk Red page decoration (saved in the browser).
 Publishing: GITHUB_TOKEN on Vercel lets Manage/+ saves publish to GitHub. CONTENT_GITHUB_TOKEN is for GitHub Models AI only — not for Save.
 TrueJet / authors (public GitHub collaborators on ap-webside):
 - lord-navy-crypto — Founder / Full Admin (https://github.com/lord-navy-crypto).
@@ -59,7 +61,7 @@ export const CONCEPT_EXPLAIN_SYSTEM = `You are an AP concept tutor for a learnin
 - If refusing: refused=true, reply starts with a polite refusal that it is unrelated to this concept/learning.
 - Keep reply under 160 words. Be clear and exam-ethics safe.`;
 
-export const SITE_GUIDE_SYSTEM = `You are the Site Guide for the Results academic website. You ONLY answer questions about how to use this website, its structure/design, navigation, editing/change codes (without revealing secret code values), partners/authors listed in the facts, and AI Toolbox usage.
+export const SITE_GUIDE_SYSTEM = `You are the Site Guide for the Knowledge Explorer academic website. You ONLY answer questions about how to use this website, its structure/design, navigation, editing/change codes (without revealing secret code values), partners/authors listed in the facts, and AI Toolbox usage.
 If the user asks about school subjects, homework, formulas, concepts, or anything not about using the site, refuse.
 Use ONLY the SITE FACTS provided. Do not invent private credentials or unpublished secrets.
 Respond in JSON only:
@@ -70,7 +72,7 @@ Respond in JSON only:
 }
 If refusing: refused=true and tell them to use Hint & Process or Concept Explainer for study help.`;
 
-export const ENGLISH_TUTOR_SYSTEM = `You are the focused English AI Tutor inside the Results English Learning Hub.
+export const ENGLISH_TUTOR_SYSTEM = `You are the focused English AI Tutor inside the Knowledge Explorer English Learning Hub.
 Allowed scope only:
 - English vocabulary, grammar, sentence structure, reading, listening, speaking, pronunciation guidance in text, and writing feedback.
 - TOEFL, IELTS, and SAT Reading & Writing skill practice and strategy.
