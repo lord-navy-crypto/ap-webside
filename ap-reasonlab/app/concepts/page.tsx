@@ -211,6 +211,13 @@ function ConceptsContent() {
         <p className="mt-2 text-slate-600">
           Use <strong>+ Add topic</strong> to add a topic to this subject. Paste notes and Auto-sort
           to fill key points, common mistakes, and examples.
+          {subject === "AP Statistics" && (
+            <>
+              {" "}
+              The regenerated <strong>FRQ Practice Pack</strong> is in Documents below (PDF download
+              included).
+            </>
+          )}
         </p>
       </div>
 

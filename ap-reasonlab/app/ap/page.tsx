@@ -22,7 +22,13 @@ const apTools = [
   {
     href: "/practice?subject=AP%20Statistics",
     title: "AP Statistics FRQs",
-    description: "Jump straight into Statistics generated FRQ sets (exploring → inference).",
+    description:
+      "Generated FRQ sets + document section: regenerated practice pack PDF/MD with reference answers.",
+  },
+  {
+    href: "/concepts?subject=AP%20Statistics",
+    title: "AP Statistics Topics & Docs",
+    description: "Topics, guides, and the FRQ Practice Pack document for Statistics.",
   },
   {
     href: "/hints",
@@ -59,12 +65,12 @@ export default function ApHubPage() {
       </section>
 
       <UploadAndShow
-        alsoShow={["subject", "topic", "concept", "formula", "questionnaire", "folder"]}
+        alsoShow={["subject", "topic", "concept", "formula", "questionnaire", "document", "folder"]}
         defaultSubject="AP Statistics"
         folderArea="ap"
-        spaceKey="_root"
+        spaceKey="AP Statistics"
         spaceBasePath="/ap"
-        title="AP area storage"
+        title="AP Statistics storage"
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

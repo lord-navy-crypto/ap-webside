@@ -119,6 +119,13 @@ function PracticeContent() {
         <p className="mt-2 text-slate-600">
           Practice for this subject — hints only. Use{" "}
           <strong>+ Add generated practice set</strong> to create a new AI FRQ set here.
+          {subject === "AP Statistics" && (
+            <>
+              {" "}
+              Open <strong>Documents</strong> in the storage panel below for the regenerated FRQ
+              Practice Pack (with reference answers) and download the PDF.
+            </>
+          )}
         </p>
       </div>
 
