@@ -73,12 +73,10 @@ System.out.println(sum);`,
 ];
 
 export const howToEmbedEditors = `
-How to add a real editor later (not installed yet):
+Installed now:
+1) Web/HTML — HtmlPlayground on /code/web (textarea + iframe srcDoc preview).
+2) Python — PythonPlayground on /code/python (Pyodide CDN runtime in the browser).
 
-1) Python in-browser: embed JupyterLite or use Pyodide + Monaco editor in an iframe/page.
-2) Java: usually needs a remote runner (e.g. Judge0 / OneCompiler embed) — harder fully offline.
-3) Web/HTML: easiest — iframe a srcdoc or StackBlitz/CodeSandbox embed.
-
-Until then: use + Upload file / + Add document / standard snippets on each language page,
-and paste code into your local IDE (VS Code, IntelliJ, Replit).
+Still later:
+3) Java — needs a remote runner (Judge0 / OneCompiler / Piston) or edit-only + download for now.
 `;

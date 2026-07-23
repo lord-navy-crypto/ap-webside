@@ -7,7 +7,7 @@ Main areas:
 - AP (/ap): subject-first workspace → units, concepts, formulas, practice, documents, AI Toolbox.
 - English (/english): English Learning Hub → TOEFL, IELTS, SAT, vocabulary, grammar/sentences, writing, uploaded resources, and an English-only AI Tutor (/english/ai).
 - Academic Platform (/academic): Private Learning Box, Shared Materials, Picture, Image Gen.
-- Code (/code): Python, Java, web resource folders.
+- Code (/code): Python (Pyodide playground on /code/python), Web/HTML (live preview on /code/web), Java snippets/uploads (no in-browser runner yet).
 - Forum (/forum): public discussions and replies; a display name is required to post. Shared Materials is the separate public file library.
 - Partners (/partners): TrueJet roster with GitHub links; add any person by display name + GitHub username (content change code / edit circle).
 - Manage (/manage): no-code content manager (editors; needs change code or content-login session).

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import PythonPlayground from "@/components/PythonPlayground";
 import UploadAndShow from "@/components/UploadAndShow";
 import { standardSnippets } from "@/data/code-snippets";
 
@@ -14,10 +15,18 @@ export default function CodePythonPage() {
       <div>
         <h1 className="text-3xl font-bold">Python</h1>
         <p className="mt-2 text-slate-600">
-          Standard Python samples. No in-browser editor yet — copy into VS Code / Replit, or upload
-          your .py files here.
+          In-browser Python (Pyodide). Run examples below, or upload your .py files with a change
+          code.
         </p>
       </div>
+
+      <PythonPlayground
+        examples={snippets.map((item) => ({
+          id: item.id,
+          title: item.title,
+          code: item.code,
+        }))}
+      />
 
       <UploadAndShow
         alsoShow={["document", "folder"]}

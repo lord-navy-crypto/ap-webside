@@ -9,19 +9,19 @@ const langs = [
     id: "python",
     title: "Python",
     href: "/code/python",
-    description: "Standard snippets + documents. No in-browser editor yet.",
+    description: "In-browser Pyodide playground + uploads.",
   },
   {
     id: "java",
     title: "Java",
     href: "/code/java",
-    description: "CSA-style starters + documents. No in-browser editor yet.",
+    description: "CSA-style starters + documents. No in-browser runner yet.",
   },
   {
     id: "web",
     title: "Web / HTML",
     href: "/code/web",
-    description: "HTML starters + simulation documents. No editor yet.",
+    description: "Live HTML preview playground + uploads.",
   },
 ];
 
@@ -31,8 +31,8 @@ export default function CodePage() {
       <div>
         <h1 className="text-3xl font-bold">Code Resource</h1>
         <p className="mt-2 text-slate-600">
-          Python, Java, and Web folders with standard code samples. Editors are not installed yet —
-          upload files, add documents, or save simulation page notes with a change code.
+          Python and Web include in-browser playgrounds. Java still uses snippets + uploads for now.
+          Upload files, add documents, or save simulation notes with a change code.
         </p>
       </div>
 
@@ -59,7 +59,17 @@ export default function CodePage() {
       </div>
 
       <section className="card space-y-2">
-        <h2 className="text-lg font-semibold">How to add a real editor later</h2>
+        <h2 className="text-lg font-semibold">Editors</h2>
+        <p className="text-sm text-slate-600">
+          <Link href="/code/web" className="font-medium text-brand-700 underline">
+            Web / HTML
+          </Link>{" "}
+          has a live preview editor.{" "}
+          <Link href="/code/python" className="font-medium text-brand-700 underline">
+            Python
+          </Link>{" "}
+          runs with Pyodide in the browser. Java still needs a remote runner later.
+        </p>
         <pre className="whitespace-pre-wrap text-sm text-slate-600">{howToEmbedEditors}</pre>
       </section>
 
