@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import AIDeveloperBlocks from "@/components/AIDeveloperBlocks";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import EditHistory from "@/components/EditHistory";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import ResourceEditor from "@/components/ResourceEditor";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
 import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
 
-type Tab = "content" | "subjects" | "units" | "trash";
+type Tab = "content" | "subjects" | "units" | "trash" | "ai" | "history";
 
 export default function ManagePage() {
   const { active: editMode, unlocked, editor, refresh: refreshEditor } = useEditorMode();
@@ -96,6 +98,12 @@ export default function ManagePage() {
     { id: "subjects", label: "Subjects", count: subjects.length },
     { id: "units", label: "Units", count: data.units?.length || 0 },
     { id: "trash", label: "Recycle Bin", count: trash.length },
+    ...(editor?.level === "master"
+      ? [
+          { id: "ai" as const, label: "AI Developer" },
+          { id: "history" as const, label: "History & Undo" },
+        ]
+      : []),
   ];
 
   if (!editMode) {
@@ -117,7 +125,7 @@ export default function ManagePage() {
     <div className="space-y-7">
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Manage" }]} />
       <section className="rounded-3xl bg-slate-950 p-6 text-white md:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-5"><div><span className="text-xs font-semibold uppercase tracking-wider text-blue-300">RESULTS CONTROL CENTER</span><h1 className="mt-2 text-3xl font-bold">Manage the site without changing code</h1><p className="mt-2 max-w-2xl text-slate-300">Create subjects and units, add content, manage drafts, change ordering, and recover deleted items.</p></div><UnifiedAddContent subjectId={selectedSubject?.id} subjectName={selectedSubject?.name} units={units} onSaved={refresh} /></div>
+        <div className="flex flex-wrap items-end justify-between gap-5"><div><span className="text-xs font-semibold uppercase tracking-wider text-blue-300">RESULTS CONTROL CENTER</span><h1 className="mt-2 text-3xl font-bold">Manage the site without changing code</h1><p className="mt-2 max-w-2xl text-slate-300">Create and edit content, use the master-only AI Developer, review modification history, and safely undo a change.</p></div><UnifiedAddContent subjectId={selectedSubject?.id} subjectName={selectedSubject?.name} units={units} onSaved={refresh} /></div>
       </section>
 
       <section className="card grid gap-3 md:grid-cols-2">
@@ -184,6 +192,25 @@ export default function ManagePage() {
 
       {tab === "trash" && (
         <section className="space-y-3"><div><h2 className="section-title">Recycle Bin</h2><p className="mt-1 text-sm text-slate-500">Deleted manager content stays recoverable here.</p></div>{trash.map((item) => <div key={item.id} className="card flex flex-wrap items-center justify-between gap-3"><div><span className="badge">{item.type}</span><h3 className="mt-2 font-semibold">{item.title}</h3></div><button className="btn-secondary" onClick={() => mutate("restore_content_item", { id: item.id })}>Restore</button></div>)}{trash.length === 0 && <div className="card text-sm text-slate-500">Recycle Bin is empty.</div>}</section>
+      )}
+
+      {tab === "ai" && editor?.level === "master" && (
+        <AIDeveloperBlocks
+          embedded
+          onWebsiteChanged={(content) => {
+            setData(content);
+            setMessage("AI Developer change applied. Open History & Undo to restore it.");
+          }}
+        />
+      )}
+
+      {tab === "history" && editor?.level === "master" && (
+        <EditHistory
+          onRestored={(content) => {
+            setData(content);
+            setMessage("A previous website-content version was restored.");
+          }}
+        />
       )}
     </div>
   );

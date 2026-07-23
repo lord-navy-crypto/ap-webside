@@ -95,6 +95,16 @@ function repoSettings() {
   };
 }
 
+const MANAGED_CONTENT_REPO_PATH = "ap-reasonlab/data/managed-content.json";
+
+export type ManagedContentHistoryEntry = {
+  sha: string;
+  message: string;
+  author: string;
+  date: string;
+  url: string;
+};
+
 async function readJsonFile<T>(filePath: string, fallback: T): Promise<T> {
   try {
     const raw = await readFile(filePath, "utf8");
@@ -110,19 +120,21 @@ async function writeJsonFile(filePath: string, data: unknown): Promise<void> {
 
 async function githubGet(
   filePathInRepo: string,
-  token?: string
+  token?: string,
+  ref?: string
 ): Promise<{ text: string; sha: string } | null> {
   const { repo, branch } = repoSettings();
-  const candidates = githubAuthCandidates(token);
-  if (candidates.length === 0) return null;
+  const candidates = [...githubAuthCandidates(token), ""];
 
   const apiPath = filePathInRepo.replace(/^\/+/, "");
-  const url = `https://api.github.com/repos/${repo}/contents/${apiPath}?ref=${encodeURIComponent(branch)}`;
+  const url = `https://api.github.com/repos/${repo}/contents/${apiPath}?ref=${encodeURIComponent(
+    ref || branch
+  )}`;
 
   for (const auth of candidates) {
     const res = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${auth}`,
+        ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
         Accept: "application/vnd.github+json",
       },
       cache: "no-store",
@@ -196,7 +208,7 @@ async function githubWrite(
 }
 
 export async function loadManagedContent(token?: string): Promise<ManagedContent> {
-  const fromGh = await githubGet("ap-reasonlab/data/managed-content.json", token);
+  const fromGh = await githubGet(MANAGED_CONTENT_REPO_PATH, token);
   if (fromGh) {
     try {
       return normalizeManagedContent(JSON.parse(fromGh.text) as ManagedContent);
@@ -207,17 +219,76 @@ export async function loadManagedContent(token?: string): Promise<ManagedContent
   return normalizeManagedContent(await readJsonFile(CONTENT_PATH, emptyManagedContent()));
 }
 
+export async function loadManagedContentAtRef(
+  ref: string,
+  token?: string
+): Promise<ManagedContent | null> {
+  if (!/^[a-f0-9]{40}$/i.test(ref)) return null;
+  const fromGithub = await githubGet(MANAGED_CONTENT_REPO_PATH, token, ref);
+  if (!fromGithub) return null;
+  try {
+    return normalizeManagedContent(JSON.parse(fromGithub.text) as ManagedContent);
+  } catch {
+    return null;
+  }
+}
+
+export async function listManagedContentHistory(
+  token?: string,
+  limit = 20
+): Promise<ManagedContentHistoryEntry[]> {
+  const { repo, branch } = repoSettings();
+  const candidates = [...githubAuthCandidates(token), ""];
+  const safeLimit = Math.max(2, Math.min(50, Math.floor(limit)));
+  const url = new URL(`https://api.github.com/repos/${repo}/commits`);
+  url.searchParams.set("path", MANAGED_CONTENT_REPO_PATH);
+  url.searchParams.set("sha", branch);
+  url.searchParams.set("per_page", String(safeLimit));
+
+  for (const auth of candidates) {
+    const response = await fetch(url, {
+      headers: {
+        ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+        Accept: "application/vnd.github+json",
+      },
+      cache: "no-store",
+    });
+    if (!response.ok) continue;
+    const rows = (await response.json()) as Array<{
+      sha?: string;
+      html_url?: string;
+      commit?: {
+        message?: string;
+        author?: { name?: string; date?: string };
+        committer?: { name?: string; date?: string };
+      };
+    }>;
+    return rows
+      .filter((row) => row.sha && row.commit)
+      .map((row) => ({
+        sha: String(row.sha),
+        message: String(row.commit?.message || "Managed content update").split("\n")[0],
+        author: String(
+          row.commit?.author?.name || row.commit?.committer?.name || "Results Manager"
+        ),
+        date: String(row.commit?.author?.date || row.commit?.committer?.date || ""),
+        url: String(row.html_url || ""),
+      }));
+  }
+  return [];
+}
+
 export async function saveManagedContent(
   data: ManagedContent,
-  token?: string
+  token?: string,
+  message = "chore: update managed content via Admin UI"
 ): Promise<{ mode: "github" | "local" }> {
   const next = { ...normalizeManagedContent(data), updatedAt: Date.now() };
   const text = JSON.stringify(next, null, 2) + "\n";
-  const repoPath = "ap-reasonlab/data/managed-content.json";
   const viaGithub = await githubWrite(
-    repoPath,
+    MANAGED_CONTENT_REPO_PATH,
     text,
-    "chore: update managed content via Admin UI",
+    message,
     token
   );
   if (viaGithub.ok) return { mode: "github" };

@@ -36,7 +36,7 @@ export default function MobileActionBar() {
     group.label === "Admin & developer" && editor?.level === "master"
       ? {
           ...group,
-          links: [...group.links, { href: "/ai-developer", label: "AI Developer Blocks" }],
+          links: [...group.links, { href: "/ai-developer", label: "AI Developer" }],
         }
       : group
   );
