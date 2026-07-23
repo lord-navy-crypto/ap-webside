@@ -18,8 +18,8 @@ const MODES: Array<{
     value: "local",
     label: "Local AI",
     detail:
-      "Runs on your computer — free for the site, private, no shared cloud quota. Enable a model below.",
-    badge: "Author recommends",
+      "Local AI is the best. We recommend using Local AI. There are no restrictions. Enable a model below.",
+    badge: "Best · recommend",
     badgeTone: "recommend",
   },
   {
@@ -182,10 +182,12 @@ export default function LocalAIControls() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="font-semibold text-slate-900">Local model library</h2>
+            <p className="mt-1 max-w-2xl text-sm font-semibold text-emerald-800">
+              Local AI is the best. We recommend using Local AI. There are no restrictions.
+            </p>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              <strong>Author recommends Local AI</strong> for everyday study: no website token bill,
-              prompts stay on your device, and we do not apply cloud-style output caps. Pick a model
-              below (tiny / Chinese / math / coder), then Enable.
+              No website token bill, prompts stay on your device, and we do not apply cloud-style
+              output caps. Pick a model below (tiny / Chinese / math / coder), then Enable.
             </p>
           </div>
           <span

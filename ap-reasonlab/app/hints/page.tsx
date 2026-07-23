@@ -293,19 +293,24 @@ function ToolboxContent() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">AI Toolbox</p>
         <h1 className="mt-1 text-3xl font-bold">Study tools — Local AI first</h1>
+        <p className="mt-2 max-w-2xl text-lg font-semibold text-emerald-800">
+          Local AI is the best. We recommend using Local AI. There are no restrictions.
+        </p>
         <p className="mt-2 max-w-2xl text-slate-600">
-          <strong>Author recommends Local AI first</strong> — free for the site, private on your
-          computer, no shared cloud caps. Use Cloud (public Instant = lowest) or your own mid-tier
-          API only as backup.
+          Free for the site, private on your computer, no shared cloud caps. Use Cloud (public
+          Instant = lowest) or your own mid-tier API only as backup.
         </p>
       </div>
 
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-950">
         <p className="font-semibold">Site recommendations</p>
-        <ul className="mt-1 list-disc space-y-1 pl-5 text-emerald-900/90">
+        <p className="mt-1 font-medium text-emerald-900">
+          Local AI is the best. We recommend using Local AI. There are no restrictions.
+        </p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-emerald-900/90">
           <li>
-            <strong>Local AI</strong> — author recommends; enable a model in the library below
-            (no site token bill, private on your device, no product-side caps).
+            <strong>Local AI</strong> — enable a model in the library below (no site token bill,
+            private on your device, no product-side caps).
           </li>
           <li>
             <strong>Auto / Cloud</strong> — backup when WebGPU is missing; public website API stays

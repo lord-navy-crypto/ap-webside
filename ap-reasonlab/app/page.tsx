@@ -21,7 +21,7 @@ const boxes = [
   {
     title: "AI Toolbox",
     description:
-      "Hint & Process, Concept Explainer, Site Guide, plus TI-style calculator and grapher.",
+      "Local AI is the best. We recommend using Local AI — no restrictions. Hint & Process, Concept Explainer, Site Guide, calculator & grapher.",
     href: "/hints",
   },
   {
@@ -77,6 +77,25 @@ export default function HomePage() {
             AI Toolbox
           </Link>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-emerald-200 bg-emerald-50/80 px-5 py-4 text-emerald-950 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+          We recommend
+        </p>
+        <p className="mt-1 text-lg font-bold text-emerald-900">
+          Local AI is the best. We recommend using Local AI. There are no restrictions.
+        </p>
+        <p className="mt-2 max-w-2xl text-sm text-emerald-900/85">
+          Run study tools on your own device — private, free for the site, with no product-side
+          caps. Open the AI Toolbox, enable a Local model, and use Cloud Instant only as backup.
+        </p>
+        <Link
+          href="/hints"
+          className="mt-3 inline-flex rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+        >
+          Open AI Toolbox · use Local AI
+        </Link>
       </section>
 
       <EthicsBanner />
