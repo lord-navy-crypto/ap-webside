@@ -1,15 +1,5 @@
 {
-  "concepts": [
-    {
-      "id": "m-concept-mrwv3fj1-9nxai",
-      "title": "Newton’s Shell Theorem",
-      "subject": "AP Physics C: Mechanics",
-      "summary": "Newton’s Shell Theorem — AP Physics C: Mechanics\n\nNewton’s shell theorem is explicitly included in the gravitation unit of the AP Physics C: Mechanics curriculum. Sources: College Board AP Physics C: Mechanics CED and MIT OpenCourseWare.\n\n1. The theorem\n\nConsider a uniform, thin spherical shell with mass M and radius R. A test object of mass m is located a distance r from the center.\n\nOutside the shell: r>R\n\nThe shell produces the same gravitational force as a point mass M located at its center:\n\nF\ng\n\t​\n\n=−\nr\n2\nGMm\n\t​\n\nr\n^\n\nand\n\ng\n\t​\n\n=−\nr\n2\nGM\n\t​\n\nr\n^\n.\n\nThe negative sign means that the field and force point toward the center.\n\nInside the shell: r<R\n\nThe net gravitational force is zero:\n\nF\ng\n\t​\n\n=0\n\t​\n\n\nand\n\ng\n\t​\n\n=0\n\t​\n\n.\n\nThis is true at every point inside a uniform spherical shell—not only at the center.\n\nAlthough the nearer side of the shell exerts a stronger force per unit mass, the more distant side contains a larger corresponding area. When all the force vectors are added, they cancel exactly.\n\nTherefore,\n\ng(r)=\n⎩\n⎨\n⎧\n\t​\n\n0,\nr\n2\nGM\n\t​\n\n,\n\t​\n\nr<R,\nr>R.\n\t​\n\n\t​\n\n2. Gravitational potential\n\nTaking gravitational potential to be zero at infinity,\n\nV(∞)=0.\n\nOutside the shell:\n\nV(r)=−\nr\nGM\n\t​\n\n,r≥R.\n\nInside the shell:\n\nV(r)=−\nR\nGM\n\t​\n\n\t​\n\n,r<R.\n\nThus, the gravitational field inside the shell is zero, but the gravitational potential is not zero. It is a constant negative value.\n\nFor a test mass m,\n\nU=mV,\n\nso\n\nU(r)=\n⎩\n⎨\n⎧\n\t​\n\n−\nR\nGMm\n\t​\n\n,\n−\nr\nGMm\n\t​\n\n,\n\t​\n\nr<R,\nr≥R.\n\t​\n\n\nRemember:\n\ng\n\t​\n\n=−∇V.\n\nA zero gravitational field means that the potential has zero spatial slope, not that the potential itself must be zero.\n\nExtension to spherically symmetric objects\n\nA spherically symmetric object can be divided into many thin concentric shells.\n\nAt a distance r from the center:\n\nEvery shell with radius smaller than r acts as though its mass were concentrated at the center.\nEvery shell with radius larger than r produces zero net gravitational field at that point.\n\nTherefore,\n\ng(r)=\nr\n2\nGM\nenc\n\t​\n\n(r)\n\t​\n\n\t​\n\n,\n\nwhere M\nenc\n\t​\n\n(r) is the mass enclosed within radius r.\n\nThis result can only be applied directly when the mass distribution is spherically symmetric.\n\nUniform solid sphere\n\nConsider a uniform solid sphere with total mass M and radius R.\n\nIts density is\n\nρ=\n3\n4\n\t​\n\nπR\n3\nM\n\t​\n\n.\n\nFor a point inside the sphere, r<R, the enclosed mass is\n\nM\nenc\n\t​\n\n=ρ(\n3\n4\n\t​\n\nπr\n3\n)=M\nR\n3\nr\n3\n\t​\n\n.\n\nTherefore,\n\ng(r)=\nr\n2\nGM\nenc\n\t​\n\n\t​\n\n=\nR\n3\nGM\n\t​\n\nr\n\t​\n\n.\n\nThe complete result is\n\ng(r)=\n⎩\n⎨\n⎧\n\t​\n\nR\n3\nGM\n\t​\n\nr,\nr\n2\nGM\n\t​\n\n,\n\t​\n\nr<R,\nr≥R.\n\t​\n\n\t​\n\n\nInside a uniform solid sphere, g increases linearly with r. Outside the sphere, it decreases according to 1/r\n2\n.\n\nThe gravitational field is:\n\nzero at the center;\nlargest at the surface;\nproportional to r inside;\nproportional to 1/r\n2\n outside.\nKey AP Physics points\n\nCheck for spherical symmetry first.\n\nThe shell theorem cannot be directly applied to a hemisphere, cube, uneven shell, or off-center mass distribution.\n\nCompare r with the object’s radius.\n\nDetermine whether the point is inside, outside, or within the material of a thick shell.\n\nDistinguish a thin shell from a solid sphere.\n\nThin shell:\n\ng=0everywhere inside.\n\nUniform solid sphere:\n\ng=\nR\n3\nGM\n\t​\n\nrinside.\n\nUse enclosed mass inside a solid sphere.\n\nInside the object,\n\nM\nenc\n\t​\n\n\n=M.\n\nOuter shells cancel.\n\nThey still exert gravitational forces individually, but their vector sum is zero.\n\nZero field does not mean zero potential.\n\nInside a thin shell,\n\ng=0,V=−\nR\nGM\n\t​\n\n.\n\nUse superposition for multiple shells.\n\nCalculate the contribution from each shell and add the fields or potentials.",
-      "keyPoints": [],
-      "commonMistakes": [],
-      "example": ""
-    }
-  ],
+  "concepts": [],
   "formulas": [],
   "documents": [
     {
@@ -198,5 +188,5 @@
   ],
   "questionnaires": [],
   "topics": [],
-  "updatedAt": 1784771879005
+  "updatedAt": 1784773671949
 }
