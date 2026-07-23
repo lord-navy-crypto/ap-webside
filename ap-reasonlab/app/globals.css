@@ -324,77 +324,155 @@ html[data-theme="cyberpunk"] .text-brand-700 {
   color: #ff6b6b !important;
 }
 
-/* Luxury Gold & Silver */
+/* Enrich Cyberpunk: more neon layers + scanline feel */
+html[data-theme="cyberpunk"] body {
+  background:
+    linear-gradient(rgba(255, 42, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 42, 42, 0.03) 1px, transparent 1px),
+    radial-gradient(ellipse at 12% 0%, rgba(255, 42, 42, 0.22), transparent 42%),
+    radial-gradient(ellipse at 90% 10%, rgba(255, 80, 40, 0.14), transparent 35%),
+    radial-gradient(ellipse at 50% 100%, rgba(120, 0, 40, 0.25), transparent 50%),
+    linear-gradient(180deg, #0a0a0d 0%, #12080c 180px, #0d0d12 100%);
+  background-size: 28px 28px, 28px 28px, auto, auto, auto, auto;
+}
+
+html[data-theme="cyberpunk"] .card,
+html[data-theme="cyberpunk"] .card-hover {
+  position: relative;
+  background:
+    linear-gradient(160deg, #1a1014 0%, #0f0f14 55%, #160810 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 42, 42, 0.35),
+    inset 0 1px 0 rgba(255, 120, 120, 0.12),
+    0 16px 40px rgba(255, 20, 20, 0.12);
+}
+
+html[data-theme="cyberpunk"] .btn-secondary {
+  background: linear-gradient(180deg, #1a1014, #12080c);
+  box-shadow: inset 0 0 0 1px rgba(255, 80, 80, 0.25);
+}
+
+/* Luxury Gold + Silver metallic foil */
 html[data-theme="luxury"] body {
   color: #2a2418;
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(255, 215, 128, 0.45), transparent 45%),
-    radial-gradient(ellipse at 85% 15%, rgba(220, 230, 245, 0.55), transparent 40%),
-    linear-gradient(180deg, #f7f1e3 0%, #ebe4d4 180px, #f4efe4 100%);
+    radial-gradient(ellipse at 12% 0%, rgba(255, 215, 120, 0.55), transparent 42%),
+    radial-gradient(ellipse at 88% 8%, rgba(226, 232, 240, 0.7), transparent 38%),
+    radial-gradient(ellipse at 50% 100%, rgba(212, 175, 55, 0.18), transparent 45%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.16) 0 2px,
+      transparent 2px 10px
+    ),
+    linear-gradient(180deg, #fbf6ea 0%, #eef2f7 120px, #f6efe0 280px, #f3efe6 100%);
 }
 
 html[data-theme="luxury"] .site-shell {
-  outline: 2px solid rgba(184, 134, 11, 0.55);
-  outline-offset: -2px;
-  box-shadow: inset 0 0 40px rgba(255, 215, 140, 0.15);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    inset 0 0 0 3px rgba(201, 162, 39, 0.35),
+    inset 0 0 60px rgba(255, 215, 140, 0.12),
+    0 0 0 1px rgba(148, 163, 184, 0.35);
 }
 
 html[data-theme="luxury"] header.sticky {
-  border-color: #c9a227 !important;
+  border-image: linear-gradient(90deg, #c9a227, #e8eef6, #d4af37, #c0c7d4, #b8860b) 1;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
   background:
-    linear-gradient(180deg, rgba(255, 248, 230, 0.96), rgba(236, 240, 248, 0.94)) !important;
+    linear-gradient(100deg, rgba(255, 248, 230, 0.97) 0%, rgba(241, 245, 249, 0.96) 45%, rgba(255, 246, 214, 0.95) 100%) !important;
+  box-shadow: 0 8px 24px rgba(148, 120, 40, 0.1);
+}
+
+html[data-theme="luxury"] header .bg-brand-600 {
+  background: linear-gradient(145deg, #f0d78c, #d4af37 40%, #c0c7d4 70%, #b8860b) !important;
+  color: #1f1808 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 html[data-theme="luxury"] .card,
 html[data-theme="luxury"] .card-hover,
 html[data-theme="luxury"] .guide-panel,
 html[data-theme="luxury"] .guide-panel-inner {
-  border: 2px solid #c9a227;
+  border: 1px solid transparent;
   background:
-    linear-gradient(145deg, #fffdf6 0%, #f3f6fb 45%, #fff8e7 100%);
+    linear-gradient(145deg, #fffdf8 0%, #f5f7fb 38%, #fff8e8 72%, #f2f4f8 100%) padding-box,
+    linear-gradient(135deg, #d4af37, #f8fafc 30%, #c9a227 55%, #94a3b8 78%, #b8860b) border-box;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.7) inset,
-    0 10px 28px rgba(148, 120, 40, 0.12);
+    0 0 0 1px rgba(255, 255, 255, 0.75) inset,
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 14px 34px rgba(148, 120, 40, 0.14),
+    0 4px 12px rgba(148, 163, 184, 0.12);
+}
+
+html[data-theme="luxury"] .card-hover:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset,
+    0 18px 40px rgba(184, 134, 11, 0.2),
+    0 0 24px rgba(212, 175, 55, 0.18);
 }
 
 html[data-theme="luxury"] .btn-primary {
-  background: linear-gradient(135deg, #d4af37, #f0d78c 45%, #b8860b);
+  background:
+    linear-gradient(160deg, #fff4cc 0%, #e8c547 28%, #d4af37 52%, #cfd6e0 78%, #b8860b 100%);
   color: #1f1808;
-  box-shadow: 0 8px 20px rgba(184, 134, 11, 0.28);
+  border: 1px solid rgba(184, 134, 11, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 8px 22px rgba(184, 134, 11, 0.3);
 }
 
 html[data-theme="luxury"] .btn-primary:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.06) saturate(1.05);
 }
 
 html[data-theme="luxury"] .btn-secondary,
 html[data-theme="luxury"] .filter-pill,
 html[data-theme="luxury"] .input,
 html[data-theme="luxury"] .textarea {
-  border-color: #c9a227;
-  background: linear-gradient(180deg, #fffef9, #f4f6fa);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(180deg, #fffefb, #f3f6fb) padding-box,
+    linear-gradient(90deg, #d4af37, #e2e8f0, #c9a227) border-box;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 html[data-theme="luxury"] .filter-pill-active {
   border-color: #b8860b;
-  background: linear-gradient(135deg, #d4af37, #b8860b);
+  background:
+    linear-gradient(135deg, #f3e0a0, #d4af37 40%, #c0c7d4 70%, #b8860b);
   color: #1f1808;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 html[data-theme="luxury"] .badge {
-  background: rgba(201, 162, 39, 0.18);
-  color: #8a6a10;
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.22), rgba(148, 163, 184, 0.22));
+  color: #7a6414;
+  border: 1px solid rgba(201, 162, 39, 0.35);
 }
 
 html[data-theme="luxury"] .hero-gradient {
   background:
-    linear-gradient(135deg, #2c2412 0%, #8a7020 35%, #e8d48a 70%, #dfe6f0 100%);
-  box-shadow: 0 0 0 2px #c9a227, 0 18px 40px rgba(184, 134, 11, 0.25);
+    linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 35%),
+    linear-gradient(135deg, #1f1a10 0%, #6b5420 22%, #d4af37 48%, #eef2f7 72%, #b8860b 100%);
+  box-shadow:
+    0 0 0 1px #e8eef6,
+    0 0 0 3px #c9a227,
+    0 22px 48px rgba(184, 134, 11, 0.28);
+}
+
+html[data-theme="luxury"] .section-title {
+  background: linear-gradient(90deg, #8a6a10, #94a3b8 45%, #b8860b);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 html[data-theme="luxury"] footer {
-  border-color: #c9a227 !important;
-  background: linear-gradient(180deg, #f8f3e6, #eef1f6) !important;
+  border-image: linear-gradient(90deg, #c9a227, #e2e8f0, #b8860b) 1;
+  border-top-width: 2px;
+  border-top-style: solid;
+  background: linear-gradient(180deg, #fbf6ea, #eef2f7) !important;
   color: #6b5b2e !important;
 }
 
@@ -403,37 +481,71 @@ html[data-theme="luxury"] .text-brand-700 {
   color: #9a7410 !important;
 }
 
-/* Pastel Cute pink / purple / blush */
+html[data-theme="luxury"] .btn-ghost:hover {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.15), rgba(148, 163, 184, 0.15));
+}
+
+/* Pastel Cute: pink primary + purple secondary + blush accents */
 html[data-theme="pastel"] body {
-  color: #4a3458;
+  color: #5b3a58;
   background:
-    radial-gradient(ellipse at 15% 0%, rgba(255, 182, 213, 0.55), transparent 42%),
-    radial-gradient(ellipse at 90% 10%, rgba(196, 181, 253, 0.45), transparent 38%),
-    linear-gradient(180deg, #fff0f6 0%, #f5f0ff 180px, #fff5f8 100%);
+    radial-gradient(ellipse at 10% 0%, rgba(255, 160, 200, 0.55), transparent 40%),
+    radial-gradient(ellipse at 92% 5%, rgba(196, 170, 255, 0.48), transparent 36%),
+    radial-gradient(ellipse at 70% 90%, rgba(255, 182, 193, 0.35), transparent 42%),
+    radial-gradient(ellipse at 20% 80%, rgba(244, 114, 182, 0.18), transparent 40%),
+    repeating-radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35) 0 1px, transparent 1px 14px),
+    linear-gradient(180deg, #fff1f7 0%, #f7f0ff 140px, #ffe8f1 320px, #faf5ff 100%);
 }
 
 html[data-theme="pastel"] .site-shell {
-  outline: 2px solid rgba(244, 114, 182, 0.45);
+  outline: 2px solid rgba(244, 114, 182, 0.35);
   outline-offset: -2px;
+  box-shadow:
+    inset 0 0 0 1px rgba(196, 181, 253, 0.35),
+    inset 0 0 50px rgba(255, 182, 213, 0.12);
 }
 
 html[data-theme="pastel"] header.sticky {
-  border-color: #f9a8d4 !important;
-  background: rgba(255, 250, 253, 0.94) !important;
+  border-image: linear-gradient(90deg, #fb7185, #f9a8d4, #c4b5fd, #f472b6) 1;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  background:
+    linear-gradient(100deg, rgba(255, 246, 251, 0.96), rgba(248, 244, 255, 0.95), rgba(255, 240, 246, 0.96)) !important;
+  box-shadow: 0 10px 28px rgba(244, 114, 182, 0.1);
+}
+
+html[data-theme="pastel"] header .bg-brand-600 {
+  background: linear-gradient(145deg, #fb7185, #f472b6 45%, #c084fc) !important;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.3);
 }
 
 html[data-theme="pastel"] .card,
 html[data-theme="pastel"] .card-hover,
 html[data-theme="pastel"] .guide-panel,
 html[data-theme="pastel"] .guide-panel-inner {
-  border: 2px solid #f9a8d4;
-  background: linear-gradient(160deg, #fff7fb 0%, #f8f4ff 100%);
-  box-shadow: 0 10px 28px rgba(236, 72, 153, 0.08);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(165deg, #fff9fc 0%, #fbf7ff 48%, #fff0f6 100%) padding-box,
+    linear-gradient(135deg, #fb7185, #f9a8d4 35%, #c4b5fd 70%, #f472b6) border-box;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 12px 30px rgba(236, 72, 153, 0.1),
+    0 4px 14px rgba(168, 85, 247, 0.08);
+  border-radius: 1.35rem;
+}
+
+html[data-theme="pastel"] .card-hover:hover {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 16px 36px rgba(244, 114, 182, 0.16),
+    0 0 0 3px rgba(196, 181, 253, 0.25);
 }
 
 html[data-theme="pastel"] .btn-primary {
-  background: linear-gradient(135deg, #f472b6, #c084fc);
-  box-shadow: 0 8px 20px rgba(236, 72, 153, 0.25);
+  background: linear-gradient(135deg, #fb7185 0%, #f472b6 42%, #d8b4fe 78%, #c084fc 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 10px 24px rgba(244, 114, 182, 0.28);
 }
 
 html[data-theme="pastel"] .btn-primary:hover {
@@ -444,35 +556,68 @@ html[data-theme="pastel"] .btn-secondary,
 html[data-theme="pastel"] .filter-pill,
 html[data-theme="pastel"] .input,
 html[data-theme="pastel"] .textarea {
-  border-color: #f9a8d4;
-  background: #fff8fc;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(180deg, #fffafd, #f8f4ff) padding-box,
+    linear-gradient(90deg, #f9a8d4, #ddd6fe, #fb7185) border-box;
 }
 
 html[data-theme="pastel"] .filter-pill-active {
-  border-color: #e879f9;
-  background: linear-gradient(135deg, #f472b6, #a78bfa);
+  border-color: transparent;
+  background: linear-gradient(135deg, #fb7185, #f472b6 50%, #a78bfa);
   color: #fff;
+  box-shadow: 0 6px 16px rgba(244, 114, 182, 0.25);
 }
 
 html[data-theme="pastel"] .badge {
-  background: rgba(244, 114, 182, 0.15);
+  background: linear-gradient(90deg, rgba(251, 113, 133, 0.18), rgba(192, 132, 252, 0.18));
   color: #be185d;
+  border: 1px solid rgba(249, 168, 212, 0.55);
+}
+
+html[data-theme="pastel"] .badge-generated {
+  background: linear-gradient(90deg, rgba(196, 181, 253, 0.25), rgba(244, 114, 182, 0.15));
+  color: #7e22ce;
 }
 
 html[data-theme="pastel"] .hero-gradient {
-  background: linear-gradient(135deg, #fb7185 0%, #f472b6 40%, #c084fc 100%);
-  box-shadow: 0 0 0 2px #f9a8d4, 0 18px 40px rgba(236, 72, 153, 0.22);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.28), transparent 40%),
+    linear-gradient(135deg, #fb7185 0%, #f472b6 28%, #e879f9 58%, #c084fc 82%, #a78bfa 100%);
+  box-shadow:
+    0 0 0 2px #fbcfe8,
+    0 0 0 5px rgba(196, 181, 253, 0.45),
+    0 22px 48px rgba(236, 72, 153, 0.25);
+}
+
+html[data-theme="pastel"] .section-title {
+  background: linear-gradient(90deg, #db2777, #a855f7 55%, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 html[data-theme="pastel"] footer {
-  border-color: #f9a8d4 !important;
-  background: #fff7fb !important;
+  border-image: linear-gradient(90deg, #fb7185, #c4b5fd, #f472b6) 1;
+  border-top-width: 2px;
+  border-top-style: solid;
+  background: linear-gradient(180deg, #fff7fb, #f5f0ff) !important;
   color: #9d174d !important;
 }
 
 html[data-theme="pastel"] a.text-brand-700,
 html[data-theme="pastel"] .text-brand-700 {
   color: #db2777 !important;
+}
+
+html[data-theme="pastel"] .btn-ghost:hover {
+  background: linear-gradient(90deg, rgba(251, 113, 133, 0.12), rgba(196, 181, 253, 0.16));
+  color: #be185d;
+}
+
+html[data-theme="pastel"] .filter-pill:hover {
+  border-color: #f9a8d4;
+  color: #be185d;
 }
 
 /* Style window launcher + frame */
@@ -665,7 +810,10 @@ html[data-theme="cyberpunk"] .style-window-launcher {
 }
 
 .style-tile--ap .style-tile-preview {
-  background: linear-gradient(135deg, #1e40af, #3b82f6 55%, #6366f1);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35), transparent 40%),
+    linear-gradient(135deg, #1e3a8a, #3b82f6 55%, #6366f1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 
 .style-tile--cyberpunk .style-tile-preview {
@@ -679,18 +827,24 @@ html[data-theme="cyberpunk"] .style-window-launcher {
       rgba(255, 42, 42, 0.25) 11px
     );
   border: 2px solid #ff2a2a;
+  box-shadow: 0 0 12px rgba(255, 42, 42, 0.35);
 }
 
 .style-tile--luxury .style-tile-preview {
   background:
-    linear-gradient(120deg, #f8fafc 0%, #d4af37 35%, #fff8dc 55%, #c0c7d4 75%, #b8860b 100%);
+    linear-gradient(115deg, #fff8dc 0%, #d4af37 22%, #f8fafc 42%, #c0c7d4 58%, #e8c547 78%, #b8860b 100%);
   border: 2px solid #c9a227;
-  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.55);
+  box-shadow:
+    inset 0 0 14px rgba(255, 255, 255, 0.7),
+    0 0 10px rgba(212, 175, 55, 0.25);
 }
 
 .style-tile--pastel .style-tile-preview {
-  background: linear-gradient(135deg, #fecdd3, #f9a8d4 40%, #c4b5fd 100%);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.55), transparent 45%),
+    linear-gradient(135deg, #fb7185, #f9a8d4 35%, #e9d5ff 65%, #c084fc 100%);
   border: 2px solid #f9a8d4;
+  box-shadow: 0 0 12px rgba(244, 114, 182, 0.25);
 }
 
 .style-tile-name {
@@ -1089,15 +1243,27 @@ html[data-theme="cyberpunk"] .ti-shell {
 }
 
 html[data-theme="luxury"] .ti-shell {
-  border-color: #c9a227;
-  background: linear-gradient(180deg, #3a3428 0%, #1f1c16 55%, #15130f 100%);
-  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.4), 0 18px 40px rgba(184, 134, 11, 0.2);
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, #3f3828 0%, #1f1c16 55%, #15130f 100%) padding-box,
+    linear-gradient(135deg, #d4af37, #e2e8f0, #b8860b) border-box;
+  border: 3px solid transparent;
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.45),
+    0 18px 40px rgba(184, 134, 11, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 html[data-theme="pastel"] .ti-shell {
-  border-color: #f9a8d4;
-  background: linear-gradient(180deg, #4a3558 0%, #2d2138 55%, #1f1728 100%);
-  box-shadow: 0 0 0 1px rgba(244, 114, 182, 0.35), 0 18px 40px rgba(192, 132, 252, 0.18);
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, #5a3a58 0%, #322038 55%, #211726 100%) padding-box,
+    linear-gradient(135deg, #fb7185, #f9a8d4, #c084fc) border-box;
+  border: 3px solid transparent;
+  box-shadow:
+    0 0 0 1px rgba(244, 114, 182, 0.4),
+    0 18px 40px rgba(192, 132, 252, 0.2),
+    inset 0 1px 0 rgba(255, 182, 213, 0.2);
 }
 
 html[data-theme="luxury"] .style-window-launcher,
@@ -1106,13 +1272,47 @@ html[data-theme="pastel"] .style-window-launcher {
 }
 
 html[data-theme="luxury"] .style-window-launcher {
-  border-color: #c9a227;
-  background: linear-gradient(180deg, #fff8e7, #eef2f7);
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, #fff8e7, #eef2f7) padding-box,
+    linear-gradient(90deg, #d4af37, #e2e8f0, #b8860b) border-box;
+  border: 2px solid transparent;
   color: #6b5b2e;
+  box-shadow: 0 10px 24px rgba(184, 134, 11, 0.18);
 }
 
 html[data-theme="pastel"] .style-window-launcher {
-  border-color: #f9a8d4;
-  background: #fff7fb;
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, #fff7fb, #f5f0ff) padding-box,
+    linear-gradient(90deg, #fb7185, #f9a8d4, #c084fc) border-box;
+  border: 2px solid transparent;
   color: #9d174d;
+  box-shadow: 0 10px 24px rgba(244, 114, 182, 0.18);
+}
+
+html[data-theme="luxury"] .style-window {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(180deg, #fffdf8, #f4f6fa) padding-box,
+    linear-gradient(135deg, #d4af37, #e2e8f0, #b8860b) border-box;
+  box-shadow: 0 28px 70px rgba(148, 120, 40, 0.28);
+}
+
+html[data-theme="luxury"] .style-window-titlebar {
+  background: linear-gradient(90deg, #fff4cc, #eef2f7, #f0d78c);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.45);
+}
+
+html[data-theme="pastel"] .style-window {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(180deg, #fff9fc, #f7f2ff) padding-box,
+    linear-gradient(135deg, #fb7185, #f9a8d4, #c084fc) border-box;
+  box-shadow: 0 28px 70px rgba(244, 114, 182, 0.22);
+}
+
+html[data-theme="pastel"] .style-window-titlebar {
+  background: linear-gradient(90deg, #ffe4ef, #f3e8ff, #ffd6e7);
+  border-bottom: 1px solid rgba(249, 168, 212, 0.55);
 }
