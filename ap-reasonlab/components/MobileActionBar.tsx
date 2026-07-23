@@ -11,6 +11,7 @@ const moreGroups = [
       { href: "/", label: "Home" },
       { href: "/academic", label: "Academic" },
       { href: "/code", label: "Code" },
+      { href: "/search", label: "Search" },
       { href: "/hints", label: "AI Toolbox" },
       { href: "/forum", label: "Forum" },
     ],
@@ -105,7 +106,7 @@ export default function MobileActionBar() {
       >
         {[
           { href: "/ap", label: "AP" },
-          { href: "/search", label: "Search" },
+          { href: "/english", label: "English" },
         ].map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (

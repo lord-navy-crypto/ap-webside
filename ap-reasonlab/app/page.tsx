@@ -9,6 +9,11 @@ const boxes = [
     href: "/ap",
   },
   {
+    title: "English Learning",
+    description: "TOEFL, IELTS, SAT, vocabulary, writing, grammar, and a focused English AI tutor.",
+    href: "/english",
+  },
+  {
     title: "Academic Platform",
     description: "Private Learning Box, shared materials, Picture, Image Gen.",
     href: "/academic",
@@ -51,6 +56,12 @@ export default function HomePage() {
             className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow hover:bg-blue-50"
           >
             Open AP box
+          </Link>
+          <Link
+            href="/english"
+            className="rounded-xl border border-white/40 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+          >
+            English Learning
           </Link>
           <Link
             href="/academic"
