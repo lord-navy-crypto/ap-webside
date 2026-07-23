@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEditorMode } from "@/components/EditorModeProvider";
 
 const moreGroups = [
   {
@@ -29,8 +30,17 @@ const moreGroups = [
 
 export default function MobileActionBar() {
   const pathname = usePathname();
+  const { editor } = useEditorMode();
   const [moreOpen, setMoreOpen] = useState(false);
-  const moreActive = moreGroups.some((group) =>
+  const visibleMoreGroups = moreGroups.map((group) =>
+    group.label === "Admin & developer" && editor?.level === "master"
+      ? {
+          ...group,
+          links: [...group.links, { href: "/ai-developer", label: "AI Developer Blocks" }],
+        }
+      : group
+  );
+  const moreActive = visibleMoreGroups.some((group) =>
     group.links.some(
       (link) => pathname === link.href || (link.href !== "/" && pathname.startsWith(`${link.href}/`))
     )
@@ -76,7 +86,7 @@ export default function MobileActionBar() {
               </button>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              {moreGroups.map((group) => (
+              {visibleMoreGroups.map((group) => (
                 <div key={group.label}>
                   <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     {group.label}
