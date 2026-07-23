@@ -30,7 +30,7 @@ export default function RootLayout({
           id="ke-theme-boot"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("ke-site-theme");if(t==="cyberpunk"||t==="ap")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("ke-site-theme");if(t==="cyberpunk"||t==="ap"||t==="luxury"||t==="pastel")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
           }}
         />
         <ThemeProvider>

@@ -10,17 +10,22 @@ import {
   type ReactNode,
 } from "react";
 
-export type SiteTheme = "ap" | "cyberpunk";
+export type SiteTheme = "ap" | "cyberpunk" | "luxury" | "pastel";
 
 const STORAGE_KEY = "ke-site-theme";
+const THEMES: SiteTheme[] = ["ap", "cyberpunk", "luxury", "pastel"];
 
 type ThemeContextValue = {
   theme: SiteTheme;
   setTheme: (theme: SiteTheme) => void;
-  toggleTheme: () => void;
+  cycleTheme: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+function isSiteTheme(value: string | null): value is SiteTheme {
+  return !!value && THEMES.includes(value as SiteTheme);
+}
 
 function applyTheme(theme: SiteTheme) {
   if (typeof document === "undefined") return;
@@ -32,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    const next: SiteTheme = stored === "cyberpunk" ? "cyberpunk" : "ap";
+    const next: SiteTheme = isSiteTheme(stored) ? stored : "ap";
     setThemeState(next);
     applyTheme(next);
   }, []);
@@ -43,13 +48,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, next);
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setTheme(theme === "ap" ? "cyberpunk" : "ap");
+  const cycleTheme = useCallback(() => {
+    const index = THEMES.indexOf(theme);
+    setTheme(THEMES[(index + 1) % THEMES.length]);
   }, [setTheme, theme]);
 
   const value = useMemo(
-    () => ({ theme, setTheme, toggleTheme }),
-    [theme, setTheme, toggleTheme]
+    () => ({ theme, setTheme, cycleTheme }),
+    [theme, setTheme, cycleTheme]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
