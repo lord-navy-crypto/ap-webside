@@ -176,10 +176,17 @@
       "title": "how to write code",
       "body": "python",
       "createdAt": 1784708562076,
-      "replies": []
+      "replies": [
+        {
+          "id": "forum-reply-mrwtbicc-n01dd",
+          "author": "test",
+          "body": "use chat-gpt and claude can help, but cursor is better",
+          "createdAt": 1784768896668
+        }
+      ]
     }
   ],
   "questionnaires": [],
   "topics": [],
-  "updatedAt": 1784768540165
+  "updatedAt": 1784768896668
 }
