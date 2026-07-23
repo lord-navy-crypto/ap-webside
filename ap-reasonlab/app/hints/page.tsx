@@ -292,11 +292,40 @@ function ToolboxContent() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">AI Toolbox</p>
-        <h1 className="mt-1 text-3xl font-bold">Study tools powered by Instant models</h1>
-        <p className="mt-2 max-w-2xl text-slate-600">
-          AI tutors plus TI-style calculator and grapher. Site default uses shared fast models.
-          Your own API is more effective when the shared key is busy.
+        <h1 className="mt-1 text-3xl font-bold">Study tools — Local AI first</h1>
+        <p className="mt-2 max-w-2xl text-lg font-semibold text-emerald-800">
+          Local AI is the best. We recommend using Local AI. There are no restrictions.
         </p>
+        <p className="mt-2 max-w-2xl text-slate-600">
+          Free for the site, private on your computer, no shared cloud caps. Use Cloud (public
+          Instant = lowest) or your own mid-tier API only as backup.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-950">
+        <p className="font-semibold">Site recommendations</p>
+        <p className="mt-1 font-medium text-emerald-900">
+          Local AI is the best. We recommend using Local AI. There are no restrictions.
+        </p>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-emerald-900/90">
+          <li>
+            <strong>Local AI</strong> — enable a model in the library below (no site token bill,
+            private on your device, no product-side caps).
+          </li>
+          <li>
+            <strong>Auto / Cloud</strong> — backup when WebGPU is missing; public website API stays
+            Instant with the lowest limits.
+          </li>
+          <li>
+            <strong>Author mid-tier</strong> — owner may set{" "}
+            <code className="rounded bg-emerald-100/80 px-1">SITE_AI_TIER=author</code> for mid
+            versatile models (not Instant) with modestly higher caps.
+          </li>
+          <li>
+            <strong>Your own API</strong> — optional mid-tier; easier personal quota than the shared
+            Instant pool.
+          </li>
+        </ul>
       </div>
 
       <EthicsBanner />
