@@ -333,7 +333,7 @@ export const SITE_INSTANT_MODELS: Array<{
   label: string;
   model: string;
 }> = [
-  { value: "auto", label: "Auto cascade (public Instant / author mid if enabled)", model: "cascade" },
+  { value: "auto", label: "Auto cascade (Instant or Advanced Default)", model: "cascade" },
   { value: "groq", label: "Groq", model: GROQ_INSTANT_MODEL },
   { value: "gemini", label: "Gemini", model: GEMINI_FLASH_MODEL },
   { value: "githubmodels", label: "GitHub Models", model: GITHUB_MODELS_DEFAULT_MODEL },
@@ -355,7 +355,7 @@ function buildSiteChannels(
   const kimiKey = process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const deepSeekKey = process.env.DEEPSEEK_API_KEY;
-  const badge = tier === "author" ? "Author mid-tier" : "Public Instant (lowest)";
+  const badge = tier === "author" ? "Advanced Default" : "Instant (lowest)";
 
   if (groqKey) {
     const model = modelsForTier(tier, "groq");
@@ -441,7 +441,7 @@ export async function runChatJson(options: {
   siteModel?: SiteModelChoice;
 }): Promise<ChatJsonResult> {
   const userKey = options.userApiKey?.trim();
-  const tier: CloudSpendTier = userKey ? "byok" : resolveSiteCloudTier();
+  const tier: CloudSpendTier = userKey ? "byok" : await resolveSiteCloudTier();
   const maxTokens = capMaxTokens(options.maxTokens, tier);
 
   if (userKey) {
@@ -513,7 +513,8 @@ export async function runChatJson(options: {
     };
   }
 
-  const siteTier = resolveSiteCloudTier();
+  // Default website API (Instant or Advanced Default from Manage).
+  const siteTier = tier === "author" ? "author" : "public";
   const channels = buildSiteChannels(options.system, options.user, maxTokens, siteTier);
   const siteModel = options.siteModel || "auto";
 

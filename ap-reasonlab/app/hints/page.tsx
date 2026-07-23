@@ -317,9 +317,10 @@ function ToolboxContent() {
             Instant with the lowest limits.
           </li>
           <li>
-            <strong>Author mid-tier</strong> — owner may set{" "}
-            <code className="rounded bg-emerald-100/80 px-1">SITE_AI_TIER=author</code> for mid
-            versatile models (not Instant) with modestly higher caps.
+            <strong>Author mid-tier</strong> — turn on{" "}
+            <strong>Advanced Default</strong> in Manage → Settings (or{" "}
+            <code className="rounded bg-emerald-100/80 px-1">SITE_AI_TIER=author</code> fallback)
+            for mid versatile models (not Instant) with modestly higher caps.
           </li>
           <li>
             <strong>Your own API</strong> — optional mid-tier; easier personal quota than the shared

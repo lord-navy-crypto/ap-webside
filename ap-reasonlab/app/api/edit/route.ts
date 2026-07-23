@@ -539,6 +539,12 @@ export async function POST(req: NextRequest) {
         post.replies = (post.replies || []).filter((reply) => reply.id !== id);
       }
       else return NextResponse.json({ error: "Unknown delete target" }, { status: 400 });
+    } else if (action === "set_advanced_default") {
+      const enabled = Boolean(body.advancedDefault ?? body.enabled);
+      current.settings = {
+        ...(current.settings || { advancedDefault: false }),
+        advancedDefault: enabled,
+      };
     } else if (action === "set_github_token") {
       const t = String(body.githubToken || "").trim();
       if (!t) return NextResponse.json({ error: "githubToken required" }, { status: 400 });
@@ -549,6 +555,10 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await saveManagedContent(current, token);
+    if (action === "set_advanced_default") {
+      const { invalidateSiteAiTierCache } = await import("@/lib/ai-tiers");
+      invalidateSiteAiTierCache();
+    }
     return NextResponse.json({
       ok: true,
       mode: result.mode,
