@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import RichContent from "@/components/RichContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
+import { handleRichPaste } from "@/lib/rich-paste";
 
 export type EditableTarget =
   | "concept"
@@ -165,6 +166,7 @@ export default function ResourceEditor({ target, item, onSaved, label = "Edit" }
                   className="textarea mt-1 min-h-[16rem] resize-y font-[inherit]"
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
+                  onPaste={(event) => handleRichPaste(event, body, setBody)}
                   placeholder="Paste one complete Markdown document here. Use $...$ or $$...$$ for LaTeX math."
                 />
               </label>

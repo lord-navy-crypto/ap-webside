@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ManagedUnit } from "@/lib/managed-types";
 import RichContent from "@/components/RichContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
+import { handleRichPaste } from "@/lib/rich-paste";
 
 type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "folder";
 
@@ -164,7 +165,7 @@ export default function UnifiedAddContent({
               <label className="block text-sm font-medium">Choose up to 10 files<input className="mt-2 block w-full text-sm" type="file" multiple onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 10))} required /><span className="mt-1 block text-xs text-slate-500">{files.length} selected · each file must stay under ~1MB</span></label>
             ) : null}
             <input className="input" placeholder={type === "file" ? "File note" : `${type} title`} value={title} onChange={(event) => setTitle(event.target.value)} required />
-            {type !== "file" && <textarea className="textarea min-h-[20rem] resize-y" placeholder="Paste the complete content here. Markdown is supported; use $...$ or $$...$$ for LaTeX math." value={content} onChange={(event) => setContent(event.target.value)} required={type !== "folder"} />}
+            {type !== "file" && <textarea className="textarea min-h-[20rem] resize-y" placeholder="Paste the complete content here. Markdown is supported; use $...$ or $$...$$ for LaTeX math." value={content} onChange={(event) => setContent(event.target.value)} onPaste={(event) => handleRichPaste(event, content, setContent)} required={type !== "folder"} />}
 
             {type !== "file" && content && (
               <div className="rounded-2xl border border-slate-200">
