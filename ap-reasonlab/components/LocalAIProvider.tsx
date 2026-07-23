@@ -179,7 +179,7 @@ async function detectWebGPU(): Promise<boolean> {
 }
 
 export function LocalAIProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<AIMode>("cloud");
+  const [mode, setModeState] = useState<AIMode>("auto");
   const [models, setModels] = useState<LocalModelOption[]>(LOCAL_MODELS);
   const [selectedModelId, setSelectedModelIdState] = useState(DEFAULT_MODEL_ID);
   const [loadedModelId, setLoadedModelId] = useState("");
@@ -393,7 +393,7 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
           messages,
           stream: true,
           temperature: 0.5,
-          max_tokens: 512,
+          // No product-side token cap for Local AI — limited only by the device/model.
         });
         let answer = "";
         for await (const chunk of stream) {

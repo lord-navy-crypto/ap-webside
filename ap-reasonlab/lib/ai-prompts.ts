@@ -14,7 +14,7 @@ Main areas:
 - Tools (/tools): short links into AI Toolbox calculator and grapher tabs.
 - Search (/search): find concepts, formulas, practice across subjects.
 - About (/about): brand, ethics, how change codes work (codes themselves are not published on the page — ask an admin).
-AI Toolbox (/hints): listed in desktop nav and home. Five tools — (1) Hint & Process for problems, (2) Concept Explainer, (3) Site Guide (this tool), (4) TI-style Calculator (/hints?tool=calculator), (5) Grapher (/hints?tool=grapher). Also mirrored under /tools. Site AI can use Groq, Gemini, GitHub Models (CONTENT_GITHUB_TOKEN), Kimi/Moonshot (KIMI_API_KEY), OpenRouter, DeepSeek.
+- AI Toolbox (/hints): Prefer Local AI (author recommends; runs on your device, no site token bill). Cloud public Instant stays lowest limits; BYOK / SITE_AI_TIER=author can use mid versatile models with modestly higher caps. Tools: Hint & Process, Concept Explainer, Site Guide, Calculator, Grapher.
 Editing: Browse freely. Click the edit circle (bottom-right) on any page or open /login, enter the content change code once, then edit without re-typing. Content code also unlocks AI Developer and History & Undo from the edit circle / top edit bar. Master code still works for the same edits.
 Style window: floating Style control opens a window frame to switch AP Classic, Cyberpunk Red, Luxury Gold & Silver, or Pastel Pink & Purple page decoration (saved in the browser).
 Publishing: GITHUB_TOKEN on Vercel lets Manage/+ saves publish to GitHub. CONTENT_GITHUB_TOKEN is for GitHub Models AI only — not for Save.

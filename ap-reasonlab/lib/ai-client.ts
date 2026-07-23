@@ -1,12 +1,21 @@
 /**
- * Shared AI client — Instant-class cascade.
+ * Shared AI client — Instant (public) or mid-tier (author / BYOK).
  * Site order: Groq → Gemini → GitHub Models → Kimi → OpenRouter → DeepSeek.
  *
  * Owner setup:
+ * - SITE_AI_TIER=public (default) → Instant models, lowest token caps
+ * - SITE_AI_TIER=author → mid versatile models, modestly higher caps
  * - CONTENT_GITHUB_TOKEN → GitHub Models AI API
  * - KIMI_API_KEY (or MOONSHOT_API_KEY) → Kimi / Moonshot AI
  * - GITHUB_TOKEN → repo Save/publish only (see lib/managed-store.ts)
  */
+
+import {
+  capMaxTokens,
+  midModelFor,
+  resolveSiteCloudTier,
+  type CloudSpendTier,
+} from "@/lib/ai-tiers";
 
 export const GROQ_INSTANT_MODEL = "llama-3.1-8b-instant";
 export const GROQ_FALLBACK_MODEL = "openai/gpt-oss-20b";
@@ -39,6 +48,18 @@ export type ChatJsonResult = {
   model: string;
   note: string;
 };
+
+function modelsForTier(tier: CloudSpendTier, provider: AiProvider): string {
+  if (tier === "public") {
+    if (provider === "groq") return GROQ_INSTANT_MODEL;
+    if (provider === "gemini") return GEMINI_FLASH_MODEL;
+    if (provider === "githubmodels") return GITHUB_MODELS_DEFAULT_MODEL;
+    if (provider === "kimi") return KIMI_DEFAULT_MODEL;
+    if (provider === "openrouter") return OPENROUTER_DEFAULT_MODEL;
+    return DEEPSEEK_DEFAULT_MODEL;
+  }
+  return midModelFor(provider);
+}
 
 async function callOpenAiCompatibleJson(options: {
   url: string;
@@ -125,14 +146,17 @@ async function callGroqWithFallback(
   apiKey: string,
   system: string,
   user: string,
-  maxTokens: number
+  maxTokens: number,
+  preferredModel = GROQ_INSTANT_MODEL
 ): Promise<ChatJsonResult> {
   try {
-    return await callGroqJson(apiKey, system, user, maxTokens, GROQ_INSTANT_MODEL);
+    return await callGroqJson(apiKey, system, user, maxTokens, preferredModel);
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (!/groq API error (400|404|410)/i.test(message)) throw error;
-    return callGroqJson(apiKey, system, user, maxTokens, GROQ_FALLBACK_MODEL);
+    const fallback =
+      preferredModel === GROQ_INSTANT_MODEL ? GROQ_FALLBACK_MODEL : GROQ_INSTANT_MODEL;
+    return callGroqJson(apiKey, system, user, maxTokens, fallback);
   }
 }
 
@@ -140,13 +164,14 @@ async function callGithubModelsJson(
   apiKey: string,
   system: string,
   user: string,
-  maxTokens: number
+  maxTokens: number,
+  model = GITHUB_MODELS_DEFAULT_MODEL
 ): Promise<ChatJsonResult> {
   try {
     return await callOpenAiCompatibleJson({
       url: "https://models.github.ai/inference/chat/completions",
       apiKey,
-      model: GITHUB_MODELS_DEFAULT_MODEL,
+      model,
       system,
       user,
       maxTokens,
@@ -155,7 +180,7 @@ async function callGithubModelsJson(
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
       },
-      note: `Powered by GitHub Models (${GITHUB_MODELS_DEFAULT_MODEL}).`,
+      note: `Powered by GitHub Models (${model}).`,
       includeResponseFormat: true,
     });
   } catch (error) {
@@ -165,7 +190,7 @@ async function callGithubModelsJson(
     return callOpenAiCompatibleJson({
       url: "https://models.github.ai/inference/chat/completions",
       apiKey,
-      model: GITHUB_MODELS_DEFAULT_MODEL,
+      model,
       system,
       user,
       maxTokens,
@@ -174,7 +199,7 @@ async function callGithubModelsJson(
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
       },
-      note: `Powered by GitHub Models (${GITHUB_MODELS_DEFAULT_MODEL}).`,
+      note: `Powered by GitHub Models (${model}).`,
       includeResponseFormat: false,
     });
   }
@@ -184,7 +209,8 @@ async function callKimiJson(
   apiKey: string,
   system: string,
   user: string,
-  maxTokens: number
+  maxTokens: number,
+  model = KIMI_DEFAULT_MODEL
 ): Promise<ChatJsonResult> {
   const bases = Array.from(
     new Set([KIMI_API_BASE, "https://api.moonshot.cn/v1", "https://api.moonshot.ai/v1"])
@@ -195,12 +221,12 @@ async function callKimiJson(
       return await callOpenAiCompatibleJson({
         url: `${base}/chat/completions`,
         apiKey,
-        model: KIMI_DEFAULT_MODEL,
+        model,
         system,
         user,
         maxTokens,
         provider: "kimi",
-        note: `Powered by Kimi / Moonshot (${KIMI_DEFAULT_MODEL}).`,
+        note: `Powered by Kimi / Moonshot (${model}).`,
       });
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -215,12 +241,13 @@ async function callOpenRouterJson(
   apiKey: string,
   system: string,
   user: string,
-  maxTokens: number
+  maxTokens: number,
+  model = OPENROUTER_DEFAULT_MODEL
 ): Promise<ChatJsonResult> {
   return callOpenAiCompatibleJson({
     url: "https://openrouter.ai/api/v1/chat/completions",
     apiKey,
-    model: OPENROUTER_DEFAULT_MODEL,
+    model,
     system,
     user,
     maxTokens,
@@ -229,7 +256,7 @@ async function callOpenRouterJson(
       "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://results-academic.vercel.app",
       "X-Title": process.env.OPENROUTER_APP_NAME || "Knowledge Explorer",
     },
-    note: `Powered by OpenRouter (${OPENROUTER_DEFAULT_MODEL}).`,
+    note: `Powered by OpenRouter (${model}).`,
   });
 }
 
@@ -237,27 +264,30 @@ async function callDeepSeekJson(
   apiKey: string,
   system: string,
   user: string,
-  maxTokens: number
+  maxTokens: number,
+  model = DEEPSEEK_DEFAULT_MODEL
 ): Promise<ChatJsonResult> {
   return callOpenAiCompatibleJson({
     url: "https://api.deepseek.com/chat/completions",
     apiKey,
-    model: DEEPSEEK_DEFAULT_MODEL,
+    model,
     system,
     user,
     maxTokens,
     provider: "deepseek",
-    note: `Powered by DeepSeek (${DEEPSEEK_DEFAULT_MODEL}).`,
+    note: `Powered by DeepSeek (${model}).`,
   });
 }
 
 async function callGeminiJson(
   apiKey: string,
   system: string,
-  user: string
+  user: string,
+  maxTokens = 900,
+  model = GEMINI_FLASH_MODEL
 ): Promise<ChatJsonResult> {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_FLASH_MODEL}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
@@ -265,7 +295,7 @@ async function callGeminiJson(
         contents: [{ parts: [{ text: `${system}\n\n${user}` }] }],
         generationConfig: {
           temperature: 0.35,
-          maxOutputTokens: 900,
+          maxOutputTokens: maxTokens,
           responseMimeType: "application/json",
         },
       }),
@@ -290,12 +320,12 @@ async function callGeminiJson(
   return {
     data,
     provider: "gemini",
-    model: GEMINI_FLASH_MODEL,
-    note: `Powered by Gemini Flash (${GEMINI_FLASH_MODEL}).`,
+    model,
+    note: `Powered by Gemini (${model}).`,
   };
 }
 
-/** Official Instant-class site models users can pick (or auto cascade). */
+/** Official site models users can pick (or auto cascade). Labels reflect public Instant tier. */
 export type SiteModelChoice = "auto" | AiProvider;
 
 export const SITE_INSTANT_MODELS: Array<{
@@ -303,19 +333,20 @@ export const SITE_INSTANT_MODELS: Array<{
   label: string;
   model: string;
 }> = [
-  { value: "auto", label: "Auto cascade (try available Instant models)", model: "cascade" },
-  { value: "groq", label: "Groq Instant", model: GROQ_INSTANT_MODEL },
-  { value: "gemini", label: "Gemini Flash", model: GEMINI_FLASH_MODEL },
+  { value: "auto", label: "Auto cascade (public Instant / author mid if enabled)", model: "cascade" },
+  { value: "groq", label: "Groq", model: GROQ_INSTANT_MODEL },
+  { value: "gemini", label: "Gemini", model: GEMINI_FLASH_MODEL },
   { value: "githubmodels", label: "GitHub Models", model: GITHUB_MODELS_DEFAULT_MODEL },
   { value: "kimi", label: "Kimi / Moonshot", model: KIMI_DEFAULT_MODEL },
-  { value: "openrouter", label: "OpenRouter Instant", model: OPENROUTER_DEFAULT_MODEL },
+  { value: "openrouter", label: "OpenRouter", model: OPENROUTER_DEFAULT_MODEL },
   { value: "deepseek", label: "DeepSeek Chat", model: DEEPSEEK_DEFAULT_MODEL },
 ];
 
 function buildSiteChannels(
   system: string,
   user: string,
-  maxTokens: number
+  maxTokens: number,
+  tier: "public" | "author"
 ): Array<{ name: AiProvider; run: () => Promise<ChatJsonResult> }> {
   const channels: Array<{ name: AiProvider; run: () => Promise<ChatJsonResult> }> = [];
   const groqKey = process.env.GROQ_API_KEY;
@@ -324,67 +355,71 @@ function buildSiteChannels(
   const kimiKey = process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const deepSeekKey = process.env.DEEPSEEK_API_KEY;
+  const badge = tier === "author" ? "Author mid-tier" : "Public Instant (lowest)";
 
   if (groqKey) {
+    const model = modelsForTier(tier, "groq");
     channels.push({
       name: "groq",
       run: async () => {
-        const result = await callGroqWithFallback(groqKey, system, user, maxTokens);
-        return { ...result, note: `Official Instant · Groq (${result.model}).` };
+        const result = await callGroqWithFallback(groqKey, system, user, maxTokens, model);
+        return { ...result, note: `${badge} · Groq (${result.model}).` };
       },
     });
   }
   if (geminiKey) {
+    const model = modelsForTier(tier, "gemini");
     channels.push({
       name: "gemini",
       run: async () => {
-        const result = await callGeminiJson(geminiKey, system, user);
-        return { ...result, note: `Official Instant · Gemini Flash (${GEMINI_FLASH_MODEL}).` };
+        const result = await callGeminiJson(geminiKey, system, user, maxTokens, model);
+        return { ...result, note: `${badge} · Gemini (${model}).` };
       },
     });
   }
   if (githubModelsKey) {
+    const model = modelsForTier(tier, "githubmodels");
     channels.push({
       name: "githubmodels",
       run: async () => {
-        const result = await callGithubModelsJson(githubModelsKey, system, user, maxTokens);
-        return {
-          ...result,
-          note: `Official Instant · GitHub Models (${GITHUB_MODELS_DEFAULT_MODEL}).`,
-        };
+        const result = await callGithubModelsJson(
+          githubModelsKey,
+          system,
+          user,
+          maxTokens,
+          model
+        );
+        return { ...result, note: `${badge} · GitHub Models (${model}).` };
       },
     });
   }
   if (kimiKey) {
+    const model = modelsForTier(tier, "kimi");
     channels.push({
       name: "kimi",
       run: async () => {
-        const result = await callKimiJson(kimiKey, system, user, maxTokens);
-        return { ...result, note: `Official Instant · Kimi (${KIMI_DEFAULT_MODEL}).` };
+        const result = await callKimiJson(kimiKey, system, user, maxTokens, model);
+        return { ...result, note: `${badge} · Kimi (${model}).` };
       },
     });
   }
   if (openRouterKey) {
+    const model = modelsForTier(tier, "openrouter");
     channels.push({
       name: "openrouter",
       run: async () => {
-        const result = await callOpenRouterJson(openRouterKey, system, user, maxTokens);
-        return {
-          ...result,
-          note: `Official Instant · OpenRouter (${OPENROUTER_DEFAULT_MODEL}).`,
-        };
+        const result = await callOpenRouterJson(openRouterKey, system, user, maxTokens, model);
+        return { ...result, note: `${badge} · OpenRouter (${model}).` };
       },
     });
   }
   if (deepSeekKey) {
+    const model = modelsForTier(tier, "deepseek");
     channels.push({
       name: "deepseek",
       run: async () => {
-        const result = await callDeepSeekJson(deepSeekKey, system, user, maxTokens);
-        return {
-          ...result,
-          note: `Official Instant · DeepSeek (${DEEPSEEK_DEFAULT_MODEL}).`,
-        };
+        const result = await callDeepSeekJson(deepSeekKey, system, user, maxTokens, model);
+        return { ...result, note: `${badge} · DeepSeek (${model}).` };
       },
     });
   }
@@ -392,8 +427,9 @@ function buildSiteChannels(
 }
 
 /**
- * Site: pick one official Instant model, or auto-cascade.
- * BYOK: only the provider the user selected (still Instant-class).
+ * Site public: Instant + lowest caps (default).
+ * Site author (SITE_AI_TIER=author): mid versatile models + modestly higher caps.
+ * BYOK: mid models + slightly more open caps.
  */
 export async function runChatJson(options: {
   system: string;
@@ -404,61 +440,88 @@ export async function runChatJson(options: {
   /** Official site model when not using BYOK. Default: auto cascade. */
   siteModel?: SiteModelChoice;
 }): Promise<ChatJsonResult> {
-  const maxTokens = options.maxTokens ?? 700;
   const userKey = options.userApiKey?.trim();
+  const tier: CloudSpendTier = userKey ? "byok" : resolveSiteCloudTier();
+  const maxTokens = capMaxTokens(options.maxTokens, tier);
 
   if (userKey) {
     const provider = options.provider || "groq";
+    const model = modelsForTier("byok", provider);
     if (provider === "gemini") {
-      const result = await callGeminiJson(userKey, options.system, options.user);
+      const result = await callGeminiJson(userKey, options.system, options.user, maxTokens, model);
       return {
         ...result,
-        note: `Your own Gemini key · Flash (${GEMINI_FLASH_MODEL}) — usually stronger quota and fewer shared limits.`,
+        note: `Your API (mid-tier) · Gemini (${model}) — personal quota, not the shared Instant pool.`,
       };
     }
     if (provider === "githubmodels") {
-      const result = await callGithubModelsJson(userKey, options.system, options.user, maxTokens);
+      const result = await callGithubModelsJson(
+        userKey,
+        options.system,
+        options.user,
+        maxTokens,
+        model
+      );
       return {
         ...result,
-        note: `Your own GitHub Models token · ${GITHUB_MODELS_DEFAULT_MODEL}.`,
+        note: `Your API (mid-tier) · GitHub Models (${model}).`,
       };
     }
     if (provider === "kimi") {
-      const result = await callKimiJson(userKey, options.system, options.user, maxTokens);
+      const result = await callKimiJson(userKey, options.system, options.user, maxTokens, model);
       return {
         ...result,
-        note: `Your own Kimi / Moonshot key · ${KIMI_DEFAULT_MODEL}.`,
+        note: `Your API (mid-tier) · Kimi (${model}).`,
       };
     }
     if (provider === "openrouter") {
-      const result = await callOpenRouterJson(userKey, options.system, options.user, maxTokens);
+      const result = await callOpenRouterJson(
+        userKey,
+        options.system,
+        options.user,
+        maxTokens,
+        model
+      );
       return {
         ...result,
-        note: `Your own OpenRouter key · ${OPENROUTER_DEFAULT_MODEL} — more effective personal routing/quota.`,
+        note: `Your API (mid-tier) · OpenRouter (${model}).`,
       };
     }
     if (provider === "deepseek") {
-      const result = await callDeepSeekJson(userKey, options.system, options.user, maxTokens);
+      const result = await callDeepSeekJson(
+        userKey,
+        options.system,
+        options.user,
+        maxTokens,
+        model
+      );
       return {
         ...result,
-        note: `Your own DeepSeek key · ${DEEPSEEK_DEFAULT_MODEL} — stronger personal quota.`,
+        note: `Your API (mid-tier) · DeepSeek (${model}).`,
       };
     }
-    const result = await callGroqWithFallback(userKey, options.system, options.user, maxTokens);
+    const result = await callGroqWithFallback(
+      userKey,
+      options.system,
+      options.user,
+      maxTokens,
+      model
+    );
     return {
       ...result,
-      note: `Your own Groq key · ${result.model} — usually stronger quota and fewer shared limits.`,
+      note: `Your API (mid-tier) · Groq (${result.model}).`,
     };
   }
 
-  const channels = buildSiteChannels(options.system, options.user, maxTokens);
+  const siteTier = resolveSiteCloudTier();
+  const channels = buildSiteChannels(options.system, options.user, maxTokens, siteTier);
   const siteModel = options.siteModel || "auto";
 
   if (siteModel !== "auto") {
     const chosen = channels.find((channel) => channel.name === siteModel);
     if (!chosen) {
       throw new Error(
-        `Official Instant model “${siteModel}” is not configured on this site (missing API key). Pick Auto or another model.`
+        `Official model “${siteModel}” is not configured on this site (missing API key). Pick Auto or another model.`
       );
     }
     return chosen.run();

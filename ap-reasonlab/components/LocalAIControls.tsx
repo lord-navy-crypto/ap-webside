@@ -7,21 +7,34 @@ import {
   type LocalModelGroup,
 } from "@/components/LocalAIProvider";
 
-const MODES: Array<{ value: AIMode; label: string; detail: string }> = [
-  {
-    value: "auto",
-    label: "Auto",
-    detail: "Uses local AI only after it is enabled below; otherwise uses cloud.",
-  },
+const MODES: Array<{
+  value: AIMode;
+  label: string;
+  detail: string;
+  badge?: string;
+  badgeTone?: "recommend" | "backup";
+}> = [
   {
     value: "local",
     label: "Local AI",
-    detail: "Prefers on-device models. You still must Enable / load a model below.",
+    detail:
+      "Runs on your computer — free for the site, private, no shared cloud quota. Enable a model below.",
+    badge: "Author recommends",
+    badgeTone: "recommend",
+  },
+  {
+    value: "auto",
+    label: "Auto",
+    detail: "Uses Local when enabled; otherwise falls back to cloud. Prefer enabling Local first.",
+    badge: "Backup path",
+    badgeTone: "backup",
   },
   {
     value: "cloud",
     label: "Cloud AI",
-    detail: "Uses the website API or your bring-your-own-key provider.",
+    detail: "Website Instant (lowest) or your own mid-tier API. Use when Local is not available.",
+    badge: "Backup · limited",
+    badgeTone: "backup",
   },
 ];
 
@@ -101,7 +114,12 @@ export default function LocalAIControls() {
   return (
     <section className="space-y-4 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">AI mode</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">AI mode</p>
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
+            Local first
+          </span>
+        </div>
         <div className="mt-2 grid gap-2 md:grid-cols-3">
           {MODES.map((item) => (
             <button
@@ -110,14 +128,37 @@ export default function LocalAIControls() {
               onClick={() => selectMode(item.value)}
               className={
                 localAI.mode === item.value
-                  ? "rounded-xl bg-violet-700 px-4 py-3 text-left text-white shadow"
-                  : "rounded-xl border border-violet-200 bg-white px-4 py-3 text-left text-slate-800 hover:border-violet-400"
+                  ? item.value === "local"
+                    ? "rounded-xl bg-emerald-700 px-4 py-3 text-left text-white shadow"
+                    : "rounded-xl bg-violet-700 px-4 py-3 text-left text-white shadow"
+                  : item.value === "local"
+                    ? "rounded-xl border-2 border-emerald-400 bg-white px-4 py-3 text-left text-slate-800 shadow-sm hover:border-emerald-500"
+                    : "rounded-xl border border-violet-200 bg-white px-4 py-3 text-left text-slate-800 hover:border-violet-400"
               }
             >
-              <span className="block text-sm font-semibold">{item.label}</span>
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="block text-sm font-semibold">{item.label}</span>
+                {item.badge && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                      localAI.mode === item.value
+                        ? "bg-white/20 text-white"
+                        : item.badgeTone === "recommend"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+              </span>
               <span
                 className={`mt-1 block text-xs ${
-                  localAI.mode === item.value ? "text-violet-100" : "text-slate-500"
+                  localAI.mode === item.value
+                    ? item.value === "local"
+                      ? "text-emerald-50"
+                      : "text-violet-100"
+                    : "text-slate-500"
                 }`}
               >
                 {item.detail}
@@ -142,8 +183,9 @@ export default function LocalAIControls() {
           <div>
             <h2 className="font-semibold text-slate-900">Local model library</h2>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Customize which on-device model to use (tiny / Chinese / math / coder). Enabling loads
-              it with WebGPU; files stay cached in this browser until you remove them.
+              <strong>Author recommends Local AI</strong> for everyday study: no website token bill,
+              prompts stay on your device, and we do not apply cloud-style output caps. Pick a model
+              below (tiny / Chinese / math / coder), then Enable.
             </p>
           </div>
           <span
@@ -259,8 +301,10 @@ export default function LocalAIControls() {
         )}
 
         <p className="mt-3 text-xs text-slate-500">
-          Desktop Chrome/Edge with GPU acceleration works best. First enable may download hundreds of
-          MB; later loads reuse this browser cache.
+          Recommended starters: <strong>Qwen Chinese starter (0.5B)</strong> for bilingual study, or{" "}
+          <strong>Tiny local AI</strong> just to test Enable. Desktop Chrome/Edge with GPU works
+          best. First enable may download hundreds of MB; later loads reuse this browser cache. Only
+          your device limits speed and length — not the website quota.
         </p>
 
         {localAI.status === "loading" && (

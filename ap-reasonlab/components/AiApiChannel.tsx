@@ -19,21 +19,21 @@ type Props = {
 };
 
 const byokOptions: Array<{ value: AiProvider; label: string; placeholder: string }> = [
-  { value: "groq", label: "Groq Instant (llama-3.1-8b-instant)", placeholder: "gsk_..." },
-  { value: "gemini", label: "Gemini Flash (gemini-2.0-flash)", placeholder: "AIza..." },
+  { value: "groq", label: "Groq mid · llama-3.3-70b-versatile", placeholder: "gsk_..." },
+  { value: "gemini", label: "Gemini · gemini-2.0-flash", placeholder: "AIza..." },
   {
     value: "githubmodels",
-    label: "GitHub Models (PAT)",
+    label: "GitHub Models mid (PAT)",
     placeholder: "ghp_... or github_pat_...",
   },
   {
     value: "kimi",
-    label: "Kimi / Moonshot (moonshot-v1-8k)",
+    label: "Kimi / Moonshot mid (moonshot-v1-32k)",
     placeholder: "sk-... (Kimi / Moonshot)",
   },
   {
     value: "openrouter",
-    label: "OpenRouter (llama-3.1-8b via OpenRouter)",
+    label: "OpenRouter mid (llama-3.1-70b)",
     placeholder: "sk-or-v1-...",
   },
   { value: "deepseek", label: "DeepSeek (deepseek-chat)", placeholder: "sk-..." },
@@ -53,7 +53,18 @@ export default function AiApiChannel({
 
   return (
     <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">API channel</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          Cloud API channel
+        </p>
+        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+          Backup to Local AI
+        </span>
+      </div>
+      <p className="text-xs text-slate-500">
+        Prefer Local AI above when you can. Cloud is for devices without WebGPU or when you need a
+        server model.
+      </p>
       <div className="grid gap-2 sm:grid-cols-2">
         <button
           type="button"
@@ -64,11 +75,20 @@ export default function AiApiChannel({
               : "rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 hover:border-brand-300"
           }
         >
-          <span className="block">Default website API</span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span>Default website API</span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                channel === "site" ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+              }`}
+            >
+              Public · lowest
+            </span>
+          </span>
           <span
             className={`mt-1 block text-xs font-normal ${channel === "site" ? "text-blue-100" : "text-slate-500"}`}
           >
-            Pick one official Instant model, or Auto cascade. Free to try; may hit shared limits.
+            Shared Instant-class keys with the tightest limits. Free to try; may hit shared quotas.
           </span>
         </button>
         <button
@@ -80,18 +100,31 @@ export default function AiApiChannel({
               : "rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 hover:border-brand-300"
           }
         >
-          <span className="block">Your own API</span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span>Your own API</span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                channel === "byok" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
+              }`}
+            >
+              Advanced · mid-tier
+            </span>
+          </span>
           <span
             className={`mt-1 block text-xs font-normal ${channel === "byok" ? "text-blue-100" : "text-slate-500"}`}
           >
-            More effective for you — personal Instant-class key, fewer shared limits.
+            Personal mid versatile models — easier quota than the public Instant pool (still not
+            unlimited).
           </span>
         </button>
       </div>
 
       {channel === "site" && (
         <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
-          <label className="block text-sm font-medium text-slate-800">Official Instant model</label>
+          <label className="block text-sm font-medium text-slate-800">
+            Official site model{" "}
+            <span className="font-normal text-slate-400">(public Instant by default)</span>
+          </label>
           <select
             className="input"
             value={siteModel}
@@ -105,8 +138,9 @@ export default function AiApiChannel({
             ))}
           </select>
           <p className="text-xs text-slate-500">
-            All official options stay Instant / Flash / fast-chat class. Auto tries configured keys
-            in order until one works.
+            Public tier stays Instant / Flash / fast-chat with low token caps. If the owner sets{" "}
+            <code className="rounded bg-slate-100 px-1">SITE_AI_TIER=author</code>, the same keys
+            use mid versatile models with modestly higher caps — still not as open as Local AI.
           </p>
         </div>
       )}
@@ -114,8 +148,8 @@ export default function AiApiChannel({
       {channel === "byok" && (
         <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/80 p-3">
           <p className="text-xs text-amber-900">
-            Your key is sent only for this request and is not stored. Models stay Instant-class;
-            Groq can use a supported fallback if Instant is retired.
+            Your key is sent only for this request and is not stored. BYOK uses mid-tier models with
+            moderately higher limits than the public Instant pool.
           </p>
           <div>
             <label className="mb-1 block text-sm font-medium">Provider</label>
