@@ -1,9 +1,10 @@
 /**
  * Shared AI client — Instant-class cascade.
- * Site order: Groq → Gemini → GitHub Models (CONTENT_GITHUB_TOKEN) → OpenRouter → DeepSeek.
+ * Site order: Groq → Gemini → GitHub Models → Kimi → OpenRouter → DeepSeek.
  *
  * Owner setup:
  * - CONTENT_GITHUB_TOKEN → GitHub Models AI API
+ * - KIMI_API_KEY (or MOONSHOT_API_KEY) → Kimi / Moonshot AI
  * - GITHUB_TOKEN → repo Save/publish only (see lib/managed-store.ts)
  */
 
@@ -16,8 +17,21 @@ export const DEEPSEEK_DEFAULT_MODEL =
   process.env.DEEPSEEK_MODEL?.trim() || "deepseek-chat";
 export const GITHUB_MODELS_DEFAULT_MODEL =
   process.env.GITHUB_MODELS_MODEL?.trim() || "openai/gpt-4o-mini";
+export const KIMI_DEFAULT_MODEL =
+  process.env.KIMI_MODEL?.trim() || process.env.MOONSHOT_MODEL?.trim() || "moonshot-v1-8k";
+export const KIMI_API_BASE = (
+  process.env.KIMI_API_BASE?.trim() ||
+  process.env.MOONSHOT_API_BASE?.trim() ||
+  "https://api.moonshot.cn/v1"
+).replace(/\/$/, "");
 
-export type AiProvider = "groq" | "gemini" | "githubmodels" | "openrouter" | "deepseek";
+export type AiProvider =
+  | "groq"
+  | "gemini"
+  | "githubmodels"
+  | "kimi"
+  | "openrouter"
+  | "deepseek";
 
 export type ChatJsonResult = {
   data: Record<string, unknown>;
@@ -166,6 +180,37 @@ async function callGithubModelsJson(
   }
 }
 
+async function callKimiJson(
+  apiKey: string,
+  system: string,
+  user: string,
+  maxTokens: number
+): Promise<ChatJsonResult> {
+  const bases = Array.from(
+    new Set([KIMI_API_BASE, "https://api.moonshot.cn/v1", "https://api.moonshot.ai/v1"])
+  );
+  let lastError: Error | null = null;
+  for (const base of bases) {
+    try {
+      return await callOpenAiCompatibleJson({
+        url: `${base}/chat/completions`,
+        apiKey,
+        model: KIMI_DEFAULT_MODEL,
+        system,
+        user,
+        maxTokens,
+        provider: "kimi",
+        note: `Powered by Kimi / Moonshot (${KIMI_DEFAULT_MODEL}).`,
+      });
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      // Try next regional endpoint on auth/host mismatch.
+      if (!/kimi API error (401|403|404)/i.test(lastError.message)) throw lastError;
+    }
+  }
+  throw lastError || new Error("Kimi API failed");
+}
+
 async function callOpenRouterJson(
   apiKey: string,
   system: string,
@@ -251,7 +296,7 @@ async function callGeminiJson(
 }
 
 /**
- * Site default: Groq → Gemini → GitHub Models → OpenRouter → DeepSeek.
+ * Site default: Groq → Gemini → GitHub Models → Kimi → OpenRouter → DeepSeek.
  * BYOK: only the provider the user selected.
  */
 export async function runChatJson(options: {
@@ -280,6 +325,13 @@ export async function runChatJson(options: {
         note: `Your own GitHub Models token · ${GITHUB_MODELS_DEFAULT_MODEL}.`,
       };
     }
+    if (provider === "kimi") {
+      const result = await callKimiJson(userKey, options.system, options.user, maxTokens);
+      return {
+        ...result,
+        note: `Your own Kimi / Moonshot key · ${KIMI_DEFAULT_MODEL}.`,
+      };
+    }
     if (provider === "openrouter") {
       const result = await callOpenRouterJson(userKey, options.system, options.user, maxTokens);
       return {
@@ -305,6 +357,7 @@ export async function runChatJson(options: {
   const groqKey = process.env.GROQ_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const githubModelsKey = process.env.CONTENT_GITHUB_TOKEN;
+  const kimiKey = process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const deepSeekKey = process.env.DEEPSEEK_API_KEY;
 
@@ -339,6 +392,18 @@ export async function runChatJson(options: {
         return {
           ...result,
           note: `Site · GitHub Models via CONTENT_GITHUB_TOKEN (${GITHUB_MODELS_DEFAULT_MODEL}).`,
+        };
+      },
+    });
+  }
+  if (kimiKey) {
+    channels.push({
+      name: "kimi",
+      run: async () => {
+        const result = await callKimiJson(kimiKey, options.system, options.user, maxTokens);
+        return {
+          ...result,
+          note: `Site · Kimi / Moonshot (${KIMI_DEFAULT_MODEL}).`,
         };
       },
     });
@@ -385,7 +450,7 @@ export async function runChatJson(options: {
   throw new Error(
     errors.length
       ? `All AI channels failed: ${errors.join(" | ")}`
-      : "No site AI keys configured (CONTENT_GITHUB_TOKEN for GitHub Models, or GROQ/GEMINI/OPENROUTER/DEEPSEEK)."
+      : "No site AI keys configured (CONTENT_GITHUB_TOKEN / KIMI_API_KEY / GROQ / GEMINI / OPENROUTER / DEEPSEEK)."
   );
 }
 
@@ -398,6 +463,7 @@ export function parseAiProvider(value: unknown): AiProvider {
   if (
     value === "gemini" ||
     value === "githubmodels" ||
+    value === "kimi" ||
     value === "openrouter" ||
     value === "deepseek" ||
     value === "groq"

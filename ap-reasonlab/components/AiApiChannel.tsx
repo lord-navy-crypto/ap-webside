@@ -22,6 +22,11 @@ const providerOptions: Array<{ value: AiProvider; label: string; placeholder: st
     placeholder: "ghp_... or github_pat_...",
   },
   {
+    value: "kimi",
+    label: "Kimi / Moonshot (moonshot-v1-8k)",
+    placeholder: "sk-... (Kimi / Moonshot)",
+  },
+  {
     value: "openrouter",
     label: "OpenRouter (llama-3.1-8b via OpenRouter)",
     placeholder: "sk-or-v1-...",
