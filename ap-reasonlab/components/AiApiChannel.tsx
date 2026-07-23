@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 import { SITE_INSTANT_MODELS } from "@/lib/ai-client";
 
@@ -8,7 +9,7 @@ export type ApiChannel = "site" | "byok";
 type Props = {
   channel: ApiChannel;
   onChannelChange: (channel: ApiChannel) => void;
-  /** Official Instant model when using Default website API */
+  /** Official Instant / Advanced Default model when using Default website API */
   siteModel: SiteModelChoice;
   onSiteModelChange: (model: SiteModelChoice) => void;
   /** BYOK provider */
@@ -50,6 +51,22 @@ export default function AiApiChannel({
   onUserKeyChange,
 }: Props) {
   const selected = byokOptions.find((option) => option.value === provider) || byokOptions[0];
+  const [advancedDefault, setAdvancedDefault] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/ai/site-tier", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload: { advancedDefault?: boolean }) => {
+        if (!cancelled) setAdvancedDefault(Boolean(payload.advancedDefault));
+      })
+      .catch(() => {
+        if (!cancelled) setAdvancedDefault(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
@@ -79,16 +96,22 @@ export default function AiApiChannel({
             <span>Default website API</span>
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                channel === "site" ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+                channel === "site"
+                  ? "bg-white/20 text-white"
+                  : advancedDefault
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-amber-100 text-amber-800"
               }`}
             >
-              Public · lowest
+              {advancedDefault ? "Advanced Default" : "Instant · lowest"}
             </span>
           </span>
           <span
             className={`mt-1 block text-xs font-normal ${channel === "site" ? "text-blue-100" : "text-slate-500"}`}
           >
-            Shared Instant-class keys with the tightest limits. Free to try; may hit shared quotas.
+            {advancedDefault
+              ? "Owner enabled Advanced Default — same mid-tier class as Your own API on shared site keys."
+              : "Shared Instant-class keys with the tightest limits. Free to try; may hit shared quotas."}
           </span>
         </button>
         <button
@@ -107,14 +130,13 @@ export default function AiApiChannel({
                 channel === "byok" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
               }`}
             >
-              Advanced · mid-tier
+              Advanced
             </span>
           </span>
           <span
             className={`mt-1 block text-xs font-normal ${channel === "byok" ? "text-blue-100" : "text-slate-500"}`}
           >
-            Personal mid versatile models — easier quota than the public Instant pool (still not
-            unlimited).
+            Personal mid versatile models — same Advanced class as Advanced Default (personal quota).
           </span>
         </button>
       </div>
@@ -123,7 +145,9 @@ export default function AiApiChannel({
         <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
           <label className="block text-sm font-medium text-slate-800">
             Official site model{" "}
-            <span className="font-normal text-slate-400">(public Instant by default)</span>
+            <span className="font-normal text-slate-400">
+              ({advancedDefault ? "Advanced Default" : "Instant"})
+            </span>
           </label>
           <select
             className="input"
@@ -138,9 +162,9 @@ export default function AiApiChannel({
             ))}
           </select>
           <p className="text-xs text-slate-500">
-            Public tier stays Instant / Flash / fast-chat with low token caps. If the owner sets{" "}
-            <code className="rounded bg-slate-100 px-1">SITE_AI_TIER=author</code>, the same keys
-            use mid versatile models with modestly higher caps — still not as open as Local AI.
+            {advancedDefault
+              ? "Advanced Default is ON in Manage — site keys use mid versatile models (same Advanced class as Your own API)."
+              : "Advanced Default is OFF — Instant / Flash / fast-chat with low token caps. Toggle Advanced Default in Manage to switch."}
           </p>
         </div>
       )}
@@ -148,8 +172,8 @@ export default function AiApiChannel({
       {channel === "byok" && (
         <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/80 p-3">
           <p className="text-xs text-amber-900">
-            Your key is sent only for this request and is not stored. BYOK uses mid-tier models with
-            moderately higher limits than the public Instant pool.
+            Your key is sent only for this request and is not stored. BYOK always uses Advanced
+            mid-tier models.
           </p>
           <div>
             <label className="mb-1 block text-sm font-medium">Provider</label>

@@ -107,6 +107,15 @@ export type ManagedForumPost = {
   replies: ManagedForumReply[];
 };
 
+/** Site-wide knobs controlled from Manage (persisted in managed-content.json). */
+export type ManagedSiteSettings = {
+  /**
+   * When true, Default website API uses the same mid-tier (Advanced) models as BYOK.
+   * When false, Default website API stays Instant / lowest.
+   */
+  advancedDefault: boolean;
+};
+
 export type ManagedContent = {
   concepts: Concept[];
   formulas: Formula[];
@@ -123,6 +132,7 @@ export type ManagedContent = {
   questionnaires: Questionnaire[];
   /** Optional topic index (mirrors concepts created via + Add topic) */
   topics: ManagedTopic[];
+  settings: ManagedSiteSettings;
   updatedAt: number;
 };
 
@@ -139,6 +149,19 @@ export type UsersFile = {
   updatedAt: number;
 };
 
+export function emptySiteSettings(): ManagedSiteSettings {
+  return { advancedDefault: false };
+}
+
+export function normalizeSiteSettings(raw: unknown): ManagedSiteSettings {
+  const base = emptySiteSettings();
+  if (!raw || typeof raw !== "object") return base;
+  const s = raw as Partial<ManagedSiteSettings>;
+  return {
+    advancedDefault: Boolean(s.advancedDefault),
+  };
+}
+
 export function emptyManagedContent(): ManagedContent {
   return {
     concepts: [],
@@ -153,6 +176,7 @@ export function emptyManagedContent(): ManagedContent {
     forumPosts: [],
     questionnaires: [],
     topics: [],
+    settings: emptySiteSettings(),
     updatedAt: 0,
   };
 }
@@ -220,6 +244,7 @@ export function normalizeManagedContent(
     forumPosts: Array.isArray(raw.forumPosts) ? raw.forumPosts : [],
     questionnaires: Array.isArray(raw.questionnaires) ? raw.questionnaires : [],
     topics: Array.isArray(raw.topics) ? raw.topics : [],
+    settings: normalizeSiteSettings(raw.settings),
     updatedAt: typeof raw.updatedAt === "number" ? raw.updatedAt : 0,
   };
 }

@@ -2,20 +2,75 @@
  * Cloud spend tiers for Knowledge Explorer AI.
  *
  * - public: website shared Instant keys — lowest limits (default)
- * - author: SITE_AI_TIER=author — mid versatile models, modestly higher tokens
+ * - author / Advanced Default: mid versatile models (same class as BYOK), modestly higher tokens
  * - byok: user-pasted key — mid models, slightly more open (not unlimited)
  *
  * Local AI (browser) is separate and has no product-side token caps.
+ *
+ * Manage → Advanced Default toggles the website Default API between Instant and Advanced
+ * without redeploying env. Env SITE_AI_TIER=author remains a fallback when the Manage
+ * flag has never been used / content load fails.
  */
+
+import { loadManagedContent } from "@/lib/managed-store";
 
 export type CloudSpendTier = "public" | "author" | "byok";
 
-/** Set SITE_AI_TIER=author on the server to use mid-tier models for the website keys. */
-export function resolveSiteCloudTier(): "public" | "author" {
+const CACHE_TTL_MS = 30_000;
+
+let cached: { tier: "public" | "author"; advancedDefault: boolean; at: number } | null =
+  null;
+
+/** Clear cached Manage override (call after saving Advanced Default). */
+export function invalidateSiteAiTierCache(): void {
+  cached = null;
+}
+
+/** Env-only fallback (sync). Prefer resolveSiteCloudTier() in AI routes. */
+export function resolveSiteCloudTierFromEnv(): "public" | "author" {
   const raw = (process.env.SITE_AI_TIER || process.env.AUTHOR_AI_TIER || "public")
     .trim()
     .toLowerCase();
   return raw === "author" || raw === "mid" || raw === "standard" ? "author" : "public";
+}
+
+/**
+ * Resolve Default website API tier.
+ * Manage Advanced Default wins when settings load; otherwise env SITE_AI_TIER.
+ */
+export async function resolveSiteCloudTier(): Promise<"public" | "author"> {
+  const status = await getSiteAiTierStatus();
+  return status.tier;
+}
+
+export async function getSiteAiTierStatus(): Promise<{
+  tier: "public" | "author";
+  advancedDefault: boolean;
+  source: "manage" | "env";
+}> {
+  const now = Date.now();
+  if (cached && now - cached.at < CACHE_TTL_MS) {
+    return {
+      tier: cached.tier,
+      advancedDefault: cached.advancedDefault,
+      source: "manage",
+    };
+  }
+
+  try {
+    const content = await loadManagedContent();
+    const advancedDefault = Boolean(content.settings?.advancedDefault);
+    const tier: "public" | "author" = advancedDefault ? "author" : "public";
+    cached = { tier, advancedDefault, at: now };
+    return { tier, advancedDefault, source: "manage" };
+  } catch {
+    const tier = resolveSiteCloudTierFromEnv();
+    return {
+      tier,
+      advancedDefault: tier === "author",
+      source: "env",
+    };
+  }
 }
 
 const TOKEN_CAPS: Record<CloudSpendTier, number> = {
@@ -35,7 +90,7 @@ export function capMaxTokens(requested: number | undefined, tier: CloudSpendTier
   return Math.max(64, Math.min(base, TOKEN_CAPS[tier]));
 }
 
-/** Mid versatile models for author / BYOK (not Instant). Overridable via env. */
+/** Mid versatile models for Advanced Default / BYOK (not Instant). Overridable via env. */
 export function midModelFor(provider: string): string {
   switch (provider) {
     case "groq":
@@ -81,7 +136,7 @@ export function midModelFor(provider: string): string {
 }
 
 export function tierLabel(tier: CloudSpendTier): string {
-  if (tier === "public") return "Public Instant (lowest)";
-  if (tier === "author") return "Author mid-tier";
-  return "Your API (mid-tier)";
+  if (tier === "public") return "Instant (lowest)";
+  if (tier === "author") return "Advanced Default";
+  return "Your API (Advanced)";
 }

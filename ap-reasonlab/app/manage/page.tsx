@@ -11,7 +11,7 @@ import ResourceEditor from "@/components/ResourceEditor";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
 import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
 
-type Tab = "content" | "subjects" | "units" | "trash" | "ai" | "history";
+type Tab = "content" | "subjects" | "units" | "trash" | "ai" | "settings" | "history";
 
 export default function ManagePage() {
   const { active: editMode, unlocked, editor, refresh: refreshEditor } = useEditorMode();
@@ -93,11 +93,25 @@ export default function ManagePage() {
     if (await mutate("add_unit", { item: { ...newUnit, subjectId, order: units.length } })) setNewUnit({ title: "", description: "" });
   }
 
+  const [savingAdvanced, setSavingAdvanced] = useState(false);
+
+  const advancedDefault = Boolean(data.settings?.advancedDefault);
+
+  async function setAdvancedDefault(enabled: boolean) {
+    setSavingAdvanced(true);
+    try {
+      await mutate("set_advanced_default", { advancedDefault: enabled });
+    } finally {
+      setSavingAdvanced(false);
+    }
+  }
+
   const tabs: Array<{ id: Tab; label: string; count?: number }> = [
     { id: "content", label: "Content", count: activeItems.length },
     { id: "subjects", label: "Subjects", count: subjects.length },
     { id: "units", label: "Units", count: data.units?.length || 0 },
     { id: "trash", label: "Recycle Bin", count: trash.length },
+    { id: "settings", label: "Settings" },
     { id: "ai", label: "AI Developer" },
     { id: "history", label: "History & Undo" },
   ];
@@ -188,6 +202,50 @@ export default function ManagePage() {
 
       {tab === "trash" && (
         <section className="space-y-3"><div><h2 className="section-title">Recycle Bin</h2><p className="mt-1 text-sm text-slate-500">Deleted manager content stays recoverable here.</p></div>{trash.map((item) => <div key={item.id} className="card flex flex-wrap items-center justify-between gap-3"><div><span className="badge">{item.type}</span><h3 className="mt-2 font-semibold">{item.title}</h3></div><button className="btn-secondary" onClick={() => mutate("restore_content_item", { id: item.id })}>Restore</button></div>)}{trash.length === 0 && <div className="card text-sm text-slate-500">Recycle Bin is empty.</div>}</section>
+      )}
+
+      {tab === "settings" && (
+        <section className="space-y-4">
+          <div className="card space-y-4">
+            <div>
+              <h2 className="text-xl font-bold">Default website API</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Control what visitors get on the shared site keys — without redeploying Vercel env.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900">Advanced Default</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  {advancedDefault
+                    ? "ON — Default website API uses the same Advanced mid-tier models as Your own API (modestly higher caps)."
+                    : "OFF — Default website API stays Instant (lowest limits)."}
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={savingAdvanced}
+                onClick={() => setAdvancedDefault(!advancedDefault)}
+                className={
+                  advancedDefault
+                    ? "rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-emerald-800 disabled:opacity-60"
+                    : "rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 hover:border-brand-400 disabled:opacity-60"
+                }
+                aria-pressed={advancedDefault}
+              >
+                {savingAdvanced
+                  ? "Saving…"
+                  : advancedDefault
+                    ? "Advanced Default · ON"
+                    : "Advanced Default · OFF"}
+              </button>
+            </div>
+            <p className="text-xs text-slate-500">
+              Your own API (BYOK) is always Advanced when visitors paste their key. Local AI is
+              separate and unaffected. Turning Advanced Default on uses more of the shared site keys.
+            </p>
+          </div>
+        </section>
       )}
 
       {tab === "ai" && (
