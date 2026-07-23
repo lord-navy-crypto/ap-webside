@@ -16,12 +16,18 @@ import type {
 } from "@mlc-ai/web-llm";
 
 export type AIMode = "auto" | "local" | "cloud";
+export type LocalModelGroup = "ultralight" | "general" | "study" | "developer";
 
 export type LocalModelOption = {
   id: string;
   label: string;
+  group: LocalModelGroup;
+  summary: string;
+  bestFor: string;
+  parameterSize: string;
   vramMB: number;
-  cached: boolean;
+  cached: boolean | null;
+  recommended?: boolean;
 };
 
 type LocalAIStatus = "idle" | "loading" | "ready" | "generating" | "error";
@@ -32,14 +38,18 @@ type LocalAIContextValue = {
   models: LocalModelOption[];
   selectedModelId: string;
   setSelectedModelId: (id: string) => void;
+  loadedModelId: string;
   status: LocalAIStatus;
   progress: number;
   statusText: string;
   error: string;
   webGPUSupported: boolean | null;
+  cacheScanning: boolean;
   ready: boolean;
-  enable: () => Promise<void>;
-  reset: (removeCachedModel?: boolean) => Promise<void>;
+  enable: (modelId?: string) => Promise<void>;
+  stop: () => Promise<void>;
+  refreshCacheStatus: () => Promise<void>;
+  removeCachedModel: (modelId: string) => Promise<void>;
   complete: (
     messages: ChatCompletionMessageParam[],
     onToken?: (token: string, fullText: string) => void
@@ -49,30 +59,124 @@ type LocalAIContextValue = {
 const LocalAIContext = createContext<LocalAIContextValue | null>(null);
 const MODE_KEY = "results-ai-mode";
 const MODEL_KEY = "results-local-ai-model";
-const SMALLEST_LOCAL_MODELS: LocalModelOption[] = [
+const DEFAULT_MODEL_ID = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
+
+const LOCAL_MODELS: LocalModelOption[] = [
   {
     id: "SmolLM2-135M-Instruct-q0f16-MLC",
-    label: "Tiny local AI · 135M",
+    label: "Tiny local AI",
+    group: "ultralight",
+    summary: "The smallest option. Very fast, but responses are basic.",
+    bestFor: "Short rewrites, labels, navigation, and testing local AI",
+    parameterSize: "135M",
     vramMB: 360,
-    cached: false,
+    cached: null,
   },
   {
     id: "SmolLM2-360M-Instruct-q4f16_1-MLC",
-    label: "Small local AI · 360M",
+    label: "Small local AI",
+    group: "ultralight",
+    summary: "A small general model with slightly better writing than the 135M option.",
+    bestFor: "Simple summaries, short explanations, and lightweight drafting",
+    parameterSize: "360M",
     vramMB: 376,
-    cached: false,
+    cached: null,
+  },
+  {
+    id: "Llama-3.2-1B-Instruct-q4f16_1-MLC",
+    label: "Llama general AI",
+    group: "general",
+    summary: "A compact general English model with a good capability-to-memory balance.",
+    bestFor: "English explanations, summaries, and general study questions",
+    parameterSize: "1B",
+    vramMB: 879,
+    cached: null,
+  },
+  {
+    id: "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
+    label: "Qwen Chinese starter",
+    group: "general",
+    summary: "The smallest practical Qwen option and the recommended starting point for Chinese.",
+    bestFor: "Chinese chat, bilingual study help, rewriting, and summaries",
+    parameterSize: "0.5B",
+    vramMB: 945,
+    cached: null,
+    recommended: true,
+  },
+  {
+    id: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+    label: "Qwen Chinese balanced",
+    group: "general",
+    summary: "Better reasoning and Chinese writing, with a moderate memory requirement.",
+    bestFor: "Chinese explanations, longer summaries, and content drafting",
+    parameterSize: "1.5B",
+    vramMB: 1630,
+    cached: null,
+  },
+  {
+    id: "Qwen2.5-3B-Instruct-q4f16_1-MLC",
+    label: "Qwen Chinese enhanced",
+    group: "general",
+    summary: "The strongest general model in this first library; intended for capable desktops.",
+    bestFor: "More complex Chinese study help and higher-quality long-form drafting",
+    parameterSize: "3B",
+    vramMB: 2505,
+    cached: null,
+  },
+  {
+    id: "Qwen2.5-Math-1.5B-Instruct-q4f16_1-MLC",
+    label: "Qwen Math & study",
+    group: "study",
+    summary: "A compact model tuned for mathematical and structured problem-solving language.",
+    bestFor: "Math explanations, formula-oriented study notes, and checking solution steps",
+    parameterSize: "1.5B",
+    vramMB: 1630,
+    cached: null,
+  },
+  {
+    id: "Qwen2.5-Coder-0.5B-Instruct-q4f16_1-MLC",
+    label: "Qwen Coder starter",
+    group: "developer",
+    summary: "A very small code-focused model for quick developer text operations.",
+    bestFor: "Short snippets, code comments, titles, and simple refactors",
+    parameterSize: "0.5B",
+    vramMB: 945,
+    cached: null,
+  },
+  {
+    id: "Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC",
+    label: "Qwen Coder balanced",
+    group: "developer",
+    summary: "A stronger local coding assistant that still fits many modern laptops.",
+    bestFor: "Markdown editing, small code changes, FAQ extraction, and developer drafts",
+    parameterSize: "1.5B",
+    vramMB: 1630,
+    cached: null,
+    recommended: true,
+  },
+  {
+    id: "Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC",
+    label: "Qwen Coder enhanced",
+    group: "developer",
+    summary: "The strongest developer model in this library and the most demanding.",
+    bestFor: "Larger code explanations, richer rewrites, and more complex developer drafts",
+    parameterSize: "3B",
+    vramMB: 2505,
+    cached: null,
   },
 ];
 
 export function LocalAIProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<AIMode>("cloud");
-  const [models, setModels] = useState<LocalModelOption[]>(SMALLEST_LOCAL_MODELS);
-  const [selectedModelId, setSelectedModelIdState] = useState(SMALLEST_LOCAL_MODELS[0].id);
+  const [models, setModels] = useState<LocalModelOption[]>(LOCAL_MODELS);
+  const [selectedModelId, setSelectedModelIdState] = useState(DEFAULT_MODEL_ID);
+  const [loadedModelId, setLoadedModelId] = useState("");
   const [status, setStatus] = useState<LocalAIStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("Local AI is not enabled.");
   const [error, setError] = useState("");
   const [webGPUSupported, setWebGPUSupported] = useState<boolean | null>(null);
+  const [cacheScanning, setCacheScanning] = useState(false);
   const engineRef = useRef<WebWorkerMLCEngine | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const loadedModelRef = useRef("");
@@ -83,9 +187,8 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
     if (savedMode === "auto" || savedMode === "local" || savedMode === "cloud") {
       setModeState(savedMode);
     }
-
     const savedModel = localStorage.getItem(MODEL_KEY);
-    if (SMALLEST_LOCAL_MODELS.some((item) => item.id === savedModel)) {
+    if (LOCAL_MODELS.some((item) => item.id === savedModel)) {
       setSelectedModelIdState(String(savedModel));
     }
   }, []);
@@ -96,6 +199,7 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setSelectedModelId = useCallback((id: string) => {
+    if (!LOCAL_MODELS.some((item) => item.id === id)) return;
     setSelectedModelIdState(id);
     localStorage.setItem(MODEL_KEY, id);
   }, []);
@@ -104,77 +208,119 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
     const engine = engineRef.current;
     engineRef.current = null;
     loadedModelRef.current = "";
+    setLoadedModelId("");
     if (engine) await engine.unload().catch(() => undefined);
     workerRef.current?.terminate();
     workerRef.current = null;
   }, []);
 
-  const enable = useCallback(async () => {
-    if (!selectedModelId) throw new Error("Local model list is still loading.");
-    if (!("gpu" in navigator)) {
-      setStatus("error");
-      setError("This browser does not support WebGPU. Use current desktop Chrome/Edge or cloud AI.");
-      throw new Error("WebGPU is not supported.");
-    }
-    if (engineRef.current && loadedModelRef.current === selectedModelId) return;
-
-    setStatus("loading");
-    setProgress(0);
-    setError("");
-    setStatusText("Preparing local AI…");
-    await releaseEngine();
-
-    try {
-      const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
-      const worker = new Worker(new URL("../workers/local-ai.worker.ts", import.meta.url), {
-        type: "module",
-      });
-      workerRef.current = worker;
-      const engine = await CreateWebWorkerMLCEngine(worker, selectedModelId, {
-        initProgressCallback(report: InitProgressReport) {
-          const nextProgress = Math.max(0, Math.min(1, report.progress ?? 0));
-          setProgress(nextProgress);
-          setStatusText(report.text || `Loading local AI: ${Math.round(nextProgress * 100)}%`);
-        },
-      });
-      engineRef.current = engine;
-      loadedModelRef.current = selectedModelId;
-      setStatus("ready");
-      setProgress(1);
-      setStatusText("Local AI is ready on this device.");
-      setModels((current) =>
-        current.map((item) => (item.id === selectedModelId ? { ...item, cached: true } : item))
-      );
-    } catch (caught) {
-      workerRef.current?.terminate();
-      workerRef.current = null;
-      const message = caught instanceof Error ? caught.message : "Local AI failed to load.";
-      setStatus("error");
-      setError(message);
-      setStatusText("Local AI could not start.");
-      throw caught;
-    }
-  }, [releaseEngine, selectedModelId]);
-
-  const reset = useCallback(
-    async (removeCachedModel = false) => {
-      const modelId = loadedModelRef.current || selectedModelId;
-      await releaseEngine();
-      if (removeCachedModel && modelId) {
-        const { deleteModelAllInfoInCache, prebuiltAppConfig } = await import("@mlc-ai/web-llm");
-        await deleteModelAllInfoInCache(modelId, prebuiltAppConfig);
-        setModels((current) =>
-          current.map((item) => (item.id === modelId ? { ...item, cached: false } : item))
-        );
+  const enable = useCallback(
+    async (requestedModelId?: string) => {
+      const targetModelId = requestedModelId || selectedModelId;
+      if (!LOCAL_MODELS.some((item) => item.id === targetModelId)) {
+        throw new Error("Select a valid local model first.");
       }
-      setStatus("idle");
+      if (!("gpu" in navigator)) {
+        setStatus("error");
+        setError(
+          "This browser does not support WebGPU. Use current desktop Chrome/Edge or cloud AI."
+        );
+        throw new Error("WebGPU is not supported.");
+      }
+      if (engineRef.current && loadedModelRef.current === targetModelId) return;
+
+      setSelectedModelIdState(targetModelId);
+      localStorage.setItem(MODEL_KEY, targetModelId);
+      setStatus("loading");
       setProgress(0);
       setError("");
-      setStatusText(
-        removeCachedModel ? "Local model cache removed." : "Local AI stopped. Cached files remain."
-      );
+      setStatusText("Preparing local AI…");
+      await releaseEngine();
+
+      try {
+        const { CreateWebWorkerMLCEngine } = await import("@mlc-ai/web-llm");
+        const worker = new Worker(new URL("../workers/local-ai.worker.ts", import.meta.url), {
+          type: "module",
+        });
+        workerRef.current = worker;
+        const engine = await CreateWebWorkerMLCEngine(worker, targetModelId, {
+          initProgressCallback(report: InitProgressReport) {
+            const nextProgress = Math.max(0, Math.min(1, report.progress ?? 0));
+            setProgress(nextProgress);
+            setStatusText(report.text || `Loading local AI: ${Math.round(nextProgress * 100)}%`);
+          },
+        });
+        engineRef.current = engine;
+        loadedModelRef.current = targetModelId;
+        setLoadedModelId(targetModelId);
+        setStatus("ready");
+        setProgress(1);
+        setStatusText("Local AI is ready on this device.");
+        setModels((current) =>
+          current.map((item) => (item.id === targetModelId ? { ...item, cached: true } : item))
+        );
+      } catch (caught) {
+        workerRef.current?.terminate();
+        workerRef.current = null;
+        const message = caught instanceof Error ? caught.message : "Local AI failed to load.";
+        setStatus("error");
+        setError(message);
+        setStatusText("Local AI could not start.");
+        throw caught;
+      }
     },
     [releaseEngine, selectedModelId]
+  );
+
+  const stop = useCallback(async () => {
+    await releaseEngine();
+    setStatus("idle");
+    setProgress(0);
+    setError("");
+    setStatusText("Local AI stopped. Downloaded model files remain cached.");
+  }, [releaseEngine]);
+
+  const refreshCacheStatus = useCallback(async () => {
+    setCacheScanning(true);
+    setError("");
+    try {
+      const { hasModelInCache, prebuiltAppConfig } = await import("@mlc-ai/web-llm");
+      const cacheResults = await Promise.all(
+        LOCAL_MODELS.map(async (model) => ({
+          id: model.id,
+          cached: await hasModelInCache(model.id, prebuiltAppConfig).catch(() => false),
+        }))
+      );
+      const cacheMap = new Map(cacheResults.map((item) => [item.id, item.cached]));
+      setModels((current) =>
+        current.map((item) => ({ ...item, cached: cacheMap.get(item.id) ?? false }))
+      );
+      setStatusText("Browser model cache checked.");
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not check model cache.";
+      setError(message);
+    } finally {
+      setCacheScanning(false);
+    }
+  }, []);
+
+  const removeCachedModel = useCallback(
+    async (modelId: string) => {
+      if (!LOCAL_MODELS.some((item) => item.id === modelId)) return;
+      if (loadedModelRef.current === modelId) {
+        await releaseEngine();
+        setStatus("idle");
+        setProgress(0);
+      }
+      const { deleteModelAllInfoInCache, prebuiltAppConfig } = await import("@mlc-ai/web-llm");
+      await deleteModelAllInfoInCache(modelId, prebuiltAppConfig);
+      setModels((current) =>
+        current.map((item) => (item.id === modelId ? { ...item, cached: false } : item))
+      );
+      setError("");
+      setStatusText("Selected model removed from browser cache.");
+    },
+    [releaseEngine]
   );
 
   const complete = useCallback(
@@ -214,29 +360,37 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
       models,
       selectedModelId,
       setSelectedModelId,
+      loadedModelId,
       status,
       progress,
       statusText,
       error,
       webGPUSupported,
+      cacheScanning,
       ready: status === "ready" || status === "generating",
       enable,
-      reset,
+      stop,
+      refreshCacheStatus,
+      removeCachedModel,
       complete,
     }),
     [
+      cacheScanning,
       complete,
       enable,
       error,
+      loadedModelId,
       mode,
       models,
       progress,
-      reset,
+      refreshCacheStatus,
+      removeCachedModel,
       selectedModelId,
       setMode,
       setSelectedModelId,
       status,
       statusText,
+      stop,
       webGPUSupported,
     ]
   );
