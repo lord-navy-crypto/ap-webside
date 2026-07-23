@@ -10,8 +10,8 @@ import type {
   ManagedDocument,
   ManagedFile,
   ManagedFolder,
-} from "@/lib/managed-store";
-import { managedSubjectNames } from "@/lib/managed-store";
+} from "@/lib/managed-types";
+import { managedSubjectNames } from "@/lib/managed-types";
 import type { Concept, Formula } from "@/lib/types";
 import {
   ROOT_SPACE,

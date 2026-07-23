@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AP_CATALOG, type SubjectDefinition, type SubjectGroup } from "@/data/ap-catalog";
-import type { ManagedContent } from "@/lib/managed-store";
+import type { ManagedContent } from "@/lib/managed-types";
 
 const groups: Array<"All" | SubjectGroup> = ["All", "STEM", "Social Science", "Humanities"];
 

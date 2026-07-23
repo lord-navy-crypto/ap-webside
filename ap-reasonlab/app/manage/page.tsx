@@ -6,7 +6,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
 import { useContentEditor } from "@/components/useContentEditor";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
-import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-store";
+import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
 
 type Tab = "content" | "subjects" | "units" | "trash";
 

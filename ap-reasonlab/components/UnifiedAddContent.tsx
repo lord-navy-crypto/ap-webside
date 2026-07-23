@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { ManagedUnit } from "@/lib/managed-store";
+import type { ManagedUnit } from "@/lib/managed-types";
 import RichContent from "@/components/RichContent";
 import { useContentEditor } from "@/components/useContentEditor";
 

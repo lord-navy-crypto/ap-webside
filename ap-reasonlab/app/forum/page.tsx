@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { saveLearningItem } from "@/lib/storage";
 import RichContent from "@/components/RichContent";
-import type { ManagedForumPost } from "@/lib/managed-store";
+import type { ManagedForumPost } from "@/lib/managed-types";
 
 const NAME_KEY = "results-forum-display-name";
 

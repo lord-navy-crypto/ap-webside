@@ -6,7 +6,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { concepts } from "@/data/content";
 import { formulas } from "@/data/formulas";
 import { questionnaires } from "@/data/questionnaires";
-import type { ManagedContent } from "@/lib/managed-store";
+import type { ManagedContent } from "@/lib/managed-types";
 
 type SearchResult = { id: string; title: string; subject: string; type: string; detail: string; href: string };
 
