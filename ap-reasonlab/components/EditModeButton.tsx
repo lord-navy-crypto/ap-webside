@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 import { useEditorMode } from "@/components/EditorModeProvider";
 
 /**
- * Small edit circle on every page.
- * Opens unlock / edit controls, plus direct AI Developer and History panels.
+ * Small edit circle on every page (blue pencil when edit mode is on).
+ * Opens unlock / edit controls, Advanced Default, AI Developer, and History.
  */
 export default function EditModeButton() {
   const pathname = usePathname();
@@ -17,12 +17,30 @@ export default function EditModeButton() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
+  const [advancedDefault, setAdvancedDefault] = useState(false);
+  const [savingAdvanced, setSavingAdvanced] = useState(false);
 
   useEffect(() => {
     setOpen(false);
     setError("");
     setNote("");
   }, [pathname]);
+
+  useEffect(() => {
+    if (!unlocked) return;
+    let cancelled = false;
+    fetch("/api/ai/site-tier", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload: { advancedDefault?: boolean }) => {
+        if (!cancelled) setAdvancedDefault(Boolean(payload.advancedDefault));
+      })
+      .catch(() => {
+        if (!cancelled) setAdvancedDefault(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [unlocked, open]);
 
   async function unlock(event: React.FormEvent) {
     event.preventDefault();
@@ -69,6 +87,35 @@ export default function EditModeButton() {
     setOpen(false);
   }
 
+  async function toggleAdvancedDefault() {
+    setSavingAdvanced(true);
+    setError("");
+    setNote("");
+    try {
+      const next = !advancedDefault;
+      const response = await fetch("/api/edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "set_advanced_default",
+          advancedDefault: next,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not save Advanced Default");
+      setAdvancedDefault(Boolean(result.content?.settings?.advancedDefault ?? next));
+      setNote(
+        next
+          ? "Advanced Default ON — website API uses Advanced mid-tier models."
+          : "Advanced Default OFF — website API back to Instant."
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save Advanced Default");
+    } finally {
+      setSavingAdvanced(false);
+    }
+  }
+
   return (
     <div className="fixed bottom-20 right-3 z-50 md:bottom-6">
       {open && (
@@ -96,6 +143,32 @@ export default function EditModeButton() {
               >
                 {active ? "Hide edit controls" : "Start editing this page"}
               </button>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className="font-semibold text-slate-900">Advanced Default</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {advancedDefault
+                    ? "ON — Default website API uses Advanced mid-tier (same class as Your own API)."
+                    : "OFF — Default website API stays Instant (lowest)."}
+                </p>
+                <button
+                  type="button"
+                  className={
+                    advancedDefault
+                      ? "btn-primary mt-2 w-full"
+                      : "btn-secondary mt-2 w-full"
+                  }
+                  disabled={savingAdvanced}
+                  onClick={toggleAdvancedDefault}
+                  aria-pressed={advancedDefault}
+                >
+                  {savingAdvanced
+                    ? "Saving…"
+                    : advancedDefault
+                      ? "Advanced Default · ON"
+                      : "Advanced Default · OFF"}
+                </button>
+              </div>
 
               <div className="grid gap-2">
                 <button type="button" className="btn-primary w-full" onClick={() => openPanel("ai")}>

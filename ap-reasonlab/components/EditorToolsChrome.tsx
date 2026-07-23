@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import AIDeveloperBlocks from "@/components/AIDeveloperBlocks";
 import EditHistory from "@/components/EditHistory";
@@ -7,11 +8,51 @@ import { useEditorMode } from "@/components/EditorModeProvider";
 
 /**
  * Always-visible editor chrome once unlocked with the content code:
- * - Top bar in edit mode with AI Developer + History
+ * - Top bar in edit mode with AI Developer + History + Advanced Default
  * - Full-screen overlay panels
  */
 export default function EditorToolsChrome() {
   const { active, unlocked, editor, toolsPanel, openTools, closeTools } = useEditorMode();
+  const [advancedDefault, setAdvancedDefault] = useState(false);
+  const [savingAdvanced, setSavingAdvanced] = useState(false);
+
+  useEffect(() => {
+    if (!unlocked || !active) return;
+    let cancelled = false;
+    fetch("/api/ai/site-tier", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload: { advancedDefault?: boolean }) => {
+        if (!cancelled) setAdvancedDefault(Boolean(payload.advancedDefault));
+      })
+      .catch(() => {
+        if (!cancelled) setAdvancedDefault(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [unlocked, active]);
+
+  async function toggleAdvancedDefault() {
+    setSavingAdvanced(true);
+    try {
+      const next = !advancedDefault;
+      const response = await fetch("/api/edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "set_advanced_default",
+          advancedDefault: next,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Save failed");
+      setAdvancedDefault(Boolean(result.content?.settings?.advancedDefault ?? next));
+    } catch {
+      // Keep previous state; pencil menu shows detailed errors.
+    } finally {
+      setSavingAdvanced(false);
+    }
+  }
 
   if (!unlocked) return null;
 
@@ -23,6 +64,24 @@ export default function EditorToolsChrome() {
             <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-brand-700">
               Edit mode · {editor?.level}
             </span>
+            <button
+              type="button"
+              className={advancedDefault ? "btn-primary" : "btn-secondary"}
+              disabled={savingAdvanced}
+              onClick={toggleAdvancedDefault}
+              aria-pressed={advancedDefault}
+              title={
+                advancedDefault
+                  ? "Advanced Default ON — website API mid-tier"
+                  : "Advanced Default OFF — website API Instant"
+              }
+            >
+              {savingAdvanced
+                ? "Saving…"
+                : advancedDefault
+                  ? "Advanced Default · ON"
+                  : "Advanced Default · OFF"}
+            </button>
             <button type="button" className="btn-primary" onClick={() => openTools("ai")}>
               AI Developer
             </button>

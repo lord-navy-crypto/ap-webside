@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
-import { SITE_INSTANT_MODELS } from "@/lib/ai-client";
+import type { AiProvider, SiteModelChoice } from "@/lib/ai-site-models";
+import { SITE_INSTANT_MODELS } from "@/lib/ai-site-models";
 
 export type ApiChannel = "site" | "byok";
 

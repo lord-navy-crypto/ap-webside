@@ -13,34 +13,40 @@
 import {
   capMaxTokens,
   midModelFor,
-  resolveSiteCloudTier,
   type CloudSpendTier,
 } from "@/lib/ai-tiers";
+import { resolveSiteCloudTier } from "@/lib/ai-tiers-managed";
+import {
+  DEEPSEEK_DEFAULT_MODEL as SITE_DEEPSEEK_FALLBACK,
+  GEMINI_FLASH_MODEL as SITE_GEMINI_FALLBACK,
+  GITHUB_MODELS_DEFAULT_MODEL as SITE_GITHUB_FALLBACK,
+  GROQ_INSTANT_MODEL as SITE_GROQ_FALLBACK,
+  KIMI_DEFAULT_MODEL as SITE_KIMI_FALLBACK,
+  OPENROUTER_DEFAULT_MODEL as SITE_OPENROUTER_FALLBACK,
+  type AiProvider,
+  type SiteModelChoice,
+} from "@/lib/ai-site-models";
 
-export const GROQ_INSTANT_MODEL = "llama-3.1-8b-instant";
+export type { AiProvider, SiteModelChoice } from "@/lib/ai-site-models";
+export { SITE_INSTANT_MODELS } from "@/lib/ai-site-models";
+
+export const GROQ_INSTANT_MODEL = SITE_GROQ_FALLBACK;
 export const GROQ_FALLBACK_MODEL = "openai/gpt-oss-20b";
-export const GEMINI_FLASH_MODEL = "gemini-2.0-flash";
+export const GEMINI_FLASH_MODEL =
+  process.env.GEMINI_MODEL?.trim() || SITE_GEMINI_FALLBACK;
 export const OPENROUTER_DEFAULT_MODEL =
-  process.env.OPENROUTER_MODEL?.trim() || "meta-llama/llama-3.1-8b-instruct";
+  process.env.OPENROUTER_MODEL?.trim() || SITE_OPENROUTER_FALLBACK;
 export const DEEPSEEK_DEFAULT_MODEL =
-  process.env.DEEPSEEK_MODEL?.trim() || "deepseek-chat";
+  process.env.DEEPSEEK_MODEL?.trim() || SITE_DEEPSEEK_FALLBACK;
 export const GITHUB_MODELS_DEFAULT_MODEL =
-  process.env.GITHUB_MODELS_MODEL?.trim() || "openai/gpt-4o-mini";
+  process.env.GITHUB_MODELS_MODEL?.trim() || SITE_GITHUB_FALLBACK;
 export const KIMI_DEFAULT_MODEL =
-  process.env.KIMI_MODEL?.trim() || process.env.MOONSHOT_MODEL?.trim() || "moonshot-v1-8k";
+  process.env.KIMI_MODEL?.trim() || process.env.MOONSHOT_MODEL?.trim() || SITE_KIMI_FALLBACK;
 export const KIMI_API_BASE = (
   process.env.KIMI_API_BASE?.trim() ||
   process.env.MOONSHOT_API_BASE?.trim() ||
   "https://api.moonshot.cn/v1"
 ).replace(/\/$/, "");
-
-export type AiProvider =
-  | "groq"
-  | "gemini"
-  | "githubmodels"
-  | "kimi"
-  | "openrouter"
-  | "deepseek";
 
 export type ChatJsonResult = {
   data: Record<string, unknown>;
@@ -324,23 +330,6 @@ async function callGeminiJson(
     note: `Powered by Gemini (${model}).`,
   };
 }
-
-/** Official site models users can pick (or auto cascade). Labels reflect public Instant tier. */
-export type SiteModelChoice = "auto" | AiProvider;
-
-export const SITE_INSTANT_MODELS: Array<{
-  value: SiteModelChoice;
-  label: string;
-  model: string;
-}> = [
-  { value: "auto", label: "Auto cascade (Instant or Advanced Default)", model: "cascade" },
-  { value: "groq", label: "Groq", model: GROQ_INSTANT_MODEL },
-  { value: "gemini", label: "Gemini", model: GEMINI_FLASH_MODEL },
-  { value: "githubmodels", label: "GitHub Models", model: GITHUB_MODELS_DEFAULT_MODEL },
-  { value: "kimi", label: "Kimi / Moonshot", model: KIMI_DEFAULT_MODEL },
-  { value: "openrouter", label: "OpenRouter", model: OPENROUTER_DEFAULT_MODEL },
-  { value: "deepseek", label: "DeepSeek Chat", model: DEEPSEEK_DEFAULT_MODEL },
-];
 
 function buildSiteChannels(
   system: string,
