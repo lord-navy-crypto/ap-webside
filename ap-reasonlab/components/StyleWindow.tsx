@@ -11,22 +11,22 @@ const styles: Array<{
   {
     id: "ap",
     name: "AP Classic",
-    blurb: "Clean academic blue — the original study look.",
+    blurb: "Academic blue with crisp study chrome — the original KE look.",
   },
   {
     id: "cyberpunk",
     name: "Cyberpunk Red",
-    blurb: "Dark chrome with red box frames — neon control deck.",
+    blurb: "Dark neon deck with red frames, grid glow, and scanline depth.",
   },
   {
     id: "luxury",
-    name: "Luxury Gold",
-    blurb: "Reflective gold & silver metallic shine — premium chrome.",
+    name: "Luxury Gold & Silver",
+    blurb: "Metallic gold foil woven with silver chrome — reflective premium trim.",
   },
   {
     id: "pastel",
-    name: "Pastel Cute",
-    blurb: "Soft pink, purple, and blush — light kawaii study vibe.",
+    name: "Pastel Pink & Purple",
+    blurb: "Blush pink leads, soft purple accents — cute layered candy study vibe.",
   },
 ];
 
@@ -108,8 +108,8 @@ export default function StyleWindow() {
             {!minimized && (
               <div className="style-window-body">
                 <p className="style-window-lead">
-                  Four looks: AP Classic, Cyberpunk Red, Luxury Gold, and Pastel Cute. Choice is
-                  saved in this browser.
+                  Four richer looks: AP Classic, Cyberpunk Red, Luxury Gold &amp; Silver, and Pastel
+                  Pink &amp; Purple. Choice is saved in this browser.
                 </p>
                 <div className="style-window-grid style-window-grid--4">
                   {styles.map((item) => {
