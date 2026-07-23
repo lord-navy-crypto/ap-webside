@@ -7,11 +7,11 @@ import { brand } from "@/data/brand";
 
 const primaryLinks = [
   { href: "/ap", label: "AP" },
+  { href: "/english", label: "English" },
   { href: "/academic", label: "Academic" },
   { href: "/code", label: "Code" },
   { href: "/hints", label: "AI Toolbox" },
   { href: "/forum", label: "Forum" },
-  { href: "/search", label: "Search" },
 ];
 
 const moreGroups = [
@@ -21,6 +21,7 @@ const moreGroups = [
       { href: "/", label: "Home" },
       { href: "/about", label: "About" },
       { href: "/hints", label: "AI Toolbox" },
+      { href: "/search", label: "Search" },
     ],
   },
   {
