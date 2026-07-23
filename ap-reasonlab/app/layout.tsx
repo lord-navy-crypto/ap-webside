@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 import Nav from "@/components/Nav";
@@ -24,14 +25,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="ap" suppressHydrationWarning>
-      <head>
-        <script
+      <body className="site-shell min-h-screen bg-slate-50 text-slate-900 antialiased">
+        <Script
+          id="ke-theme-boot"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("ke-site-theme");if(t==="cyberpunk"||t==="ap")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
           }}
         />
-      </head>
-      <body className="site-shell min-h-screen bg-slate-50 text-slate-900 antialiased">
         <ThemeProvider>
           <EditorModeProvider>
             <LocalAIProvider>
