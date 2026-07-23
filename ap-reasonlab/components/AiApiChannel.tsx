@@ -1,24 +1,29 @@
 "use client";
 
-import type { AiProvider } from "@/lib/ai-client";
+import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
+import { SITE_INSTANT_MODELS } from "@/lib/ai-client";
 
 export type ApiChannel = "site" | "byok";
 
 type Props = {
   channel: ApiChannel;
   onChannelChange: (channel: ApiChannel) => void;
+  /** Official Instant model when using Default website API */
+  siteModel: SiteModelChoice;
+  onSiteModelChange: (model: SiteModelChoice) => void;
+  /** BYOK provider */
   provider: AiProvider;
   onProviderChange: (provider: AiProvider) => void;
   userKey: string;
   onUserKeyChange: (key: string) => void;
 };
 
-const providerOptions: Array<{ value: AiProvider; label: string; placeholder: string }> = [
+const byokOptions: Array<{ value: AiProvider; label: string; placeholder: string }> = [
   { value: "groq", label: "Groq Instant (llama-3.1-8b-instant)", placeholder: "gsk_..." },
   { value: "gemini", label: "Gemini Flash (gemini-2.0-flash)", placeholder: "AIza..." },
   {
     value: "githubmodels",
-    label: "GitHub Models (CONTENT_GITHUB_TOKEN / PAT)",
+    label: "GitHub Models (PAT)",
     placeholder: "ghp_... or github_pat_...",
   },
   {
@@ -37,12 +42,14 @@ const providerOptions: Array<{ value: AiProvider; label: string; placeholder: st
 export default function AiApiChannel({
   channel,
   onChannelChange,
+  siteModel,
+  onSiteModelChange,
   provider,
   onProviderChange,
   userKey,
   onUserKeyChange,
 }: Props) {
-  const selected = providerOptions.find((option) => option.value === provider) || providerOptions[0];
+  const selected = byokOptions.find((option) => option.value === provider) || byokOptions[0];
 
   return (
     <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
@@ -61,8 +68,7 @@ export default function AiApiChannel({
           <span
             className={`mt-1 block text-xs font-normal ${channel === "site" ? "text-blue-100" : "text-slate-500"}`}
           >
-            Shared Instant-class cascade: Groq → Gemini → OpenRouter → DeepSeek. Free to try; may
-            hit shared rate limits.
+            Pick one official Instant model, or Auto cascade. Free to try; may hit shared limits.
           </span>
         </button>
         <button
@@ -78,11 +84,32 @@ export default function AiApiChannel({
           <span
             className={`mt-1 block text-xs font-normal ${channel === "byok" ? "text-blue-100" : "text-slate-500"}`}
           >
-            More effective and more powerful for you — stronger personal quota, fewer shared
-            limits, usually faster when the site key is busy.
+            More effective for you — personal Instant-class key, fewer shared limits.
           </span>
         </button>
       </div>
+
+      {channel === "site" && (
+        <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
+          <label className="block text-sm font-medium text-slate-800">Official Instant model</label>
+          <select
+            className="input"
+            value={siteModel}
+            onChange={(e) => onSiteModelChange(e.target.value as SiteModelChoice)}
+          >
+            {SITE_INSTANT_MODELS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+                {option.value === "auto" ? "" : ` · ${option.model}`}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-500">
+            All official options stay Instant / Flash / fast-chat class. Auto tries configured keys
+            in order until one works.
+          </p>
+        </div>
+      )}
 
       {channel === "byok" && (
         <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/80 p-3">
@@ -97,7 +124,7 @@ export default function AiApiChannel({
               value={provider}
               onChange={(e) => onProviderChange(e.target.value as AiProvider)}
             >
-              {providerOptions.map((option) => (
+              {byokOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import EthicsBanner from "@/components/EthicsBanner";
 import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import RichContent from "@/components/RichContent";
-import type { AiProvider } from "@/lib/ai-client";
+import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
 type Tool = "hint" | "concept" | "guide";
 
@@ -55,6 +55,7 @@ function ToolboxContent() {
   const searchParams = useSearchParams();
   const [tool, setTool] = useState<Tool>("hint");
   const [channel, setChannel] = useState<ApiChannel>("site");
+  const [siteModel, setSiteModel] = useState<SiteModelChoice>("auto");
   const [provider, setProvider] = useState<AiProvider>("groq");
   const [userKey, setUserKey] = useState("");
 
@@ -103,6 +104,7 @@ function ToolboxContent() {
           notes,
           userApiKey: channel === "byok" ? userKey.trim() : undefined,
           provider,
+          siteModel: channel === "site" ? siteModel : "auto",
         }),
       });
       const data = await res.json();
@@ -139,6 +141,7 @@ function ToolboxContent() {
           lockToConcept: false,
           userApiKey: channel === "byok" ? userKey.trim() : undefined,
           provider,
+          siteModel: channel === "site" ? siteModel : "auto",
         }),
       });
       const data = await res.json();
@@ -166,6 +169,7 @@ function ToolboxContent() {
           question: guideQuestion,
           userApiKey: channel === "byok" ? userKey.trim() : undefined,
           provider,
+          siteModel: channel === "site" ? siteModel : "auto",
         }),
       });
       const data = await res.json();
@@ -235,6 +239,8 @@ function ToolboxContent() {
       <AiApiChannel
         channel={channel}
         onChannelChange={setChannel}
+        siteModel={siteModel}
+        onSiteModelChange={setSiteModel}
         provider={provider}
         onProviderChange={setProvider}
         userKey={userKey}

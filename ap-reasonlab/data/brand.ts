@@ -22,6 +22,34 @@ export const trueJetMembers: Collaborator[] = [
     avatar: "https://avatars.githubusercontent.com/u/85793645?v=4",
     org: "TrueJet",
   },
+  {
+    name: "FelixThePhoenix3",
+    role: "Partner (GitHub write)",
+    github: "https://github.com/FelixThePhoenix3",
+    avatar: "https://avatars.githubusercontent.com/u/107750151?v=4",
+    org: "TrueJet",
+  },
+  {
+    name: "yulexiang123456",
+    role: "Partner (GitHub write)",
+    github: "https://github.com/yulexiang123456",
+    avatar: "https://avatars.githubusercontent.com/u/103870889?v=4",
+    org: "TrueJet",
+  },
+  {
+    name: "Nemofj",
+    role: "Partner (GitHub write)",
+    github: "https://github.com/Nemofj",
+    avatar: "https://avatars.githubusercontent.com/u/307571577?v=4",
+    org: "TrueJet",
+  },
+  {
+    name: "zihenggao36-a11y",
+    role: "Partner (GitHub write)",
+    github: "https://github.com/zihenggao36-a11y",
+    avatar: "https://avatars.githubusercontent.com/u/307990053?v=4",
+    org: "TrueJet",
+  },
 ];
 
 /** @deprecated Prefer trueJetMembers — kept for older imports */

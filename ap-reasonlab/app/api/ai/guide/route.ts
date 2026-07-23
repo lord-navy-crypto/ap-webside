@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseAiProvider, runChatJson } from "@/lib/ai-client";
+import { parseAiProvider, parseSiteModelChoice, runChatJson } from "@/lib/ai-client";
 import { SITE_GUIDE_FACTS, SITE_GUIDE_SYSTEM } from "@/lib/ai-prompts";
 
 export async function POST(req: NextRequest) {
@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
     const question = String(body.question || "").trim();
     const userApiKey = String(body.userApiKey || "").trim();
     const provider = parseAiProvider(body.provider);
+    const siteModel = parseSiteModelChoice(body.siteModel);
 
     if (!question) {
       return NextResponse.json({ error: "Question is required" }, { status: 400 });
@@ -31,6 +32,7 @@ Return JSON with refused, reply, aiMayBeWrong.`;
         maxTokens: 500,
         userApiKey: userApiKey || undefined,
         provider,
+        siteModel,
       });
       const data = result.data;
       const refused = Boolean(data.refused);

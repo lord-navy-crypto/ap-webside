@@ -15,10 +15,14 @@ Main areas:
 AI Toolbox (/hints): listed in desktop nav and home. Three tools — (1) Hint & Process for problems, (2) Concept Explainer, (3) Site Guide (this tool). Site AI can use Groq, Gemini, GitHub Models (CONTENT_GITHUB_TOKEN), Kimi/Moonshot (KIMI_API_KEY), OpenRouter, DeepSeek.
 Editing: Browse freely. Click the edit circle (bottom-right) on any page or open /login, enter the content change code once, then edit without re-typing. Master code still works.
 Publishing: GITHUB_TOKEN on Vercel lets Manage/+ saves publish to GitHub. CONTENT_GITHUB_TOKEN is for GitHub Models AI only — not for Save.
-TrueJet / authors (public GitHub):
+TrueJet / authors (public GitHub collaborators on ap-webside):
 - lord-navy-crypto — Founder / Full Admin (https://github.com/lord-navy-crypto).
-- shulai-ui — Partner with GitHub write access (https://github.com/shulai-ui).
-- Additional people: add via Partners join form (free name + GitHub), not a single fixed choice.
+- shulai-ui — Partner (GitHub write) (https://github.com/shulai-ui).
+- FelixThePhoenix3 — Partner (GitHub write) (https://github.com/FelixThePhoenix3).
+- yulexiang123456 — Partner (GitHub write) (https://github.com/yulexiang123456).
+- Nemofj — Partner (GitHub write) (https://github.com/Nemofj).
+- zihenggao36-a11y — Partner (GitHub write) (https://github.com/zihenggao36-a11y).
+- Additional people: add via Partners join form (free name + GitHub).
 Ethics: Learning only. Do not use on graded exams unless a teacher allows it. AI may be wrong — always verify with textbook/teacher.
 Random button: bottom-left control jumps to a random study page for exploration (not Manage/Admin).
 Edit circle: bottom-right ✎ control unlocks content editing and can expand edit panels on the current page.

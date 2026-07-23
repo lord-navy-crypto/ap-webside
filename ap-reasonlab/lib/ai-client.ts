@@ -295,9 +295,105 @@ async function callGeminiJson(
   };
 }
 
+/** Official Instant-class site models users can pick (or auto cascade). */
+export type SiteModelChoice = "auto" | AiProvider;
+
+export const SITE_INSTANT_MODELS: Array<{
+  value: SiteModelChoice;
+  label: string;
+  model: string;
+}> = [
+  { value: "auto", label: "Auto cascade (try available Instant models)", model: "cascade" },
+  { value: "groq", label: "Groq Instant", model: GROQ_INSTANT_MODEL },
+  { value: "gemini", label: "Gemini Flash", model: GEMINI_FLASH_MODEL },
+  { value: "githubmodels", label: "GitHub Models", model: GITHUB_MODELS_DEFAULT_MODEL },
+  { value: "kimi", label: "Kimi / Moonshot", model: KIMI_DEFAULT_MODEL },
+  { value: "openrouter", label: "OpenRouter Instant", model: OPENROUTER_DEFAULT_MODEL },
+  { value: "deepseek", label: "DeepSeek Chat", model: DEEPSEEK_DEFAULT_MODEL },
+];
+
+function buildSiteChannels(
+  system: string,
+  user: string,
+  maxTokens: number
+): Array<{ name: AiProvider; run: () => Promise<ChatJsonResult> }> {
+  const channels: Array<{ name: AiProvider; run: () => Promise<ChatJsonResult> }> = [];
+  const groqKey = process.env.GROQ_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const githubModelsKey = process.env.CONTENT_GITHUB_TOKEN;
+  const kimiKey = process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY;
+  const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const deepSeekKey = process.env.DEEPSEEK_API_KEY;
+
+  if (groqKey) {
+    channels.push({
+      name: "groq",
+      run: async () => {
+        const result = await callGroqWithFallback(groqKey, system, user, maxTokens);
+        return { ...result, note: `Official Instant · Groq (${result.model}).` };
+      },
+    });
+  }
+  if (geminiKey) {
+    channels.push({
+      name: "gemini",
+      run: async () => {
+        const result = await callGeminiJson(geminiKey, system, user);
+        return { ...result, note: `Official Instant · Gemini Flash (${GEMINI_FLASH_MODEL}).` };
+      },
+    });
+  }
+  if (githubModelsKey) {
+    channels.push({
+      name: "githubmodels",
+      run: async () => {
+        const result = await callGithubModelsJson(githubModelsKey, system, user, maxTokens);
+        return {
+          ...result,
+          note: `Official Instant · GitHub Models (${GITHUB_MODELS_DEFAULT_MODEL}).`,
+        };
+      },
+    });
+  }
+  if (kimiKey) {
+    channels.push({
+      name: "kimi",
+      run: async () => {
+        const result = await callKimiJson(kimiKey, system, user, maxTokens);
+        return { ...result, note: `Official Instant · Kimi (${KIMI_DEFAULT_MODEL}).` };
+      },
+    });
+  }
+  if (openRouterKey) {
+    channels.push({
+      name: "openrouter",
+      run: async () => {
+        const result = await callOpenRouterJson(openRouterKey, system, user, maxTokens);
+        return {
+          ...result,
+          note: `Official Instant · OpenRouter (${OPENROUTER_DEFAULT_MODEL}).`,
+        };
+      },
+    });
+  }
+  if (deepSeekKey) {
+    channels.push({
+      name: "deepseek",
+      run: async () => {
+        const result = await callDeepSeekJson(deepSeekKey, system, user, maxTokens);
+        return {
+          ...result,
+          note: `Official Instant · DeepSeek (${DEEPSEEK_DEFAULT_MODEL}).`,
+        };
+      },
+    });
+  }
+  return channels;
+}
+
 /**
- * Site default: Groq → Gemini → GitHub Models → Kimi → OpenRouter → DeepSeek.
- * BYOK: only the provider the user selected.
+ * Site: pick one official Instant model, or auto-cascade.
+ * BYOK: only the provider the user selected (still Instant-class).
  */
 export async function runChatJson(options: {
   system: string;
@@ -305,6 +401,8 @@ export async function runChatJson(options: {
   maxTokens?: number;
   userApiKey?: string;
   provider?: AiProvider;
+  /** Official site model when not using BYOK. Default: auto cascade. */
+  siteModel?: SiteModelChoice;
 }): Promise<ChatJsonResult> {
   const maxTokens = options.maxTokens ?? 700;
   const userKey = options.userApiKey?.trim();
@@ -353,89 +451,17 @@ export async function runChatJson(options: {
     };
   }
 
-  const channels: Array<{ name: string; run: () => Promise<ChatJsonResult> }> = [];
-  const groqKey = process.env.GROQ_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
-  const githubModelsKey = process.env.CONTENT_GITHUB_TOKEN;
-  const kimiKey = process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY;
-  const openRouterKey = process.env.OPENROUTER_API_KEY;
-  const deepSeekKey = process.env.DEEPSEEK_API_KEY;
+  const channels = buildSiteChannels(options.system, options.user, maxTokens);
+  const siteModel = options.siteModel || "auto";
 
-  if (groqKey) {
-    channels.push({
-      name: "groq",
-      run: async () => {
-        const result = await callGroqWithFallback(groqKey, options.system, options.user, maxTokens);
-        return { ...result, note: `Site default · Groq (${result.model}).` };
-      },
-    });
-  }
-  if (geminiKey) {
-    channels.push({
-      name: "gemini",
-      run: async () => {
-        const result = await callGeminiJson(geminiKey, options.system, options.user);
-        return { ...result, note: `Site fallback · Gemini Flash (${GEMINI_FLASH_MODEL}).` };
-      },
-    });
-  }
-  if (githubModelsKey) {
-    channels.push({
-      name: "githubmodels",
-      run: async () => {
-        const result = await callGithubModelsJson(
-          githubModelsKey,
-          options.system,
-          options.user,
-          maxTokens
-        );
-        return {
-          ...result,
-          note: `Site · GitHub Models via CONTENT_GITHUB_TOKEN (${GITHUB_MODELS_DEFAULT_MODEL}).`,
-        };
-      },
-    });
-  }
-  if (kimiKey) {
-    channels.push({
-      name: "kimi",
-      run: async () => {
-        const result = await callKimiJson(kimiKey, options.system, options.user, maxTokens);
-        return {
-          ...result,
-          note: `Site · Kimi / Moonshot (${KIMI_DEFAULT_MODEL}).`,
-        };
-      },
-    });
-  }
-  if (openRouterKey) {
-    channels.push({
-      name: "openrouter",
-      run: async () => {
-        const result = await callOpenRouterJson(
-          openRouterKey,
-          options.system,
-          options.user,
-          maxTokens
-        );
-        return {
-          ...result,
-          note: `Site fallback · OpenRouter (${OPENROUTER_DEFAULT_MODEL}).`,
-        };
-      },
-    });
-  }
-  if (deepSeekKey) {
-    channels.push({
-      name: "deepseek",
-      run: async () => {
-        const result = await callDeepSeekJson(deepSeekKey, options.system, options.user, maxTokens);
-        return {
-          ...result,
-          note: `Site fallback · DeepSeek (${DEEPSEEK_DEFAULT_MODEL}).`,
-        };
-      },
-    });
+  if (siteModel !== "auto") {
+    const chosen = channels.find((channel) => channel.name === siteModel);
+    if (!chosen) {
+      throw new Error(
+        `Official Instant model “${siteModel}” is not configured on this site (missing API key). Pick Auto or another model.`
+      );
+    }
+    return chosen.run();
   }
 
   const errors: string[] = [];
@@ -471,4 +497,9 @@ export function parseAiProvider(value: unknown): AiProvider {
     return value;
   }
   return "groq";
+}
+
+export function parseSiteModelChoice(value: unknown): SiteModelChoice {
+  if (value === "auto" || value === undefined || value === null || value === "") return "auto";
+  return parseAiProvider(value);
 }
