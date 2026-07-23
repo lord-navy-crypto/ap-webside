@@ -4,8 +4,8 @@ import AIDeveloperBlocks from "@/components/AIDeveloperBlocks";
 import { getContentEditorLevel } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "AI Developer Blocks — Results",
-  description: "Master-only local AI drafting tools for Results website content.",
+  title: "AI Developer — Results",
+  description: "Master-only local and cloud AI tools for managed Results website content.",
 };
 
 export default async function AIDeveloperPage() {
