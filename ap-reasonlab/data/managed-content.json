@@ -198,5 +198,8 @@
   ],
   "questionnaires": [],
   "topics": [],
-  "updatedAt": 1784773671949
+  "settings": {
+    "advancedDefault": true
+  },
+  "updatedAt": 1784815425230
 }
