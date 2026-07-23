@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { asStringList, parseAiProvider, runChatJson } from "@/lib/ai-client";
+import {
+  asStringList,
+  parseAiProvider,
+  parseSiteModelChoice,
+  runChatJson,
+} from "@/lib/ai-client";
 import { HINT_PROCESS_SYSTEM } from "@/lib/ai-prompts";
 
 function mockHints(question: string, subject: string) {
@@ -35,6 +40,7 @@ export async function POST(req: NextRequest) {
     const notes = String(body.notes || "").trim();
     const userApiKey = String(body.userApiKey || "").trim();
     const provider = parseAiProvider(body.provider);
+    const siteModel = parseSiteModelChoice(body.siteModel);
 
     if (!question) {
       return NextResponse.json({ error: "Question is required" }, { status: 400 });
@@ -62,6 +68,7 @@ Return JSON with hints, keyFormulas, checkpoints, processOutline, aiMayBeWrong.`
         maxTokens: 750,
         userApiKey: userApiKey || undefined,
         provider,
+        siteModel,
       });
 
       const data = result.data;
