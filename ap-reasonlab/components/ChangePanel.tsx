@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import RichContent from "@/components/RichContent";
+import { handleRichPaste } from "@/lib/rich-paste";
 
 export type ChangeMode =
   | "concept"
@@ -300,6 +301,7 @@ export default function ChangePanel({
                 placeholder="Paste the complete content here. Markdown is supported. Use $...$ for inline math and $$...$$ for display LaTeX."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onPaste={(event) => handleRichPaste(event, content, setContent)}
                 required
               />
               {content && (
@@ -334,6 +336,7 @@ export default function ChangePanel({
                 placeholder="Document text (Markdown + $E=mc^2$ supported)..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onPaste={(event) => handleRichPaste(event, content, setContent)}
                 required
               />
             </>
