@@ -7,6 +7,7 @@ import {
   saveImage,
   type StoredImage,
 } from "@/lib/storage";
+import LocalImageEditor from "@/components/LocalImageEditor";
 
 export default function PicturePage() {
   const [images, setImages] = useState<StoredImage[]>([]);
@@ -151,13 +152,10 @@ export default function PicturePage() {
                         ))}
                       </div>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(img.id)}
-                      className="text-[11px] text-red-500 hover:underline"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-3">
+                      <LocalImageEditor item={img} onSaved={() => void refresh()} />
+                      <button type="button" onClick={() => handleDelete(img.id)} className="text-[11px] text-red-500 hover:underline">Delete</button>
+                    </div>
                   </figcaption>
                 </figure>
               ))}

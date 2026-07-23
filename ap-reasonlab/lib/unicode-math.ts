@@ -177,3 +177,29 @@ export function toLatexSource(input: string): string {
 export function hasMathDelimiters(input: string): boolean {
   return /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]/.test(input);
 }
+
+/** Normalize pasted content and safely repair common UTF-8-as-Latin-1 mojibake. */
+export function normalizeAuthoredText(input: string): string {
+  let value = String(input ?? "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/\u0000/g, "")
+    .replace(/\u00a0/g, " ")
+    .normalize("NFC");
+
+  const suspicious = /Ã.|Â.|â.|ðŸ|[åæç][\u0080-\u00ff]/.test(value);
+  if (suspicious && [...value].every((character) => character.charCodeAt(0) <= 255)) {
+    try {
+      const bytes = Uint8Array.from([...value], (character) => character.charCodeAt(0));
+      const repaired = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      const noise = (text: string) => (text.match(/Ã.|Â.|â.|ðŸ|�/g) || []).length;
+      if (noise(repaired) < noise(value)) value = repaired;
+    } catch {
+      // Preserve the original when the bytes cannot be recovered safely.
+    }
+  }
+
+  // AI tools often emit MathJax delimiters; remark-math uses dollar delimiters.
+  return value
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_match, math: string) => `\n$$\n${math.trim()}\n$$\n`)
+    .replace(/\\\(([^\n]*?)\\\)/g, (_match, math: string) => `$${math.trim()}$`);
+}

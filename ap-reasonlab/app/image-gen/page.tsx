@@ -7,6 +7,7 @@ import {
   saveImage,
   type StoredImage,
 } from "@/lib/storage";
+import LocalImageEditor from "@/components/LocalImageEditor";
 
 /**
  * AI image generation using Pollinations.ai (free, no API key required).
@@ -159,13 +160,10 @@ export default function ImageGenPage() {
                   />
                   <figcaption className="space-y-1 p-2 text-xs text-slate-600">
                     <p className="truncate font-medium text-slate-800">{img.name}</p>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(img.id)}
-                      className="text-[11px] text-red-500 hover:underline"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-3">
+                      <LocalImageEditor item={img} onSaved={() => void refresh()} />
+                      <button type="button" onClick={() => handleDelete(img.id)} className="text-[11px] text-red-500 hover:underline">Delete</button>
+                    </div>
                   </figcaption>
                 </figure>
               ))}

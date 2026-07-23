@@ -164,8 +164,8 @@ function ConceptsContent() {
           </Link>
           <h1 className="mt-2 text-3xl font-bold">{folderTitle || "Folder"}</h1>
           <p className="mt-2 text-slate-600">
-            Storage for this folder only. Use <strong>+ Add topic</strong> to create a topic card
-            (AI can sort notes into key points / mistakes / example).
+            Storage for this folder only. Use <strong>+ Add topic</strong> and paste one complete
+            Markdown document with optional LaTeX math.
           </p>
         </div>
         <UploadAndShow
@@ -216,8 +216,8 @@ function ConceptsContent() {
         </Link>
         <h1 className="mt-2 text-3xl font-bold">{subject}</h1>
         <p className="mt-2 text-slate-600">
-          Use <strong>+ Add topic</strong> to add a topic to this subject. Paste notes and Auto-sort
-          to fill key points, common mistakes, and examples.
+          Use <strong>+ Add topic</strong> to add a topic to this subject. Add a title, then paste the
+          complete Markdown document into one large content box.
           {subject === "AP Statistics" && (
             <>
               {" "}

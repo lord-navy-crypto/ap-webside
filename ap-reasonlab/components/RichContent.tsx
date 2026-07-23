@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { toLatexSource } from "@/lib/unicode-math";
+import { normalizeAuthoredText, toLatexSource } from "@/lib/unicode-math";
 
 type Mode = "markdown" | "math" | "inline-math";
 
@@ -35,7 +35,7 @@ export default function RichContent({
   className = "",
   clampLines,
 }: Props) {
-  const text = (children ?? "").toString();
+  const text = normalizeAuthoredText((children ?? "").toString());
   if (!text.trim()) return null;
 
   const clampClass =

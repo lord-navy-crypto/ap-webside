@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
 import { useEditorMode } from "@/components/EditorModeProvider";
+import RichContent from "@/components/RichContent";
 
 export type ChangeMode =
   | "concept"
@@ -32,7 +33,8 @@ type Props = {
 
 /**
  * Plus-button editor: fill the form, then enter a change code to save.
- * Concepts/topics: type area + name + paste notes → AI sorts into key points / mistakes / example.
+ * New concepts, topics, and formulas use one complete Markdown + LaTeX body.
+ * Legacy split-field records remain compatible and are not migrated.
  */
 export default function ChangePanel({
   mode,
@@ -50,18 +52,12 @@ export default function ChangePanel({
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [structuring, setStructuring] = useState(false);
 
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState(defaultSubject);
   const [summary, setSummary] = useState("");
-  const [rawNotes, setRawNotes] = useState("");
-  const [keyPointsText, setKeyPointsText] = useState("");
-  const [mistakesText, setMistakesText] = useState("");
-  const [example, setExample] = useState("");
-  const [expression, setExpression] = useState("");
-  const [unit, setUnit] = useState("Managed");
   const [content, setContent] = useState("");
+  const [preview, setPreview] = useState(false);
   const [category, setCategory] = useState("Uploaded");
   const [memberNote, setMemberNote] = useState("");
   const [githubUser, setGithubUser] = useState("");
@@ -74,7 +70,7 @@ export default function ChangePanel({
   }, [defaultSubject]);
 
   const titles: Record<ChangeMode, string> = {
-    concept: "Add concept (AI sort)",
+    concept: "Add concept",
     topic: "Add topic",
     formula: "Add formula",
     document: "Add document",
@@ -91,12 +87,8 @@ export default function ChangePanel({
   function reset() {
     setTitle("");
     setSummary("");
-    setRawNotes("");
-    setKeyPointsText("");
-    setMistakesText("");
-    setExample("");
-    setExpression("");
     setContent("");
+    setPreview(false);
     setMemberNote("");
     setGithubUser("");
     setFile(null);
@@ -104,42 +96,6 @@ export default function ChangePanel({
     setMinutes("20");
     setChangeCode("");
     setError("");
-  }
-
-  function linesToList(text: string): string[] {
-    return text
-      .split("\n")
-      .map((l) => l.replace(/^[-*•]\s*/, "").trim())
-      .filter(Boolean);
-  }
-
-  async function handleStructure() {
-    setStructuring(true);
-    setError("");
-    setNote("");
-    try {
-      const res = await fetch("/api/structure-concept", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: title.trim(),
-          area: subject.trim(),
-          summary: summary.trim(),
-          content: rawNotes.trim(),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "AI sort failed");
-      if (data.summary) setSummary(String(data.summary));
-      setKeyPointsText((data.keyPoints || []).join("\n"));
-      setMistakesText((data.commonMistakes || []).join("\n"));
-      setExample(String(data.example || ""));
-      setNote(`${data.note || "Sorted."} ${data.aiMayBeWrong || ""}`.trim());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "AI sort failed");
-    } finally {
-      setStructuring(false);
-    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -160,10 +116,10 @@ export default function ChangePanel({
         item = {
           title,
           subject,
-          summary,
-          keyPoints: linesToList(keyPointsText),
-          commonMistakes: linesToList(mistakesText),
-          example,
+          summary: content,
+          keyPoints: [],
+          commonMistakes: [],
+          example: "",
           area: folderArea,
           space: scopedSpace,
         };
@@ -172,10 +128,11 @@ export default function ChangePanel({
         item = {
           name: title,
           subject,
-          unit,
-          expression,
+          unit: "Managed",
+          expression: "",
+          content,
           variables: "",
-          whenToUse: summary,
+          whenToUse: "",
         };
       } else if (mode === "document") {
         action = "add_document";
@@ -336,70 +293,31 @@ export default function ChangePanel({
             />
           )}
 
-          {(mode === "concept" || mode === "topic") && (
+          {(mode === "concept" || mode === "topic" || mode === "formula") && (
             <>
               <textarea
-                className="textarea min-h-[90px]"
-                placeholder="Summary (stays on top; Markdown + $math$ ok)"
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
-              />
-              <textarea
-                className="textarea min-h-[140px]"
-                placeholder="Related notes / AI production content — paste here, then Auto-sort"
-                value={rawNotes}
-                onChange={(e) => setRawNotes(e.target.value)}
-              />
-              <button
-                type="button"
-                className="btn-secondary"
-                disabled={structuring || !title.trim() || !subject.trim()}
-                onClick={handleStructure}
-              >
-                {structuring ? "Sorting with AI..." : "Auto-sort → key points / mistakes / example"}
-              </button>
-              <textarea
-                className="textarea min-h-[100px]"
-                placeholder="Key points (one per line) — filled by AI, editable"
-                value={keyPointsText}
-                onChange={(e) => setKeyPointsText(e.target.value)}
-              />
-              <textarea
-                className="textarea min-h-[90px]"
-                placeholder="Common mistakes (one per line)"
-                value={mistakesText}
-                onChange={(e) => setMistakesText(e.target.value)}
-              />
-              <textarea
-                className="textarea min-h-[90px]"
-                placeholder="Example"
-                value={example}
-                onChange={(e) => setExample(e.target.value)}
-              />
-            </>
-          )}
-
-          {mode === "formula" && (
-            <>
-              <input
-                className="input"
-                placeholder="Unit"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-              />
-              <input
-                className="input"
-                placeholder="Expression (Unicode or LaTeX, e.g. v = v_0 + at)"
-                value={expression}
-                onChange={(e) => setExpression(e.target.value)}
+                className="textarea min-h-[18rem] resize-y"
+                placeholder="Paste the complete content here. Markdown is supported. Use $...$ for inline math and $$...$$ for display LaTeX."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
                 required
               />
-              <input
-                className="input"
-                placeholder="When to use (optional)"
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
-              />
+              {content && (
+                <div className="overflow-hidden rounded-xl border border-slate-200">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between bg-slate-50 px-4 py-3 text-left text-sm font-semibold"
+                    onClick={() => setPreview((value) => !value)}
+                  >
+                    Markdown + LaTeX preview <span>{preview ? "−" : "+"}</span>
+                  </button>
+                  {preview && (
+                    <div className="max-h-[45vh] overflow-auto p-4">
+                      <RichContent>{content}</RichContent>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
 

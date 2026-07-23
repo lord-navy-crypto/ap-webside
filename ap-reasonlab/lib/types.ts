@@ -84,6 +84,8 @@ export interface Formula {
   unit: string;
   name: string;
   expression: string;
+  /** New managed formulas may use one complete Markdown + LaTeX body instead of split fields. */
+  content?: string;
   variables: string;
   whenToUse: string;
   relatedConceptId?: string;
