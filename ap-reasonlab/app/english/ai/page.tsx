@@ -1,5 +1,6 @@
 import EnglishAiTutor from "@/components/EnglishAiTutor";
 import EnglishPageHeader from "@/components/EnglishPageHeader";
+import EnglishResourcePanel from "@/components/EnglishResourcePanel";
 import Link from "next/link";
 
 export default function EnglishAiPage() {
@@ -18,6 +19,7 @@ export default function EnglishAiPage() {
         .
       </p>
       <EnglishAiTutor />
+      <EnglishResourcePanel space="ai" title="English AI · pictures, documents & files" />
     </div>
   );
 }
