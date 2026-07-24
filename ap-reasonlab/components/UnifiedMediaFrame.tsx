@@ -5,6 +5,10 @@ import Link from "next/link";
 import UploadAndShow from "@/components/UploadAndShow";
 import { saveImage, saveLearningItem } from "@/lib/storage";
 
+type AlsoShow = Array<
+  "concept" | "topic" | "formula" | "document" | "member" | "folder" | "subject" | "questionnaire"
+>;
+
 type Props = {
   /** Window title shown in the chrome bar */
   title?: string;
@@ -17,16 +21,18 @@ type Props = {
   /** Collapse shared uploads by default */
   collapsedByDefault?: boolean;
   allowPublicContributions?: boolean;
+  /** Extra add actions inside the shared storage panel */
+  alsoShow?: AlsoShow;
+  onSubjectsChange?: (subjects: string[]) => void;
+  onQuestionnairesChange?: (quizzes: unknown[]) => void;
   /** Show private Learning Box image capture (IndexedDB, this browser only) */
   enablePrivateImages?: boolean;
   className?: string;
 };
 
 /**
- * Unified Mac-like display frame used across AP / Toolbox / study pages.
- * - Scrollable content viewport
- * - Shared site uploads (docs, images, files) via UploadAndShow
- * - Optional private image → Learning Box / Picture library
+ * Mac-style Files & pictures display frame (scrollable).
+ * Used on AP area pages (Concepts / Formulas / Practice / subject / Toolbox).
  */
 export default function UnifiedMediaFrame({
   title = "Files & pictures",
@@ -36,6 +42,9 @@ export default function UnifiedMediaFrame({
   defaultSubject,
   collapsedByDefault = false,
   allowPublicContributions = false,
+  alsoShow = ["document", "folder"],
+  onSubjectsChange,
+  onQuestionnairesChange,
   enablePrivateImages = true,
   className = "",
 }: Props) {
@@ -86,7 +95,6 @@ export default function UnifiedMediaFrame({
     <section
       className={`overflow-hidden rounded-2xl border border-slate-300 bg-slate-100 shadow-lg ${className}`}
     >
-      {/* Mac-like title bar */}
       <div className="flex items-center gap-3 border-b border-slate-300 bg-gradient-to-b from-slate-200 to-slate-150 px-3 py-2">
         <div className="flex gap-1.5" aria-hidden>
           <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
@@ -101,7 +109,6 @@ export default function UnifiedMediaFrame({
         </span>
       </div>
 
-      {/* Scrollable viewport */}
       <div className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-contain bg-white p-3 md:p-4">
         <UploadAndShow
           title="Shared files, documents & pictures"
@@ -111,7 +118,9 @@ export default function UnifiedMediaFrame({
           defaultSubject={defaultSubject}
           collapsedByDefault={collapsedByDefault}
           allowPublicContributions={allowPublicContributions}
-          alsoShow={["document", "folder"]}
+          alsoShow={alsoShow}
+          onSubjectsChange={onSubjectsChange}
+          onQuestionnairesChange={onQuestionnairesChange}
         />
 
         {enablePrivateImages && (
@@ -125,10 +134,7 @@ export default function UnifiedMediaFrame({
               . Not published to the shared site.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <label
-                htmlFor={inputId}
-                className="btn-secondary cursor-pointer text-sm"
-              >
+              <label htmlFor={inputId} className="btn-secondary cursor-pointer text-sm">
                 {privateBusy ? "Saving…" : "Upload private image"}
               </label>
               <input

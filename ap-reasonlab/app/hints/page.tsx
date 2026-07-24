@@ -10,9 +10,10 @@ import { useLocalAI } from "@/components/LocalAIProvider";
 import RichContent from "@/components/RichContent";
 import TICalculator from "@/components/TICalculator";
 import TIGrapher from "@/components/TIGrapher";
+import ImageGenPanel from "@/components/ImageGenPanel";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
-type Tool = "hint" | "concept" | "guide" | "calculator" | "grapher";
+type Tool = "hint" | "concept" | "guide" | "calculator" | "grapher" | "imagegen";
 
 type HintResult = {
   hints: string[];
@@ -85,7 +86,8 @@ function ToolboxContent() {
       tab === "guide" ||
       tab === "hint" ||
       tab === "calculator" ||
-      tab === "grapher"
+      tab === "grapher" ||
+      tab === "imagegen"
     ) {
       setTool(tab);
     }
@@ -285,6 +287,11 @@ function ToolboxContent() {
       label: "Grapher",
       blurb: "TI-style function plotter — y = f(x) with zoom and trace.",
     },
+    {
+      id: "imagegen",
+      label: "Image Gen",
+      blurb: "Generate study diagrams from a prompt; save privately in this browser.",
+    },
   ];
 
   const isAiTool = tool === "hint" || tool === "concept" || tool === "guide";
@@ -342,7 +349,7 @@ function ToolboxContent() {
 
       {isAiTool && <LocalAIControls />}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {tools.map((item) => (
           <button
             key={item.id}
@@ -524,6 +531,19 @@ function ToolboxContent() {
             </p>
           </div>
           <TIGrapher />
+        </section>
+      )}
+
+      {tool === "imagegen" && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-xl font-semibold">Image Generation</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Academic diagrams from text prompts. Integrated into the AI Toolbox; images stay private
+              on this device.
+            </p>
+          </div>
+          <ImageGenPanel embedded />
         </section>
       )}
 

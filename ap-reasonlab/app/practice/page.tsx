@@ -10,7 +10,7 @@ import {
 } from "@/data/questionnaires";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
 import RichContent from "@/components/RichContent";
 import type { Questionnaire } from "@/lib/types";
@@ -92,7 +92,7 @@ function PracticeContent() {
             <strong>+ Add subject folder</strong> to create a new subject.
           </p>
         </div>
-        <UploadAndShow
+        <UnifiedMediaFrame
           alsoShow={["subject", "folder"]}
           folderArea="practice"
           spaceKey={ROOT_SPACE}
@@ -136,7 +136,7 @@ function PracticeContent() {
         </p>
       </div>
 
-      <UploadAndShow
+      <UnifiedMediaFrame
         alsoShow={["questionnaire", "document", "folder"]}
         defaultSubject={subject}
         folderArea="practice"
