@@ -194,20 +194,32 @@ export default function UnifiedAddContent({
               required={type !== "file" && type !== "image"}
             />
             {type !== "file" && type !== "image" && (
-              <textarea
-                className="textarea min-h-[20rem] resize-y"
-                placeholder="Paste the complete content here. Markdown is supported; use $...$ or $$...$$ for LaTeX math."
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                onPaste={(event) => handleRichPaste(event, content, setContent)}
-                required={type !== "folder"}
-              />
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium text-slate-800">
+                  {type === "folder" ? "Note (optional)" : "Full content"}
+                </span>
+                {type !== "folder" ? (
+                  <span className="block text-xs leading-relaxed text-slate-500">
+                    Paste the complete write-up. Markdown is supported. Use{" "}
+                    <code className="rounded bg-slate-100 px-1">$...$</code> for inline math and{" "}
+                    <code className="rounded bg-slate-100 px-1">$$...$$</code> for display LaTeX.
+                  </span>
+                ) : null}
+                <textarea
+                  className="textarea min-h-[22rem] w-full resize-y text-sm leading-relaxed"
+                  placeholder={type === "folder" ? "Optional folder note…" : "Paste Markdown + LaTeX here…"}
+                  value={content}
+                  onChange={(event) => setContent(event.target.value)}
+                  onPaste={(event) => handleRichPaste(event, content, setContent)}
+                  required={type !== "folder"}
+                />
+              </label>
             )}
 
-            {type !== "file" && type !== "image" && content && (
+            {type !== "file" && type !== "image" && type !== "folder" && content && (
               <div className="rounded-2xl border border-slate-200">
                 <button type="button" className="flex w-full items-center justify-between p-4 text-sm font-semibold" onClick={() => setPreview((value) => !value)}>Preview before publishing <span>{preview ? "−" : "+"}</span></button>
-                {preview && <div className="max-h-[45vh] overflow-auto border-t border-slate-200 p-4"><h3 className="text-lg font-semibold">{title || "Untitled"}</h3><RichContent className="mt-2">{content}</RichContent></div>}
+                {preview && <div className="max-h-[min(60vh,28rem)] overflow-auto border-t border-slate-200 p-4"><h3 className="text-lg font-semibold">{title || "Untitled"}</h3><RichContent className="mt-2">{content}</RichContent></div>}
               </div>
             )}
 

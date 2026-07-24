@@ -302,14 +302,22 @@ export default function ChangePanel({
 
           {(mode === "concept" || mode === "topic" || mode === "formula") && (
             <>
-              <textarea
-                className="textarea min-h-[18rem] resize-y"
-                placeholder="Paste the complete content here. Markdown is supported. Use $...$ for inline math and $$...$$ for display LaTeX."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                onPaste={(event) => handleRichPaste(event, content, setContent)}
-                required
-              />
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium text-slate-800">Full content</span>
+                <span className="block text-xs leading-relaxed text-slate-500">
+                  Paste the complete write-up. Markdown is supported. Use{" "}
+                  <code className="rounded bg-slate-100 px-1">$...$</code> for inline math and{" "}
+                  <code className="rounded bg-slate-100 px-1">$$...$$</code> for display LaTeX.
+                </span>
+                <textarea
+                  className="textarea min-h-[22rem] w-full resize-y text-sm leading-relaxed"
+                  placeholder="Paste Markdown + LaTeX here…"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  onPaste={(event) => handleRichPaste(event, content, setContent)}
+                  required
+                />
+              </label>
               {content && (
                 <div className="overflow-hidden rounded-xl border border-slate-200">
                   <button
@@ -320,7 +328,7 @@ export default function ChangePanel({
                     Markdown + LaTeX preview <span>{preview ? "−" : "+"}</span>
                   </button>
                   {preview && (
-                    <div className="max-h-[45vh] overflow-auto p-4">
+                    <div className="max-h-[min(60vh,28rem)] overflow-auto p-4">
                       <RichContent>{content}</RichContent>
                     </div>
                   )}
@@ -338,13 +346,16 @@ export default function ChangePanel({
                 onChange={(e) => setCategory(e.target.value)}
               />
               <textarea
-                className="textarea min-h-[120px]"
-                placeholder="Document text (Markdown + $E=mc^2$ supported)..."
+                className="textarea min-h-[160px] w-full resize-y text-sm leading-relaxed"
+                placeholder="Document text…"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onPaste={(event) => handleRichPaste(event, content, setContent)}
                 required
               />
+              <p className="text-xs text-slate-500">
+                Markdown + <code className="rounded bg-slate-100 px-1">$E=mc^2$</code> supported.
+              </p>
             </>
           )}
 

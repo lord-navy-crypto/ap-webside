@@ -160,14 +160,31 @@ export default function ResourceEditor({ target, item, onSaved, label = "Edit" }
             )}
 
             {target !== "subject" ? (
-              <label className="block text-sm font-medium">
-                {target === "file" ? "File description" : target === "folder" || target === "member" ? "Description" : "Content"}
+              <label className="block space-y-1.5 text-sm font-medium">
+                <span>
+                  {target === "file"
+                    ? "File description"
+                    : target === "folder" || target === "member"
+                      ? "Description"
+                      : "Full content"}
+                </span>
+                {target !== "file" && target !== "folder" && target !== "member" ? (
+                  <span className="block text-xs font-normal leading-relaxed text-slate-500">
+                    Paste the complete write-up. Markdown is supported. Use{" "}
+                    <code className="rounded bg-slate-100 px-1">$...$</code> for inline math and{" "}
+                    <code className="rounded bg-slate-100 px-1">$$...$$</code> for display LaTeX.
+                  </span>
+                ) : null}
                 <textarea
-                  className="textarea mt-1 min-h-[16rem] resize-y font-[inherit]"
+                  className="textarea mt-0 min-h-[22rem] w-full resize-y text-sm font-normal leading-relaxed"
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
                   onPaste={(event) => handleRichPaste(event, body, setBody)}
-                  placeholder="Paste one complete Markdown document here. Use $...$ or $$...$$ for LaTeX math."
+                  placeholder={
+                    target === "file" || target === "folder" || target === "member"
+                      ? "Optional note…"
+                      : "Paste Markdown + LaTeX here…"
+                  }
                 />
               </label>
             ) : (
@@ -190,7 +207,7 @@ export default function ResourceEditor({ target, item, onSaved, label = "Edit" }
                 <button type="button" className="flex w-full items-center justify-between bg-slate-50 px-4 py-3 text-left text-sm font-semibold" onClick={() => setPreview((value) => !value)}>
                   Markdown + LaTeX preview <span>{preview ? "−" : "+"}</span>
                 </button>
-                {preview && <div className="max-h-[45vh] overflow-auto p-4"><RichContent>{body}</RichContent></div>}
+                {preview && <div className="max-h-[min(60vh,28rem)] overflow-auto p-4"><RichContent>{body}</RichContent></div>}
               </section>
             )}
 
