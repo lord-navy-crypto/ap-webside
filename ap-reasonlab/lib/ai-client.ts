@@ -26,6 +26,7 @@ import {
   type AiProvider,
   type SiteModelChoice,
 } from "@/lib/ai-site-models";
+import { stripReasoningTrace } from "@/lib/ai-reasoning-strip";
 
 export type { AiProvider, SiteModelChoice } from "@/lib/ai-site-models";
 export { SITE_INSTANT_MODELS } from "@/lib/ai-site-models";
@@ -108,7 +109,7 @@ async function callOpenAiCompatibleJson(options: {
   }
 
   const payload = await res.json();
-  const text = payload?.choices?.[0]?.message?.content || "";
+  const text = stripReasoningTrace(String(payload?.choices?.[0]?.message?.content || ""));
   let data: Record<string, unknown>;
   try {
     data = JSON.parse(text);
@@ -314,7 +315,9 @@ async function callGeminiJson(
   }
 
   const payload = await res.json();
-  const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const text = stripReasoningTrace(
+    String(payload?.candidates?.[0]?.content?.parts?.[0]?.text || "")
+  );
   let data: Record<string, unknown>;
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
