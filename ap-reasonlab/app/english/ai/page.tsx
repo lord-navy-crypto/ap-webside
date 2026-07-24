@@ -1,7 +1,23 @@
 import EnglishAiTutor from "@/components/EnglishAiTutor";
 import EnglishPageHeader from "@/components/EnglishPageHeader";
+import Link from "next/link";
 
 export default function EnglishAiPage() {
-  return <div className="space-y-8"><EnglishPageHeader eyebrow="English · Focused AI" title="English AI Tutor" description="Use the site's existing Instant-model choices for English-only coaching: writing feedback, grammar, vocabulary, original practice, and test strategy." /><EnglishAiTutor /></div>;
+  return (
+    <div className="space-y-8">
+      <EnglishPageHeader
+        eyebrow="English · Focused AI"
+        title="English AI Tutor"
+        description="Writing feedback, grammar, vocabulary, original practice, and test strategy — also available as a tab in the AI Toolbox."
+      />
+      <p className="text-sm text-slate-600">
+        Prefer the toolbox layout? Open{" "}
+        <Link href="/hints?tool=english" className="font-medium text-brand-700 underline">
+          AI Toolbox · English AI
+        </Link>
+        .
+      </p>
+      <EnglishAiTutor />
+    </div>
+  );
 }
-
