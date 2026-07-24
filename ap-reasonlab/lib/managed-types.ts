@@ -3,7 +3,7 @@
  * Do NOT import fs/node APIs here — used by "use client" components.
  */
 import type { Concept, Formula, Questionnaire } from "@/lib/types";
-import { subjectSlug } from "@/data/ap-catalog";
+import { AP_CATALOG, subjectSlug } from "@/data/ap-catalog";
 
 export type ManagedDocument = {
   id: string;
@@ -225,12 +225,53 @@ export function managedSubjectNames(subjects: ManagedSubject[] | unknown): strin
   return normalizeSubjects(subjects).map((s) => s.name);
 }
 
+/** Merge built-in AP catalog into managed subjects so hubs/Manage never look empty. */
+export function mergeBuiltinSubjects(subjects: ManagedSubject[]): ManagedSubject[] {
+  const bySlug = new Map<string, ManagedSubject>();
+  AP_CATALOG.forEach((builtIn, index) => {
+    bySlug.set(builtIn.slug, {
+      id: builtIn.id.startsWith("subject-") ? builtIn.id : `subject-${builtIn.slug}`,
+      slug: builtIn.slug,
+      name: builtIn.name,
+      shortName: builtIn.shortName,
+      description: builtIn.description,
+      icon: builtIn.icon,
+      color: builtIn.color,
+      order: builtIn.order ?? index,
+      enabled: true,
+      createdAt: 0,
+    });
+  });
+  normalizeSubjects(subjects).forEach((subject) => {
+    const existing = bySlug.get(subject.slug);
+    if (!existing) {
+      bySlug.set(subject.slug, subject);
+      return;
+    }
+    bySlug.set(subject.slug, {
+      ...existing,
+      id: subject.id || existing.id,
+      name: subject.name || existing.name,
+      shortName: subject.shortName || existing.shortName,
+      description: subject.description || existing.description,
+      icon: subject.icon || existing.icon,
+      color: subject.color || existing.color,
+      order: Number.isFinite(subject.order) ? subject.order : existing.order,
+      enabled: subject.enabled !== false,
+      createdAt: subject.createdAt || existing.createdAt,
+    });
+  });
+  return [...bySlug.values()].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+}
+
 /** Ensure newer fields exist on older managed-content.json files. */
 export function normalizeManagedContent(
   raw: Partial<ManagedContent> | null | undefined
 ): ManagedContent {
   const base = emptyManagedContent();
-  if (!raw) return base;
+  if (!raw) {
+    return { ...base, subjects: mergeBuiltinSubjects([]) };
+  }
   return {
     concepts: Array.isArray(raw.concepts) ? raw.concepts : [],
     formulas: Array.isArray(raw.formulas) ? raw.formulas : [],
@@ -238,7 +279,7 @@ export function normalizeManagedContent(
     files: Array.isArray(raw.files) ? raw.files : [],
     members: Array.isArray(raw.members) ? raw.members : [],
     folders: Array.isArray(raw.folders) ? raw.folders : [],
-    subjects: normalizeSubjects(raw.subjects),
+    subjects: mergeBuiltinSubjects(normalizeSubjects(raw.subjects)),
     units: Array.isArray(raw.units) ? raw.units : [],
     contentItems: Array.isArray(raw.contentItems) ? raw.contentItems : [],
     forumPosts: Array.isArray(raw.forumPosts) ? raw.forumPosts : [],
