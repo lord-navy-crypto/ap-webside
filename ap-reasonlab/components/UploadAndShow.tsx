@@ -282,6 +282,15 @@ export default function UploadAndShow({
               onSaved={onSaved}
               allowPublicContribution={allowPublicContributions}
             />
+            <ChangePanel
+              mode="file"
+              label="+ Upload image"
+              fileAccept="image/*"
+              folderArea={folderArea}
+              spaceKey={scopedSpace}
+              onSaved={onSaved}
+              allowPublicContribution={allowPublicContributions}
+            />
             {alsoShow.includes("document") && (
               <ChangePanel
                 mode="document"
