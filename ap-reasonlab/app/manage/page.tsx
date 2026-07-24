@@ -8,6 +8,7 @@ import EditHistory from "@/components/EditHistory";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import ResourceEditor from "@/components/ResourceEditor";
+import RichContent from "@/components/RichContent";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
 import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
 import MacFinderDesktop from "@/components/MacFinderDesktop";
@@ -337,5 +338,30 @@ export default function ManagePage() {
   );
 }
 function ContentRow({ item, subject, onAction, onSaved }: { item: ManagedContentItem; subject?: SubjectDefinition; onAction: (action: string, extra: Record<string, unknown>) => Promise<boolean>; onSaved: (content: unknown) => void }) {
-  return <article className="card flex flex-wrap items-center justify-between gap-4"><div className="min-w-0 flex-1"><div className="flex flex-wrap gap-2"><span className="badge">{item.type}</span><span className={item.status === "published" ? "badge" : "badge-generated"}>{item.status}</span></div><h3 className="mt-2 truncate font-semibold">{item.title}</h3><p className="mt-1 text-xs text-slate-500">{subject?.name || item.subjectId} · order {item.order}</p></div><div className="flex flex-wrap gap-2"><ResourceEditor target="content_item" item={item} onSaved={onSaved} /><button className="btn-ghost" onClick={() => onAction("move_content_item", { id: item.id, order: item.order - 1 })}>↑</button><button className="btn-ghost" onClick={() => onAction("move_content_item", { id: item.id, order: item.order + 1 })}>↓</button><button className="btn-secondary" onClick={() => onAction("set_content_status", { id: item.id, status: item.status === "draft" ? "published" : "draft" })}>{item.status === "draft" ? "Publish" : "Unpublish"}</button><button className="btn-ghost text-red-600" onClick={() => onAction("delete", { target: "content_item", id: item.id })}>Delete</button></div></article>;
+  return (
+    <article className="card space-y-3">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap gap-2">
+            <span className="badge">{item.type}</span>
+            <span className={item.status === "published" ? "badge" : "badge-generated"}>{item.status}</span>
+          </div>
+          <h3 className="mt-2 font-semibold">{item.title}</h3>
+          <p className="mt-1 text-xs text-slate-500">{subject?.name || item.subjectId} · order {item.order}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <ResourceEditor target="content_item" item={item} onSaved={onSaved} />
+          <button className="btn-ghost" onClick={() => onAction("move_content_item", { id: item.id, order: item.order - 1 })}>↑</button>
+          <button className="btn-ghost" onClick={() => onAction("move_content_item", { id: item.id, order: item.order + 1 })}>↓</button>
+          <button className="btn-secondary" onClick={() => onAction("set_content_status", { id: item.id, status: item.status === "draft" ? "published" : "draft" })}>{item.status === "draft" ? "Publish" : "Unpublish"}</button>
+          <button className="btn-ghost text-red-600" onClick={() => onAction("delete", { target: "content_item", id: item.id })}>Delete</button>
+        </div>
+      </div>
+      {item.content ? (
+        <div className="max-h-40 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50 p-3">
+          <RichContent className="text-sm text-slate-700">{item.content}</RichContent>
+        </div>
+      ) : null}
+    </article>
+  );
 }

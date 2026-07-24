@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { saveLearningItem } from "@/lib/storage";
 import RichContent from "@/components/RichContent";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import type { ManagedForumPost } from "@/lib/managed-types";
 
@@ -171,7 +172,14 @@ export default function ForumPage() {
             <button type="button" className="btn-ghost" onClick={() => setComposerOpen(false)}>Cancel</button>
           </div>
           <input className="input" maxLength={120} placeholder="Discussion title" value={title} onChange={(event) => setTitle(event.target.value)} required />
-          <textarea className="textarea min-h-[140px]" maxLength={8000} placeholder="Write your question or idea… Markdown and $math$ are supported." value={body} onChange={(event) => setBody(event.target.value)} required />
+          <MarkdownLatexField
+            label="Discussion body"
+            value={body}
+            onChange={setBody}
+            required
+            minHeightClass="min-h-[10rem]"
+            placeholder="Write your question or idea…"
+          />
           <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
             <span>Posting publicly as {displayName}</span><span>{body.length}/8000</span>
           </div>
@@ -206,7 +214,15 @@ export default function ForumPage() {
               </div>)}
             </div>}
             {replyingTo === post.id && <form onSubmit={(event) => submitReply(event, post.id)} className="space-y-2 rounded-xl border border-brand-100 bg-brand-50/40 p-3">
-              <textarea className="textarea min-h-[90px]" maxLength={4000} placeholder={`Reply publicly as ${displayName}…`} value={replyBody} onChange={(event) => setReplyBody(event.target.value)} required />
+              <MarkdownLatexField
+                label="Reply"
+                help="Markdown + LaTeX supported."
+                value={replyBody}
+                onChange={setReplyBody}
+                required
+                minHeightClass="min-h-[7rem]"
+                placeholder={`Reply publicly as ${displayName}…`}
+              />
               <div className="flex gap-2"><button type="submit" className="btn-primary" disabled={saving}>{saving ? "Publishing…" : "Publish reply"}</button><button type="button" className="btn-ghost" onClick={() => setReplyingTo(null)}>Cancel</button></div>
             </form>}
           </article>

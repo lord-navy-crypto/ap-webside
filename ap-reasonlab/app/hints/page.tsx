@@ -8,6 +8,7 @@ import LocalAIControls from "@/components/LocalAIControls";
 import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { useLocalAI } from "@/components/LocalAIProvider";
 import RichContent from "@/components/RichContent";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 import TICalculator from "@/components/TICalculator";
 import TIGrapher from "@/components/TIGrapher";
 import ImageGenPanel from "@/components/ImageGenPanel";
@@ -413,22 +414,23 @@ function ToolboxContent() {
             </select>
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium">Your question</label>
-            <textarea
-              className="textarea"
-              placeholder="Paste an AP problem here..."
+            <MarkdownLatexField
+              label="Your question"
               value={question}
-              onChange={(e) => setQuestion(e.target.value)}
+              onChange={setQuestion}
               required
+              minHeightClass="min-h-[8rem]"
+              placeholder="Paste an AP problem here…"
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium">Your notes / attempt (optional)</label>
-            <textarea
-              className="textarea min-h-[100px]"
-              placeholder="What you tried — helps the AI give better checkpoints."
+            <MarkdownLatexField
+              label="Your notes / attempt (optional)"
+              help="What you tried — Markdown + LaTeX supported."
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={setNotes}
+              minHeightClass="min-h-[6rem]"
+              placeholder="What you tried — helps the AI give better checkpoints."
             />
           </div>
           <button type="submit" className="btn-primary" disabled={loading || !question.trim()}>
@@ -474,13 +476,13 @@ function ToolboxContent() {
           </div>
           {conceptMode === "ask" && (
             <div>
-              <label className="mb-2 block text-sm font-medium">Your question</label>
-              <textarea
-                className="textarea"
+              <MarkdownLatexField
+                label="Your question"
                 value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Must be about this concept / learning."
+                onChange={setQuestion}
                 required
+                minHeightClass="min-h-[6rem]"
+                placeholder="Must be about this concept / learning."
               />
             </div>
           )}

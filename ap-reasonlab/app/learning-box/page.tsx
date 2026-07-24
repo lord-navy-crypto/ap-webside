@@ -16,6 +16,7 @@ import {
 } from "@/lib/storage";
 import { starterLearningMaterials } from "@/data/starter-learning";
 import RichContent from "@/components/RichContent";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 import LocalImageEditor from "@/components/LocalImageEditor";
 
 type Tab = "library" | "pictures" | "random";
@@ -255,13 +256,13 @@ function LearningBoxContent() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Content</label>
-              <textarea
-                className="textarea min-h-40"
-                placeholder="Paste notes, Markdown, or a summary…"
+              <MarkdownLatexField
+                label="Content"
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={setContent}
                 required
+                minHeightClass="min-h-40"
+                placeholder="Paste notes, Markdown, or a summary…"
               />
             </div>
             <div>

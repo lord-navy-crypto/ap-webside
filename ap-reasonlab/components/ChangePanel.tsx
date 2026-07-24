@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
 import { useEditorMode } from "@/components/EditorModeProvider";
-import RichContent from "@/components/RichContent";
-import { handleRichPaste } from "@/lib/rich-paste";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 
 export type ChangeMode =
   | "concept"
@@ -61,7 +60,6 @@ export default function ChangePanel({
   const [subject, setSubject] = useState(defaultSubject);
   const [summary, setSummary] = useState("");
   const [content, setContent] = useState("");
-  const [preview, setPreview] = useState(false);
   const [category, setCategory] = useState("Uploaded");
   const [memberNote, setMemberNote] = useState("");
   const [githubUser, setGithubUser] = useState("");
@@ -92,7 +90,6 @@ export default function ChangePanel({
     setTitle("");
     setSummary("");
     setContent("");
-    setPreview(false);
     setMemberNote("");
     setGithubUser("");
     setFile(null);
@@ -301,40 +298,13 @@ export default function ChangePanel({
           )}
 
           {(mode === "concept" || mode === "topic" || mode === "formula") && (
-            <>
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium text-slate-800">Full content</span>
-                <span className="block text-xs leading-relaxed text-slate-500">
-                  Paste the complete write-up. Markdown is supported. Use{" "}
-                  <code className="rounded bg-slate-100 px-1">$...$</code> for inline math and{" "}
-                  <code className="rounded bg-slate-100 px-1">$$...$$</code> for display LaTeX.
-                </span>
-                <textarea
-                  className="textarea min-h-[22rem] w-full resize-y text-sm leading-relaxed"
-                  placeholder="Paste Markdown + LaTeX here…"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  onPaste={(event) => handleRichPaste(event, content, setContent)}
-                  required
-                />
-              </label>
-              {content && (
-                <div className="overflow-hidden rounded-xl border border-slate-200">
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between bg-slate-50 px-4 py-3 text-left text-sm font-semibold"
-                    onClick={() => setPreview((value) => !value)}
-                  >
-                    Markdown + LaTeX preview <span>{preview ? "−" : "+"}</span>
-                  </button>
-                  {preview && (
-                    <div className="max-h-[min(60vh,28rem)] overflow-auto p-4">
-                      <RichContent>{content}</RichContent>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
+            <MarkdownLatexField
+              label="Full content"
+              value={content}
+              onChange={setContent}
+              required
+              minHeightClass="min-h-[22rem]"
+            />
           )}
 
           {mode === "document" && (
@@ -345,27 +315,26 @@ export default function ChangePanel({
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               />
-              <textarea
-                className="textarea min-h-[160px] w-full resize-y text-sm leading-relaxed"
-                placeholder="Document text…"
+              <MarkdownLatexField
+                label="Document text"
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
-                onPaste={(event) => handleRichPaste(event, content, setContent)}
+                onChange={setContent}
                 required
+                minHeightClass="min-h-[16rem]"
+                placeholder="Paste document Markdown + LaTeX…"
               />
-              <p className="text-xs text-slate-500">
-                Markdown + <code className="rounded bg-slate-100 px-1">$E=mc^2$</code> supported.
-              </p>
             </>
           )}
 
           {mode === "questionnaire" && (
             <>
-              <textarea
-                className="textarea min-h-[80px]"
-                placeholder="Short description of this generated set"
+              <MarkdownLatexField
+                label="Set description"
+                help="Short description shown on Practice. Markdown + LaTeX supported."
                 value={summary}
-                onChange={(e) => setSummary(e.target.value)}
+                onChange={setSummary}
+                minHeightClass="min-h-[8rem]"
+                placeholder="What this practice set covers…"
               />
               <input
                 className="input"
@@ -373,11 +342,13 @@ export default function ChangePanel({
                 value={minutes}
                 onChange={(e) => setMinutes(e.target.value)}
               />
-              <textarea
-                className="textarea min-h-[100px]"
-                placeholder="Optional first question prompt (you can add more items later)"
+              <MarkdownLatexField
+                label="First question prompt"
+                help="Optional first FRQ / concept-check prompt. Markdown + LaTeX supported."
                 value={firstPrompt}
-                onChange={(e) => setFirstPrompt(e.target.value)}
+                onChange={setFirstPrompt}
+                minHeightClass="min-h-[10rem]"
+                placeholder="Paste the first question (Markdown + $math$)…"
               />
               <input
                 className="input"

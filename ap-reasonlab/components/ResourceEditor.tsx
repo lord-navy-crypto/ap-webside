@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import RichContent from "@/components/RichContent";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 import { useEditorMode } from "@/components/EditorModeProvider";
-import { handleRichPaste } from "@/lib/rich-paste";
 
 export type EditableTarget =
   | "concept"
@@ -71,7 +70,6 @@ export default function ResourceEditor({ target, item, onSaved, label = "Edit" }
   const [body, setBody] = useState(initialBody(target, item));
   const [category, setCategory] = useState(item.category || "Uploaded");
   const [replacement, setReplacement] = useState<File | null>(null);
-  const [preview, setPreview] = useState(false);
   const [changeCode, setChangeCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -82,7 +80,6 @@ export default function ResourceEditor({ target, item, onSaved, label = "Edit" }
     setBody(initialBody(target, item));
     setCategory(item.category || "Uploaded");
     setReplacement(null);
-    setPreview(false);
     setError("");
   }, [item, open, target]);
 
@@ -129,8 +126,6 @@ export default function ResourceEditor({ target, item, onSaved, label = "Edit" }
     }
   }
 
-  const richBody = ["concept", "topic", "formula", "document", "content_item", "questionnaire"].includes(target);
-
   return (
     <>
       <button type="button" className="btn-ghost px-2 py-1 text-xs" onClick={() => setOpen(true)}>
@@ -160,38 +155,32 @@ export default function ResourceEditor({ target, item, onSaved, label = "Edit" }
             )}
 
             {target !== "subject" ? (
-              <label className="block space-y-1.5 text-sm font-medium">
-                <span>
-                  {target === "file"
-                    ? "File description"
-                    : target === "folder" || target === "member"
-                      ? "Description"
-                      : "Full content"}
-                </span>
-                {target !== "file" && target !== "folder" && target !== "member" ? (
-                  <span className="block text-xs font-normal leading-relaxed text-slate-500">
-                    Paste the complete write-up. Markdown is supported. Use{" "}
-                    <code className="rounded bg-slate-100 px-1">$...$</code> for inline math and{" "}
-                    <code className="rounded bg-slate-100 px-1">$$...$$</code> for display LaTeX.
-                  </span>
-                ) : null}
-                <textarea
-                  className="textarea mt-0 min-h-[22rem] w-full resize-y text-sm font-normal leading-relaxed"
+              target === "file" || target === "folder" || target === "member" ? (
+                <label className="block text-sm font-medium">
+                  {target === "file" ? "File description" : "Description"}
+                  <textarea
+                    className="textarea mt-1 min-h-28 resize-y"
+                    value={body}
+                    onChange={(event) => setBody(event.target.value)}
+                    placeholder="Optional note…"
+                  />
+                </label>
+              ) : (
+                <MarkdownLatexField
+                  label="Full content"
                   value={body}
-                  onChange={(event) => setBody(event.target.value)}
-                  onPaste={(event) => handleRichPaste(event, body, setBody)}
-                  placeholder={
-                    target === "file" || target === "folder" || target === "member"
-                      ? "Optional note…"
-                      : "Paste Markdown + LaTeX here…"
-                  }
+                  onChange={setBody}
+                  minHeightClass="min-h-[22rem]"
                 />
-              </label>
+              )
             ) : (
-              <label className="block text-sm font-medium">
-                Description
-                <textarea className="textarea mt-1 min-h-32 resize-y" value={body} onChange={(event) => setBody(event.target.value)} />
-              </label>
+              <MarkdownLatexField
+                label="Description"
+                value={body}
+                onChange={setBody}
+                minHeightClass="min-h-32"
+                help="Subject description. Markdown + LaTeX supported."
+              />
             )}
 
             {target === "file" && (
@@ -200,15 +189,6 @@ export default function ResourceEditor({ target, item, onSaved, label = "Edit" }
                 <input className="mt-2 block w-full text-sm" type="file" onChange={(event) => setReplacement(event.target.files?.[0] || null)} />
                 <span className="mt-1 block text-xs font-normal text-slate-500">Leave empty to keep the current download. Choosing a replacement updates the file name and type.</span>
               </label>
-            )}
-
-            {richBody && body && (
-              <section className="overflow-hidden rounded-2xl border border-slate-200">
-                <button type="button" className="flex w-full items-center justify-between bg-slate-50 px-4 py-3 text-left text-sm font-semibold" onClick={() => setPreview((value) => !value)}>
-                  Markdown + LaTeX preview <span>{preview ? "−" : "+"}</span>
-                </button>
-                {preview && <div className="max-h-[min(60vh,28rem)] overflow-auto p-4"><RichContent>{body}</RichContent></div>}
-              </section>
             )}
 
             {!unlocked && <input type="password" className="input" placeholder="Content change code" value={changeCode} onChange={(event) => setChangeCode(event.target.value)} required />}

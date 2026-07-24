@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import RichContent from "@/components/RichContent";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import type { ManagedDocument, ManagedFile } from "@/lib/managed-types";
 import { ROOT_SPACE, matchesSpace, normalizeSpace } from "@/lib/storage-space";
@@ -467,12 +468,14 @@ export function FloatingMediaWindow({
                   onChange={(e) => setDocTitle(e.target.value)}
                   required
                 />
-                <textarea
-                  className="min-h-[64px] w-full rounded border border-slate-200 px-2 py-1 text-[11px]"
-                  placeholder="Paste text…"
+                <MarkdownLatexField
+                  label=""
+                  help="Markdown + LaTeX supported."
                   value={docBody}
-                  onChange={(e) => setDocBody(e.target.value)}
+                  onChange={setDocBody}
                   required
+                  minHeightClass="min-h-[5rem]"
+                  placeholder="Paste text…"
                 />
                 <button type="submit" className="rounded bg-sky-600 px-2 py-1 text-[10px] font-semibold text-white" disabled={busy}>
                   Save document to this page

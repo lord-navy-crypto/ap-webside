@@ -3,9 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ManagedUnit } from "@/lib/managed-types";
-import RichContent from "@/components/RichContent";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 import { useEditorMode } from "@/components/EditorModeProvider";
-import { handleRichPaste } from "@/lib/rich-paste";
 
 type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "image" | "folder";
 
@@ -42,7 +41,6 @@ export default function UnifiedAddContent({
   const [changeCode, setChangeCode] = useState("");
   const [githubToken, setGithubToken] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [preview, setPreview] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -194,34 +192,33 @@ export default function UnifiedAddContent({
               required={type !== "file" && type !== "image"}
             />
             {type !== "file" && type !== "image" && (
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium text-slate-800">
-                  {type === "folder" ? "Note (optional)" : "Full content"}
-                </span>
-                {type !== "folder" ? (
-                  <span className="block text-xs leading-relaxed text-slate-500">
-                    Paste the complete write-up. Markdown is supported. Use{" "}
-                    <code className="rounded bg-slate-100 px-1">$...$</code> for inline math and{" "}
-                    <code className="rounded bg-slate-100 px-1">$$...$$</code> for display LaTeX.
-                  </span>
-                ) : null}
-                <textarea
-                  className="textarea min-h-[22rem] w-full resize-y text-sm leading-relaxed"
-                  placeholder={type === "folder" ? "Optional folder note…" : "Paste Markdown + LaTeX here…"}
+              type === "folder" ? (
+                <label className="block text-sm font-medium">
+                  Note (optional)
+                  <textarea
+                    className="textarea mt-1 min-h-28 resize-y"
+                    placeholder="Optional folder note…"
+                    value={content}
+                    onChange={(event) => setContent(event.target.value)}
+                  />
+                </label>
+              ) : (
+                <MarkdownLatexField
+                  label="Full content"
                   value={content}
-                  onChange={(event) => setContent(event.target.value)}
-                  onPaste={(event) => handleRichPaste(event, content, setContent)}
-                  required={type !== "folder"}
+                  onChange={setContent}
+                  required
+                  minHeightClass="min-h-[22rem]"
                 />
-              </label>
+              )
             )}
 
-            {type !== "file" && type !== "image" && type !== "folder" && content && (
-              <div className="rounded-2xl border border-slate-200">
-                <button type="button" className="flex w-full items-center justify-between p-4 text-sm font-semibold" onClick={() => setPreview((value) => !value)}>Preview before publishing <span>{preview ? "−" : "+"}</span></button>
-                {preview && <div className="max-h-[min(60vh,28rem)] overflow-auto border-t border-slate-200 p-4"><h3 className="text-lg font-semibold">{title || "Untitled"}</h3><RichContent className="mt-2">{content}</RichContent></div>}
+            {type !== "file" && type !== "image" && type !== "folder" && content && title ? (
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Title in preview</p>
+                <h3 className="mt-1 text-lg font-semibold">{title}</h3>
               </div>
-            )}
+            ) : null}
 
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               {unlocked ? (
