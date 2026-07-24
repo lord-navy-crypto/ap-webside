@@ -240,8 +240,8 @@ export default function ManagePage() {
             <h2 className="section-title">Mac site Finder</h2>
             <p className="mt-1 text-sm text-slate-600">
               Whole-website file system (like a Mac desktop). Open a big section folder (AP, English,
-              Academic, Tools…), then a webpage folder, to see that page’s uploaded files, pictures,
-              and documents — the same items as the small top-right Media box on every page.
+              Academic, Tools…), then a webpage folder, to see that page’s uploaded pictures,
+              documents, and files — the same storage as the in-page media panel on each webpage.
             </p>
           </div>
           <MacFinderDesktop

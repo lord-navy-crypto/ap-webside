@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { formulas, getFormulaSubjects } from "@/data/formulas";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
 import RichContent, { FormulaMath } from "@/components/RichContent";
 import type { Formula } from "@/lib/types";
@@ -113,12 +113,12 @@ function FormulasContent() {
             create a new subject in this grid.
           </p>
         </div>
-        <UploadAndShow
-          alsoShow={["subject", "folder"]}
+        <UnifiedMediaFrame
+          alsoShow={["subject", "folder", "document"]}
           folderArea="formulas"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/formulas"
-          title="Root formulas storage"
+          title="Formulas hub · pictures, documents, files & subject folders"
           onSubjectsChange={setManagedSubjects}
           collapsedByDefault
         />
@@ -139,15 +139,14 @@ function FormulasContent() {
         </p>
       </div>
 
-      <UploadAndShow
-        alsoShow={["formula", "folder"]}
+      <UnifiedMediaFrame
+        alsoShow={["formula", "document", "folder"]}
         folderArea="formulas"
         defaultSubject={activeSubject || undefined}
         spaceKey={spaceKey}
         spaceBasePath="/formulas"
-        title={`${activeSubject} storage`}
+        title={`${activeSubject} · pictures, documents, files & formulas`}
         onSubjectsChange={setManagedSubjects}
-        collapsedByDefault
       />
 
       <input

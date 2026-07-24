@@ -21,7 +21,10 @@ type Props = {
   /** Collapse shared uploads by default */
   collapsedByDefault?: boolean;
   allowPublicContributions?: boolean;
-  /** Extra add actions inside the shared storage panel */
+  /**
+   * Extra add actions for this page (topic, concept, formula, nested folder, subject…).
+   * Upload file is always available; include "document" for text documents.
+   */
   alsoShow?: AlsoShow;
   onSubjectsChange?: (subjects: string[]) => void;
   onQuestionnairesChange?: (quizzes: unknown[]) => void;
@@ -31,11 +34,12 @@ type Props = {
 };
 
 /**
- * Mac-style Files & pictures display frame (scrollable).
- * Used on AP area pages (Concepts / Formulas / Practice / subject / Toolbox).
+ * In-page media panel (scrolls with the page — not a fixed overlay).
+ * Pictures, documents, and files for this webpage, plus page-specific add actions
+ * (topics, concepts, nested folders, etc.).
  */
 export default function UnifiedMediaFrame({
-  title = "Files & pictures",
+  title = "Pictures, documents & files",
   folderArea,
   spaceKey,
   spaceBasePath,
@@ -82,7 +86,7 @@ export default function UnifiedMediaFrame({
           category: "Private image",
         });
       }
-      setPrivateNote("Saved privately in this browser (Learning Box).");
+      setPrivateNote("Saved privately in this browser (Learning Box · Pictures).");
       if (fileRef.current) fileRef.current.value = "";
     } catch (caught) {
       setPrivateError(caught instanceof Error ? caught.message : "Private save failed");
@@ -93,7 +97,8 @@ export default function UnifiedMediaFrame({
 
   return (
     <section
-      className={`overflow-hidden rounded-2xl border border-slate-300 bg-slate-100 shadow-lg ${className}`}
+      id="page-media"
+      className={`scroll-mt-24 overflow-hidden rounded-2xl border border-slate-300 bg-slate-100 shadow-lg ${className}`}
     >
       <div className="flex items-center gap-3 border-b border-slate-300 bg-gradient-to-b from-slate-200 to-slate-150 px-3 py-2">
         <div className="flex gap-1.5" aria-hidden>
@@ -104,14 +109,20 @@ export default function UnifiedMediaFrame({
         <p className="min-w-0 flex-1 truncate text-center text-xs font-semibold text-slate-700">
           {title}
         </p>
-        <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
-          Scroll
+        <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-slate-500">
+          In page · scroll
         </span>
       </div>
 
-      <div className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-contain bg-white p-3 md:p-4">
+      <div className="max-h-[min(75vh,40rem)] overflow-y-auto overscroll-contain bg-white p-3 md:p-4">
+        <p className="mb-3 text-xs text-slate-500">
+          This webpage’s storage — <strong>pictures</strong>, <strong>documents</strong>, and{" "}
+          <strong>files</strong>, plus any custom adds for this page (topics, folders, etc.). Scroll
+          inside this panel; it moves with the page.
+        </p>
+
         <UploadAndShow
-          title="Shared files, documents & pictures"
+          title="Shared pictures, documents, files & custom items"
           folderArea={folderArea}
           spaceKey={spaceKey}
           spaceBasePath={spaceBasePath}
@@ -127,7 +138,7 @@ export default function UnifiedMediaFrame({
           <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-3">
             <p className="text-sm font-semibold text-violet-950">Private picture (this device)</p>
             <p className="mt-1 text-xs text-violet-900/80">
-              Uploads stay in your browser —{" "}
+              Stays in your browser —{" "}
               <Link href="/learning-box?tab=pictures" className="underline">
                 Private Learning Box · Pictures
               </Link>

@@ -7,7 +7,7 @@ import { concepts } from "@/data/content";
 import { keyConceptGuides } from "@/data/key-concepts";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import {
   ROOT_SPACE,
   isFolderSpace,
@@ -168,15 +168,14 @@ function ConceptsContent() {
             Markdown document with optional LaTeX math.
           </p>
         </div>
-        <UploadAndShow
+        <UnifiedMediaFrame
           alsoShow={["topic", "concept", "document", "folder"]}
           defaultSubject={subject || folderTitle || "Custom"}
           folderArea="concepts"
           spaceKey={spaceKey}
           spaceBasePath="/concepts"
-          title="Folder storage"
+          title="Folder · pictures, documents, files & topics"
           onSubjectsChange={setManagedSubjects}
-          collapsedByDefault
         />
       </div>
     );
@@ -195,12 +194,12 @@ function ConceptsContent() {
             to create a new subject that appears in this grid.
           </p>
         </div>
-        <UploadAndShow
-          alsoShow={["subject", "folder"]}
+        <UnifiedMediaFrame
+          alsoShow={["subject", "folder", "document"]}
           folderArea="concepts"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/concepts"
-          title="Root concepts storage"
+          title="Concepts hub · pictures, documents, files & subject folders"
           onSubjectsChange={setManagedSubjects}
           collapsedByDefault
         />
@@ -229,15 +228,14 @@ function ConceptsContent() {
         </p>
       </div>
 
-      <UploadAndShow
+      <UnifiedMediaFrame
         alsoShow={["topic", "concept", "document", "folder"]}
         defaultSubject={subject}
         folderArea="concepts"
         spaceKey={spaceKey}
         spaceBasePath="/concepts"
-        title={`${subject} storage`}
+        title={`${subject} · pictures, documents, files & topics`}
         onSubjectsChange={setManagedSubjects}
-        collapsedByDefault
       />
 
       <div className="flex flex-wrap gap-2">

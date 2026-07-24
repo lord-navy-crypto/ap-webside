@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import PythonPlayground from "@/components/PythonPlayground";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { standardSnippets } from "@/data/code-snippets";
 
 export default function CodePythonPage() {
@@ -28,12 +28,13 @@ export default function CodePythonPage() {
         }))}
       />
 
-      <UploadAndShow
+      <UnifiedMediaFrame
         alsoShow={["document", "folder"]}
         folderArea="code-python"
         spaceKey="_root"
         spaceBasePath="/code/python"
-        title="Python files & simulation notes"
+        title="Python · pictures, documents & files"
+        enablePrivateImages
       />
 
       <section className="space-y-3">

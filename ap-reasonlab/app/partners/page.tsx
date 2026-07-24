@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import { trueJetMembers } from "@/data/brand";
 import ResourceEditor from "@/components/ResourceEditor";
@@ -254,13 +254,14 @@ export default function PartnersPage() {
         </form>
       </section>}
 
-      <UploadAndShow
-        alsoShow={["document", "folder"]}
+      <UnifiedMediaFrame
+        alsoShow={["document", "folder", "member"]}
         folderArea="partners"
         spaceKey="_root"
         spaceBasePath="/partners"
-        title="Partner files & folders"
+        title="Partners · pictures, documents & files"
         collapsedByDefault
+        enablePrivateImages={false}
       />
     </div>
   );

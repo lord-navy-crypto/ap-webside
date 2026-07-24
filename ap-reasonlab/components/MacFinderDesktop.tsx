@@ -291,7 +291,7 @@ export default function MacFinderDesktop({
             {nav.kind === "section" &&
               "Each small folder is a webpage. Open it to see files uploaded on that page."}
             {nav.kind === "page" &&
-              "Files, pictures, and documents for this webpage (same as the top-right Media box)."}
+              "Files, pictures, and documents for this webpage (same as the in-page media panel)."}
           </p>
 
           {nav.kind === "desktop" && (

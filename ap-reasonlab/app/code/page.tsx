@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { howToEmbedEditors, standardSnippets } from "@/data/code-snippets";
 
 const langs = [
@@ -36,12 +36,13 @@ export default function CodePage() {
         </p>
       </div>
 
-      <UploadAndShow
+      <UnifiedMediaFrame
         alsoShow={["document", "folder"]}
         folderArea="code"
         spaceKey="_root"
         spaceBasePath="/code"
-        title="Uploaded files, docs & folders"
+        title="Code hub · pictures, documents & files"
+        enablePrivateImages
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

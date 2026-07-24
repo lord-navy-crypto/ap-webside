@@ -1,17 +1,19 @@
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 
 type Props = { space: string; title: string };
 
+/** In-page English storage: pictures, documents, files + nested folders. */
 export default function EnglishResourcePanel({ space, title }: Props) {
+  const base = space === "hub" ? "/english" : `/english/${space}`;
   return (
-    <UploadAndShow
+    <UnifiedMediaFrame
       alsoShow={["document", "folder"]}
       folderArea="english"
       spaceKey={space}
-      spaceBasePath={`/english/${space}`}
+      spaceBasePath={base}
       title={title}
-      collapsedByDefault
+      collapsedByDefault={false}
+      enablePrivateImages
     />
   );
 }
-

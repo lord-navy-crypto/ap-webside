@@ -10,7 +10,7 @@ import {
 } from "@/data/questionnaires";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
 import RichContent from "@/components/RichContent";
 import type { Questionnaire } from "@/lib/types";
@@ -92,12 +92,12 @@ function PracticeContent() {
             <strong>+ Add subject folder</strong> to create a new subject.
           </p>
         </div>
-        <UploadAndShow
-          alsoShow={["subject", "folder"]}
+        <UnifiedMediaFrame
+          alsoShow={["subject", "folder", "document"]}
           folderArea="practice"
           spaceKey={ROOT_SPACE}
           spaceBasePath="/practice"
-          title="Root practice storage"
+          title="Practice hub · pictures, documents, files & subject folders"
           onSubjectsChange={setManagedSubjects}
           onQuestionnairesChange={(q) => setManagedQuizzes(q as Questionnaire[])}
           collapsedByDefault
@@ -136,16 +136,15 @@ function PracticeContent() {
         </p>
       </div>
 
-      <UploadAndShow
+      <UnifiedMediaFrame
         alsoShow={["questionnaire", "document", "folder"]}
         defaultSubject={subject}
         folderArea="practice"
         spaceKey={spaceKey}
         spaceBasePath="/practice"
-        title={`${subject} storage`}
+        title={`${subject} · pictures, documents, files & practice sets`}
         onSubjectsChange={setManagedSubjects}
         onQuestionnairesChange={(q) => setManagedQuizzes(q as Questionnaire[])}
-        collapsedByDefault
       />
 
       <div className="card p-2">

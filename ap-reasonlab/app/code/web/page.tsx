@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import HtmlPlayground from "@/components/HtmlPlayground";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { standardSnippets } from "@/data/code-snippets";
 
 export default function CodeWebPage() {
@@ -28,12 +28,13 @@ export default function CodeWebPage() {
         }))}
       />
 
-      <UploadAndShow
+      <UnifiedMediaFrame
         alsoShow={["document", "folder"]}
         folderArea="code-web"
         spaceKey="_root"
         spaceBasePath="/code/web"
-        title="Web files & simulation docs"
+        title="Web · pictures, documents & files"
+        enablePrivateImages
       />
 
       <section className="space-y-3">

@@ -8,7 +8,6 @@ import RandomPageButton from "@/components/RandomPageButton";
 import EditModeButton from "@/components/EditModeButton";
 import EditorToolsChrome from "@/components/EditorToolsChrome";
 import StyleWindow from "@/components/StyleWindow";
-import FloatingMediaWindowHost from "@/components/FloatingMediaWindowHost";
 import { EditorModeProvider } from "@/components/EditorModeProvider";
 import { LocalAIProvider } from "@/components/LocalAIProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -40,7 +39,6 @@ export default function RootLayout({
               <Nav />
               <EditorToolsChrome />
               <main className="mx-auto max-w-6xl px-4 py-8 pb-24 md:pb-8">{children}</main>
-              <FloatingMediaWindowHost />
               <RandomPageButton />
               <StyleWindow />
               <EditModeButton />

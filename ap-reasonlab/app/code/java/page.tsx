@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { standardSnippets } from "@/data/code-snippets";
 
 export default function CodeJavaPage() {
@@ -19,12 +19,13 @@ export default function CodeJavaPage() {
         </p>
       </div>
 
-      <UploadAndShow
+      <UnifiedMediaFrame
         alsoShow={["document", "folder"]}
         folderArea="code-java"
         spaceKey="_root"
         spaceBasePath="/code/java"
-        title="Java files & notes"
+        title="Java · pictures, documents & files"
+        enablePrivateImages
       />
 
       <section className="space-y-3">

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { saveLearningItem } from "@/lib/storage";
 import RichContent from "@/components/RichContent";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import type { ManagedForumPost } from "@/lib/managed-types";
 
 const NAME_KEY = "results-forum-display-name";
@@ -211,6 +212,15 @@ export default function ForumPage() {
           </article>
         ))}
       </section>
+
+      <UnifiedMediaFrame
+        title="Forum · pictures, documents & files"
+        folderArea="forum"
+        spaceKey="_root"
+        alsoShow={["document", "folder"]}
+        collapsedByDefault
+        enablePrivateImages
+      />
 
       {nameOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="dialog" aria-modal="true" aria-labelledby="forum-name-title">
         <form onSubmit={saveName} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">

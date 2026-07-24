@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 
 const academicTools = [
   {
@@ -36,12 +36,13 @@ export default function AcademicPlatformPage() {
         </p>
       </section>
 
-      <UploadAndShow
+      <UnifiedMediaFrame
         alsoShow={["document", "folder"]}
         folderArea="academic"
         spaceKey="_root"
         spaceBasePath="/academic"
-        title="Academic storage"
+        title="Academic · pictures, documents & files"
+        enablePrivateImages
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
