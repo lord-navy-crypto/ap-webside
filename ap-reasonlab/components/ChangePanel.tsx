@@ -30,6 +30,8 @@ type Props = {
   /** Called after successful save; receives latest managed content when available */
   onSaved?: (content?: unknown) => void;
   allowPublicContribution?: boolean;
+  /** For mode=file: restrict picker (e.g. image/* for pictures) */
+  fileAccept?: string;
 };
 
 /**
@@ -45,6 +47,7 @@ export default function ChangePanel({
   label,
   onSaved,
   allowPublicContribution = false,
+  fileAccept,
 }: Props) {
   const { active: editMode, unlocked, editor, refresh } = useEditorMode();
   const [open, setOpen] = useState(false);
@@ -75,7 +78,7 @@ export default function ChangePanel({
     topic: "Add topic",
     formula: "Add formula",
     document: "Add document",
-    file: "Upload file",
+    file: fileAccept?.includes("image") ? "Upload image" : "Upload file",
     member: "Add partner (any name + GitHub)",
     folder: "Add file folder",
     subject: "Add subject folder",
@@ -140,6 +143,9 @@ export default function ChangePanel({
         item = { title, content, category, area: folderArea, space: scopedSpace };
       } else if (mode === "file") {
         if (!file) throw new Error("Choose a file first");
+        if (fileAccept?.includes("image") && !file.type.startsWith("image/")) {
+          throw new Error("Image upload accepts image files only.");
+        }
         action = "add_file";
         const dataUrl = await readFileAsDataURL(file);
         item = {
@@ -381,10 +387,18 @@ export default function ChangePanel({
               />
               <input
                 type="file"
+                accept={fileAccept || undefined}
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                 className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-brand-600 file:px-4 file:py-2 file:text-white"
                 required
               />
+              {fileAccept?.includes("image") ? (
+                <p className="text-xs text-slate-500">
+                  Shared image for this page (PNG, JPG, WebP…). Keep under ~1MB.
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500">Any file type. Keep under ~1MB.</p>
+              )}
             </>
           )}
 

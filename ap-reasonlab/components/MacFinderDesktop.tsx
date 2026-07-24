@@ -506,12 +506,25 @@ export default function MacFinderDesktop({
               </p>
               <ChangePanel
                 mode="file"
+                label="+ Upload file"
                 folderArea={nav.page.area}
                 spaceKey={nav.page.space}
                 onSaved={(content) => {
                   if (content) onContent(content as ManagedContent);
                 }}
               />
+              <div className="mt-2">
+                <ChangePanel
+                  mode="file"
+                  label="+ Upload image"
+                  fileAccept="image/*"
+                  folderArea={nav.page.area}
+                  spaceKey={nav.page.space}
+                  onSaved={(content) => {
+                    if (content) onContent(content as ManagedContent);
+                  }}
+                />
+              </div>
               <div className="mt-2">
                 <ChangePanel
                   mode="document"

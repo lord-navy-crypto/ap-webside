@@ -7,7 +7,7 @@ import RichContent from "@/components/RichContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import { handleRichPaste } from "@/lib/rich-paste";
 
-type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "folder";
+type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "image" | "folder";
 
 type Props = {
   subjectId?: string;
@@ -23,6 +23,7 @@ const contentTypes: Array<{ value: ContentType; label: string }> = [
   { value: "practice", label: "Practice" },
   { value: "document", label: "Document" },
   { value: "file", label: "File" },
+  { value: "image", label: "Image" },
   { value: "folder", label: "File folder" },
 ];
 
@@ -82,10 +83,15 @@ export default function UnifiedAddContent({
     setBusy(true);
     setMessage("");
     try {
-      const action = type === "file" ? "add_files" : type === "folder" ? "add_folder" : "add_content_item";
+      const action =
+        type === "file" || type === "image"
+          ? "add_files"
+          : type === "folder"
+            ? "add_folder"
+            : "add_content_item";
       let item: Record<string, unknown> = {
         subjectId,
-        type,
+        type: type === "image" ? "file" : type,
         title,
         content,
         tags: [],
@@ -93,8 +99,11 @@ export default function UnifiedAddContent({
         status: requestedStatus,
       };
       let items: Record<string, unknown>[] | undefined;
-      if (type === "file") {
-        if (files.length === 0) throw new Error("Choose at least one file");
+      if (type === "file" || type === "image") {
+        if (files.length === 0) throw new Error(type === "image" ? "Choose at least one image" : "Choose at least one file");
+        if (type === "image" && files.some((f) => !f.type.startsWith("image/"))) {
+          throw new Error("Image upload accepts image files only.");
+        }
         items = await Promise.all(files.map(async (file) => ({
           name: file.name,
           mime: file.type,
@@ -150,7 +159,7 @@ export default function UnifiedAddContent({
 
             <fieldset>
               <legend className="mb-2 text-sm font-semibold">Content type</legend>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-7">
                 {contentTypes.map((option) => (
                   <button key={option.value} type="button" onClick={() => setType(option.value)} className={type === option.value ? "filter-pill-active" : "filter-pill"}>
                     {option.label}
@@ -161,13 +170,41 @@ export default function UnifiedAddContent({
 
             <label className="block text-sm font-medium">Subject<input className="input mt-1" value={subjectName || subjectId} disabled /></label>
 
-            {type === "file" ? (
-              <label className="block text-sm font-medium">Choose up to 10 files<input className="mt-2 block w-full text-sm" type="file" multiple onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 10))} required /><span className="mt-1 block text-xs text-slate-500">{files.length} selected · each file must stay under ~1MB</span></label>
+            {type === "file" || type === "image" ? (
+              <label className="block text-sm font-medium">
+                {type === "image" ? "Choose up to 10 images" : "Choose up to 10 files"}
+                <input
+                  className="mt-2 block w-full text-sm"
+                  type="file"
+                  multiple
+                  accept={type === "image" ? "image/*" : undefined}
+                  onChange={(event) => setFiles(Array.from(event.target.files || []).slice(0, 10))}
+                  required
+                />
+                <span className="mt-1 block text-xs text-slate-500">
+                  {files.length} selected · each must stay under ~1MB
+                </span>
+              </label>
             ) : null}
-            <input className="input" placeholder={type === "file" ? "File note" : `${type} title`} value={title} onChange={(event) => setTitle(event.target.value)} required />
-            {type !== "file" && <textarea className="textarea min-h-[20rem] resize-y" placeholder="Paste the complete content here. Markdown is supported; use $...$ or $$...$$ for LaTeX math." value={content} onChange={(event) => setContent(event.target.value)} onPaste={(event) => handleRichPaste(event, content, setContent)} required={type !== "folder"} />}
+            <input
+              className="input"
+              placeholder={type === "file" || type === "image" ? "Note (optional)" : `${type} title`}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              required={type !== "file" && type !== "image"}
+            />
+            {type !== "file" && type !== "image" && (
+              <textarea
+                className="textarea min-h-[20rem] resize-y"
+                placeholder="Paste the complete content here. Markdown is supported; use $...$ or $$...$$ for LaTeX math."
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                onPaste={(event) => handleRichPaste(event, content, setContent)}
+                required={type !== "folder"}
+              />
+            )}
 
-            {type !== "file" && content && (
+            {type !== "file" && type !== "image" && content && (
               <div className="rounded-2xl border border-slate-200">
                 <button type="button" className="flex w-full items-center justify-between p-4 text-sm font-semibold" onClick={() => setPreview((value) => !value)}>Preview before publishing <span>{preview ? "−" : "+"}</span></button>
                 {preview && <div className="max-h-[45vh] overflow-auto border-t border-slate-200 p-4"><h3 className="text-lg font-semibold">{title || "Untitled"}</h3><RichContent className="mt-2">{content}</RichContent></div>}
@@ -215,7 +252,7 @@ export default function UnifiedAddContent({
             {message && <p role="status" className={/failed|Wrong|Choose/.test(message) ? "text-sm text-red-600" : "text-sm text-emerald-700"}>{message}</p>}
             <div className="flex flex-wrap justify-end gap-2">
               <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
-              {type !== "file" && type !== "folder" && <button type="submit" value="draft" className="btn-secondary" disabled={busy}>Save draft</button>}
+              {type !== "file" && type !== "image" && type !== "folder" && <button type="submit" value="draft" className="btn-secondary" disabled={busy}>Save draft</button>}
               <button type="submit" value="published" className="btn-primary" disabled={busy}>{busy ? "Saving…" : "Publish"}</button>
             </div>
             <p className="text-xs text-slate-500">Your unfinished form is saved automatically in this browser.</p>
