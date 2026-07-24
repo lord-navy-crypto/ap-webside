@@ -335,16 +335,14 @@ export default function UploadAndShow({
             {alsoShow.includes("member") && (
               <ChangePanel mode="member" label="+ Add member" onSaved={onSaved} />
             )}
-            {alsoShow.includes("folder") && (
-              <ChangePanel
-                mode="folder"
-                label="+ Add nested folder"
-                folderArea={folderArea}
-                spaceKey={scopedSpace}
-                onSaved={onSaved}
-                allowPublicContribution={allowPublicContributions}
-              />
-            )}
+            <ChangePanel
+              mode="folder"
+              label="+ Add file folder"
+              folderArea={folderArea}
+              spaceKey={scopedSpace}
+              onSaved={onSaved}
+              allowPublicContribution={allowPublicContributions}
+            />
           </div>
           {(editMode || unlocked) && <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
             {unlocked ? (

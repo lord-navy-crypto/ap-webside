@@ -522,6 +522,17 @@ export default function MacFinderDesktop({
                   }}
                 />
               </div>
+              <div className="mt-2">
+                <ChangePanel
+                  mode="folder"
+                  label="+ Add file folder"
+                  folderArea={nav.page.area}
+                  spaceKey={nav.page.space}
+                  onSaved={(content) => {
+                    if (content) onContent(content as ManagedContent);
+                  }}
+                />
+              </div>
             </div>
           ) : null}
 

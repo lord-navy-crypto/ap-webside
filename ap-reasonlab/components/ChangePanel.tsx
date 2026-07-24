@@ -77,7 +77,7 @@ export default function ChangePanel({
     document: "Add document",
     file: "Upload file",
     member: "Add partner (any name + GitHub)",
-    folder: "Add folder (own storage space)",
+    folder: "Add file folder",
     subject: "Add subject folder",
     questionnaire: "Add generated practice set",
   };

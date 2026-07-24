@@ -46,7 +46,8 @@ export default function UnifiedMediaFrame({
   onQuestionnairesChange,
   className = "",
 }: Props) {
-  return (
+  // Every page panel can create nested file folders (AP, Academic, Tools, Code, Forum…).
+  const extras = Array.from(new Set([...alsoShow, "folder", "document"])) as AlsoShow;
     <section
       id="page-media"
       className={`scroll-mt-24 overflow-hidden rounded-2xl border border-slate-300 bg-slate-100 shadow-lg ${className}`}
@@ -68,7 +69,8 @@ export default function UnifiedMediaFrame({
       <div className="max-h-[min(75vh,40rem)] overflow-y-auto overscroll-contain bg-white p-3 md:p-4">
         <p className="mb-3 text-xs text-slate-500">
           Shared storage for this webpage — <strong>pictures</strong>, <strong>documents</strong>,
-          and <strong>files</strong>, plus any custom adds for this page. For private pictures, open{" "}
+          and <strong>files</strong>, plus <strong>file folders</strong> and any custom adds for this
+          page. For private pictures, open{" "}
           <a href="/learning-box?tab=pictures" className="font-medium text-brand-700 underline">
             Private Learning Box
           </a>
@@ -76,14 +78,14 @@ export default function UnifiedMediaFrame({
         </p>
 
         <UploadAndShow
-          title="Shared pictures, documents, files & custom items"
+          title="Shared pictures, documents, files & folders"
           folderArea={folderArea}
           spaceKey={spaceKey}
           spaceBasePath={spaceBasePath}
           defaultSubject={defaultSubject}
           collapsedByDefault={collapsedByDefault}
           allowPublicContributions={allowPublicContributions}
-          alsoShow={alsoShow}
+          alsoShow={extras}
           onSubjectsChange={onSubjectsChange}
           onQuestionnairesChange={onQuestionnairesChange}
         />

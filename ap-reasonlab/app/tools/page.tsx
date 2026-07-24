@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 
 export const metadata = {
   title: "Tools — Knowledge Explorer",
@@ -40,7 +41,8 @@ export default function ToolsPage() {
           <Link href="/hints" className="font-medium text-brand-700 underline">
             AI Toolbox
           </Link>
-          . Links jump straight to each tab.
+          . Links jump straight to each tab. Use the panel below for this page’s shared pictures,
+          documents, files, and file folders.
         </p>
       </section>
       <div className="grid gap-4 md:grid-cols-2">
@@ -51,6 +53,14 @@ export default function ToolsPage() {
           </Link>
         ))}
       </div>
+
+      <UnifiedMediaFrame
+        title="Tools · pictures, documents, files & folders"
+        folderArea="tools"
+        spaceKey="_root"
+        alsoShow={["document", "folder"]}
+        collapsedByDefault={false}
+      />
     </div>
   );
 }

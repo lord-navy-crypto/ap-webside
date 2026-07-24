@@ -23,7 +23,7 @@ const contentTypes: Array<{ value: ContentType; label: string }> = [
   { value: "practice", label: "Practice" },
   { value: "document", label: "Document" },
   { value: "file", label: "File" },
-  { value: "folder", label: "Folder" },
+  { value: "folder", label: "File folder" },
 ];
 
 export default function UnifiedAddContent({
@@ -132,7 +132,7 @@ export default function UnifiedAddContent({
     }
   }
 
-  if (!editMode) return null;
+  if (!editMode && !unlocked) return null;
 
   return (
     <>
