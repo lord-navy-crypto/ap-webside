@@ -519,7 +519,7 @@ export default function MacFinderDesktop({
         ))}
       </div>
 
-      <div className="grid min-h-[36rem] gap-0 lg:grid-cols-[1fr_18rem]">
+      <div className="grid min-h-[36rem] gap-0 lg:grid-cols-[1fr_22rem]">
         <div
           className="relative max-h-[70vh] overflow-y-auto bg-[radial-gradient(circle_at_18%_12%,#dce9f7,transparent_42%),linear-gradient(165deg,#5f87a8_0%,#2f4a63_100%)] p-4"
           onDragOver={(e) => e.preventDefault()}
