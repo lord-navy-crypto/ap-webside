@@ -261,7 +261,6 @@ export default function PartnersPage() {
         spaceBasePath="/partners"
         title="Partners · pictures, documents & files"
         collapsedByDefault
-        enablePrivateImages={false}
       />
     </div>
   );

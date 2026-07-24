@@ -352,7 +352,6 @@ function ToolboxContent() {
         spaceKey="_root"
         alsoShow={["document", "folder"]}
         collapsedByDefault
-        enablePrivateImages
       />
 
       {isAiTool && <LocalAIControls />}

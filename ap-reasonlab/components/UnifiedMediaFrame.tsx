@@ -1,9 +1,6 @@
 "use client";
 
-import { useId, useRef, useState } from "react";
-import Link from "next/link";
 import UploadAndShow from "@/components/UploadAndShow";
-import { saveImage, saveLearningItem } from "@/lib/storage";
 
 type AlsoShow = Array<
   "concept" | "topic" | "formula" | "document" | "member" | "folder" | "subject" | "questionnaire"
@@ -28,15 +25,13 @@ type Props = {
   alsoShow?: AlsoShow;
   onSubjectsChange?: (subjects: string[]) => void;
   onQuestionnairesChange?: (quizzes: unknown[]) => void;
-  /** Show private Learning Box image capture (IndexedDB, this browser only) */
-  enablePrivateImages?: boolean;
   className?: string;
 };
 
 /**
- * In-page media panel (scrolls with the page — not a fixed overlay).
- * Pictures, documents, and files for this webpage, plus page-specific add actions
- * (topics, concepts, nested folders, etc.).
+ * In-page shared media panel (scrolls with the page).
+ * Pictures, documents, and files here are shared site content for this webpage.
+ * Private pictures belong only in Private Learning Box — not here.
  */
 export default function UnifiedMediaFrame({
   title = "Pictures, documents & files",
@@ -49,52 +44,8 @@ export default function UnifiedMediaFrame({
   alsoShow = ["document", "folder"],
   onSubjectsChange,
   onQuestionnairesChange,
-  enablePrivateImages = true,
   className = "",
 }: Props) {
-  const inputId = useId();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [privateNote, setPrivateNote] = useState("");
-  const [privateError, setPrivateError] = useState("");
-  const [privateBusy, setPrivateBusy] = useState(false);
-
-  async function onPrivateImages(files: FileList | null) {
-    if (!files?.length) return;
-    setPrivateBusy(true);
-    setPrivateError("");
-    setPrivateNote("");
-    try {
-      for (const file of Array.from(files)) {
-        if (!file.type.startsWith("image/")) {
-          throw new Error("Private Learning Box upload here accepts images only.");
-        }
-        if (file.size > 4_500_000) {
-          throw new Error("Image is too large (keep under ~4 MB).");
-        }
-        const dataUrl = await readAsDataUrl(file);
-        const name = file.name.replace(/\.[^.]+$/, "") || "Picture";
-        await saveImage({
-          kind: "uploaded",
-          name,
-          dataUrl,
-          note: `From ${title}`,
-          tags: ["learning-box", folderArea],
-        });
-        await saveLearningItem({
-          title: name,
-          content: dataUrl,
-          category: "Private image",
-        });
-      }
-      setPrivateNote("Saved privately in this browser (Learning Box · Pictures).");
-      if (fileRef.current) fileRef.current.value = "";
-    } catch (caught) {
-      setPrivateError(caught instanceof Error ? caught.message : "Private save failed");
-    } finally {
-      setPrivateBusy(false);
-    }
-  }
-
   return (
     <section
       id="page-media"
@@ -110,15 +61,18 @@ export default function UnifiedMediaFrame({
           {title}
         </p>
         <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-slate-500">
-          In page · scroll
+          Shared · in page
         </span>
       </div>
 
       <div className="max-h-[min(75vh,40rem)] overflow-y-auto overscroll-contain bg-white p-3 md:p-4">
         <p className="mb-3 text-xs text-slate-500">
-          This webpage’s storage — <strong>pictures</strong>, <strong>documents</strong>, and{" "}
-          <strong>files</strong>, plus any custom adds for this page (topics, folders, etc.). Scroll
-          inside this panel; it moves with the page.
+          Shared storage for this webpage — <strong>pictures</strong>, <strong>documents</strong>,
+          and <strong>files</strong>, plus any custom adds for this page. For private pictures, open{" "}
+          <a href="/learning-box?tab=pictures" className="font-medium text-brand-700 underline">
+            Private Learning Box
+          </a>
+          .
         </p>
 
         <UploadAndShow
@@ -133,49 +87,7 @@ export default function UnifiedMediaFrame({
           onSubjectsChange={onSubjectsChange}
           onQuestionnairesChange={onQuestionnairesChange}
         />
-
-        {enablePrivateImages && (
-          <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-3">
-            <p className="text-sm font-semibold text-violet-950">Private picture (this device)</p>
-            <p className="mt-1 text-xs text-violet-900/80">
-              Stays in your browser —{" "}
-              <Link href="/learning-box?tab=pictures" className="underline">
-                Private Learning Box · Pictures
-              </Link>
-              . Not published to the shared site.
-            </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <label htmlFor={inputId} className="btn-secondary cursor-pointer text-sm">
-                {privateBusy ? "Saving…" : "Upload private image"}
-              </label>
-              <input
-                id={inputId}
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="sr-only"
-                disabled={privateBusy}
-                onChange={(event) => void onPrivateImages(event.target.files)}
-              />
-              <Link href="/learning-box" className="btn-ghost text-sm">
-                Open Learning Box
-              </Link>
-            </div>
-            {privateNote && <p className="mt-2 text-xs text-emerald-700">{privateNote}</p>}
-            {privateError && <p className="mt-2 text-xs text-red-600">{privateError}</p>}
-          </div>
-        )}
       </div>
     </section>
   );
-}
-
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("Could not read file"));
-    reader.readAsDataURL(file);
-  });
 }

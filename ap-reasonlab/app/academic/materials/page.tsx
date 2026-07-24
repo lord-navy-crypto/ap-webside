@@ -28,7 +28,6 @@ export default function ManagedMaterialsPage() {
         spaceBasePath="/academic/materials"
         title="Materials · pictures, documents & files"
         allowPublicContributions
-        enablePrivateImages={false}
       />
     </div>
   );

@@ -25,7 +25,6 @@ function HostInner() {
       alsoShow={[...ctx.alsoShow]}
       defaultSubject={ctx.defaultSubject}
       spaceBasePath={ctx.spaceBasePath}
-      enablePrivateImages={ctx.enablePrivateImages}
     />
   );
 }

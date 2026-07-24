@@ -123,7 +123,6 @@ export type PageMediaContext = {
   title: string;
   href?: string;
   alsoShow: MediaAlsoShow;
-  enablePrivateImages: boolean;
   spaceBasePath?: string;
   defaultSubject?: string;
 };
@@ -155,7 +154,6 @@ export function resolvePageMediaContext(
         title: `AP · ${slug}`,
         href: `/ap/${slug}`,
         alsoShow: UPLOAD_ONLY,
-        enablePrivateImages: true,
         defaultSubject: slug,
       };
     }
@@ -172,7 +170,6 @@ export function resolvePageMediaContext(
       title: subject ? `Concepts · ${subject}` : "Concepts",
       href: pathname + (search.toString() ? `?${search}` : ""),
       alsoShow: UPLOAD_ONLY,
-      enablePrivateImages: true,
       spaceBasePath: "/concepts",
       defaultSubject: subject || undefined,
     };
@@ -185,7 +182,6 @@ export function resolvePageMediaContext(
       title: subject ? `Formulas · ${subject}` : "Formulas",
       href: pathname,
       alsoShow: UPLOAD_ONLY,
-      enablePrivateImages: true,
       spaceBasePath: "/formulas",
       defaultSubject: subject || undefined,
     };
@@ -198,7 +194,6 @@ export function resolvePageMediaContext(
       title: subject ? `Practice · ${subject}` : "Practice",
       href: pathname,
       alsoShow: UPLOAD_ONLY,
-      enablePrivateImages: true,
       spaceBasePath: "/practice",
       defaultSubject: subject || undefined,
     };
@@ -216,7 +211,6 @@ export function resolvePageMediaContext(
           title: page.label,
           href: page.href,
           alsoShow: UPLOAD_ONLY,
-          enablePrivateImages: true,
         };
       }
       continue;
@@ -228,7 +222,6 @@ export function resolvePageMediaContext(
         title: page.label,
         href: page.href,
         alsoShow: page.area === "partners" ? ["member", "document"] : UPLOAD_ONLY,
-        enablePrivateImages: page.area !== "partners",
       };
     }
   }
@@ -247,7 +240,6 @@ export function resolvePageMediaContext(
     title: "Page Media",
     href: pathname,
     alsoShow: UPLOAD_ONLY,
-    enablePrivateImages: true,
   };
 }
 

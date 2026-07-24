@@ -123,7 +123,6 @@ export default function ApHubPage() {
         spaceKey="_root"
         alsoShow={["document", "folder"]}
         collapsedByDefault
-        enablePrivateImages
       />
 
       <section>

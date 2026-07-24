@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import RichContent from "@/components/RichContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
-import { saveImage, saveLearningItem } from "@/lib/storage";
 import type { ManagedDocument, ManagedFile } from "@/lib/managed-types";
 import { ROOT_SPACE, matchesSpace, normalizeSpace } from "@/lib/storage-space";
 
@@ -19,7 +18,6 @@ type Props = {
   >;
   defaultSubject?: string;
   spaceBasePath?: string;
-  enablePrivateImages?: boolean;
 };
 
 type Preview =
@@ -38,7 +36,6 @@ export function FloatingMediaWindow({
   folderArea,
   spaceKey = ROOT_SPACE,
   title = "This page",
-  enablePrivateImages = true,
 }: Props) {
   const scoped = normalizeSpace(spaceKey);
   const { unlocked, editor } = useEditorMode();
@@ -58,8 +55,6 @@ export function FloatingMediaWindow({
   const [showDocForm, setShowDocForm] = useState(false);
   const uploadId = useId();
   const uploadRef = useRef<HTMLInputElement>(null);
-  const privateId = useId();
-  const privateRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -230,39 +225,6 @@ export function FloatingMediaWindow({
       await refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Save failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onPrivateImages(fileList: FileList | null) {
-    if (!fileList?.length) return;
-    setBusy(true);
-    setError("");
-    setNote("");
-    try {
-      for (const file of Array.from(fileList)) {
-        if (!file.type.startsWith("image/")) throw new Error("Private upload accepts images only.");
-        if (file.size > 4_500_000) throw new Error("Keep private images under ~4 MB.");
-        const dataUrl = await readAsDataUrl(file);
-        const name = file.name.replace(/\.[^.]+$/, "") || "Picture";
-        await saveImage({
-          kind: "uploaded",
-          name,
-          dataUrl,
-          note: `From ${title}`,
-          tags: ["learning-box", folderArea],
-        });
-        await saveLearningItem({
-          title: name,
-          content: dataUrl,
-          category: "Private image",
-        });
-      }
-      setNote("Saved privately in Learning Box (this browser only).");
-      if (privateRef.current) privateRef.current.value = "";
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Private save failed");
     } finally {
       setBusy(false);
     }
@@ -494,26 +456,6 @@ export function FloatingMediaWindow({
               >
                 {showDocForm ? "Hide text doc" : "+ Text document"}
               </button>
-              {enablePrivateImages ? (
-                <>
-                  <label
-                    htmlFor={privateId}
-                    className="cursor-pointer rounded-md border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-[10px] font-semibold text-violet-800"
-                  >
-                    Private pic
-                  </label>
-                  <input
-                    id={privateId}
-                    ref={privateRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="sr-only"
-                    disabled={busy}
-                    onChange={(e) => void onPrivateImages(e.target.files)}
-                  />
-                </>
-              ) : null}
             </div>
 
             {showDocForm ? (
@@ -541,7 +483,7 @@ export function FloatingMediaWindow({
             {note ? <p className="px-1 text-[10px] text-emerald-700">{note}</p> : null}
             {error ? <p className="px-1 text-[10px] text-red-600">{error}</p> : null}
             <p className="px-1 text-[9px] text-slate-400">
-              Matched to this webpage · green light → Manage site Finder
+              Shared with this webpage · private pictures → Learning Box only
             </p>
           </div>
         </>

@@ -34,7 +34,6 @@ export default function CodePythonPage() {
         spaceKey="_root"
         spaceBasePath="/code/python"
         title="Python · pictures, documents & files"
-        enablePrivateImages
       />
 
       <section className="space-y-3">

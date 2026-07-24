@@ -13,7 +13,6 @@ export default function EnglishResourcePanel({ space, title }: Props) {
       spaceBasePath={base}
       title={title}
       collapsedByDefault={false}
-      enablePrivateImages
     />
   );
 }

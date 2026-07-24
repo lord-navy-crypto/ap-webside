@@ -244,7 +244,6 @@ function SubjectWorkspaceContent() {
           spaceKey={params.subject}
           defaultSubject={subjectName}
           alsoShow={["document", "folder"]}
-          enablePrivateImages
         />
       </section>
 
@@ -366,7 +365,6 @@ function SubjectWorkspaceContent() {
           defaultSubject={subjectName}
           alsoShow={["document", "folder"]}
           collapsedByDefault
-          enablePrivateImages
         />
       </section>
 

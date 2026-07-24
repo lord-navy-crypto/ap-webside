@@ -25,7 +25,6 @@ export default function CodeJavaPage() {
         spaceKey="_root"
         spaceBasePath="/code/java"
         title="Java · pictures, documents & files"
-        enablePrivateImages
       />
 
       <section className="space-y-3">

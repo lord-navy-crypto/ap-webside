@@ -34,7 +34,6 @@ export default function CodeWebPage() {
         spaceKey="_root"
         spaceBasePath="/code/web"
         title="Web · pictures, documents & files"
-        enablePrivateImages
       />
 
       <section className="space-y-3">

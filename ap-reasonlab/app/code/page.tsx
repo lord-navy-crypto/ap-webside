@@ -42,7 +42,6 @@ export default function CodePage() {
         spaceKey="_root"
         spaceBasePath="/code"
         title="Code hub · pictures, documents & files"
-        enablePrivateImages
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
