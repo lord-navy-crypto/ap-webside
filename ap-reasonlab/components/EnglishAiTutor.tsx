@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import LocalAIControls from "@/components/LocalAIControls";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
 import RichContent from "@/components/RichContent";
 import { useLocalAI } from "@/components/LocalAIProvider";
-import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
 type Result = {
   refused: boolean;
@@ -30,49 +28,18 @@ const modes = [
 
 type Props = {
   embedded?: boolean;
-  channel?: ApiChannel;
-  onChannelChange?: (channel: ApiChannel) => void;
-  siteModel?: SiteModelChoice;
-  onSiteModelChange?: (model: SiteModelChoice) => void;
-  provider?: AiProvider;
-  onProviderChange?: (provider: AiProvider) => void;
-  userKey?: string;
-  onUserKeyChange?: (key: string) => void;
+  /** When true, parent already shows LocalAIControls */
   hideChannelUi?: boolean;
 };
 
-export default function EnglishAiTutor({
-  embedded = false,
-  channel: channelProp,
-  onChannelChange,
-  siteModel: siteModelProp,
-  onSiteModelChange,
-  provider: providerProp,
-  onProviderChange,
-  userKey: userKeyProp,
-  onUserKeyChange,
-  hideChannelUi = false,
-}: Props) {
+export default function EnglishAiTutor({ embedded = false, hideChannelUi = false }: Props) {
   const localAI = useLocalAI();
   const [mode, setMode] = useState<(typeof modes)[number]["value"]>("writing-feedback");
   const [target, setTarget] = useState("General academic English");
   const [input, setInput] = useState("");
-  const [channelLocal, setChannelLocal] = useState<ApiChannel>("site");
-  const [siteModelLocal, setSiteModelLocal] = useState<SiteModelChoice>("auto");
-  const [providerLocal, setProviderLocal] = useState<AiProvider>("groq");
-  const [userKeyLocal, setUserKeyLocal] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<Result | null>(null);
-
-  const channel = channelProp ?? channelLocal;
-  const setChannel = onChannelChange ?? setChannelLocal;
-  const siteModel = siteModelProp ?? siteModelLocal;
-  const setSiteModel = onSiteModelChange ?? setSiteModelLocal;
-  const provider = providerProp ?? providerLocal;
-  const setProvider = onProviderChange ?? setProviderLocal;
-  const userKey = userKeyProp ?? userKeyLocal;
-  const setUserKey = onUserKeyChange ?? setUserKeyLocal;
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -80,12 +47,10 @@ export default function EnglishAiTutor({
     setError("");
     setResult(null);
     try {
-      const useLocal =
-        localAI.mode === "local" || (localAI.mode === "auto" && localAI.ready);
-      if (useLocal) {
+      if (localAI.usesLocal) {
         if (!localAI.ready) {
           throw new Error(
-            "Local AI mode is on, but no model is enabled. Enable Local AI above, or switch to Auto / Cloud."
+            "Local is selected, but no model is enabled. Enable Local above, or switch to Website API / Your own API."
           );
         }
         const text = await localAI.complete([
@@ -112,8 +77,8 @@ export default function EnglishAiTutor({
         return;
       }
 
-      if (channel === "byok" && !userKey.trim()) {
-        throw new Error("Paste your own API key, or choose Default website API / Local AI.");
+      if (localAI.mode === "byok" && !localAI.userKey.trim()) {
+        throw new Error("Paste your own API key, or choose Website API / Local.");
       }
       const response = await fetch("/api/ai/english", {
         method: "POST",
@@ -122,9 +87,7 @@ export default function EnglishAiTutor({
           mode,
           target,
           input,
-          userApiKey: channel === "byok" ? userKey.trim() : undefined,
-          provider,
-          siteModel: channel === "site" ? siteModel : "auto",
+          ...localAI.cloudRequestFields,
         }),
       });
       const data = await response.json();
@@ -143,7 +106,7 @@ export default function EnglishAiTutor({
         <div>
           <h2 className="text-xl font-semibold">English AI</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Writing, grammar, vocabulary, and test strategy — Local, Auto, or Cloud.{" "}
+            Writing, grammar, vocabulary, and test strategy — Local, Website API, or Your own API.{" "}
             <Link href="/hints?tool=english" className="font-semibold underline">
               AI Toolbox · English AI
             </Link>
@@ -152,19 +115,6 @@ export default function EnglishAiTutor({
       )}
 
       {!hideChannelUi && <LocalAIControls />}
-
-      {!hideChannelUi && localAI.mode !== "local" && (
-        <AiApiChannel
-          channel={channel}
-          onChannelChange={setChannel}
-          siteModel={siteModel}
-          onSiteModelChange={setSiteModel}
-          provider={provider}
-          onProviderChange={setProvider}
-          userKey={userKey}
-          onUserKeyChange={setUserKey}
-        />
-      )}
 
       <form onSubmit={submit} className="card space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">

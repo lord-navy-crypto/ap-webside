@@ -31,7 +31,7 @@ const tools = [
   {
     href: "/hints?tool=coding",
     title: "Coding AI",
-    blurb: "Open inside AI Toolbox — Python, Java, and web coaching (Local / Auto / Cloud).",
+    blurb: "Open inside AI Toolbox — Python, Java, and web coaching (Local / Website API / Your own API).",
   },
 ];
 

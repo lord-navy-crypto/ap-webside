@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import LocalAIControls from "@/components/LocalAIControls";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
 import RichContent from "@/components/RichContent";
 import { useLocalAI } from "@/components/LocalAIProvider";
-import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
 type Result = {
   refused: boolean;
@@ -21,30 +19,11 @@ const LANGUAGES = ["Python", "Java", "HTML / CSS / JS", "General algorithms", "O
 
 type Props = {
   embedded?: boolean;
-  channel: ApiChannel;
-  onChannelChange: (channel: ApiChannel) => void;
-  siteModel: SiteModelChoice;
-  onSiteModelChange: (model: SiteModelChoice) => void;
-  provider: AiProvider;
-  onProviderChange: (provider: AiProvider) => void;
-  userKey: string;
-  onUserKeyChange: (key: string) => void;
-  /** When true, parent already shows LocalAIControls + cloud channel */
+  /** When true, parent already shows LocalAIControls */
   hideChannelUi?: boolean;
 };
 
-export default function CodingAiPanel({
-  embedded = false,
-  channel,
-  onChannelChange,
-  siteModel,
-  onSiteModelChange,
-  provider,
-  onProviderChange,
-  userKey,
-  onUserKeyChange,
-  hideChannelUi = false,
-}: Props) {
+export default function CodingAiPanel({ embedded = false, hideChannelUi = false }: Props) {
   const localAI = useLocalAI();
   const [language, setLanguage] = useState<(typeof LANGUAGES)[number]>("Python");
   const [task, setTask] = useState("");
@@ -59,12 +38,10 @@ export default function CodingAiPanel({
     setError("");
     setResult(null);
     try {
-      const useLocal =
-        localAI.mode === "local" || (localAI.mode === "auto" && localAI.ready);
-      if (useLocal) {
+      if (localAI.usesLocal) {
         if (!localAI.ready) {
           throw new Error(
-            "Local AI mode is on, but no model is enabled. Enable Local AI above, or switch to Auto / Cloud."
+            "Local is selected, but no model is enabled. Enable Local above, or switch to Website API / Your own API."
           );
         }
         const text = await localAI.complete([
@@ -89,8 +66,8 @@ export default function CodingAiPanel({
         return;
       }
 
-      if (channel === "byok" && !userKey.trim()) {
-        throw new Error("Paste your own API key, or choose Default website API / Local AI.");
+      if (localAI.mode === "byok" && !localAI.userKey.trim()) {
+        throw new Error("Paste your own API key, or choose Website API / Local.");
       }
       const response = await fetch("/api/ai/coding", {
         method: "POST",
@@ -99,9 +76,7 @@ export default function CodingAiPanel({
           language,
           task,
           code,
-          userApiKey: channel === "byok" ? userKey.trim() : undefined,
-          provider,
-          siteModel: channel === "site" ? siteModel : "auto",
+          ...localAI.cloudRequestFields,
         }),
       });
       const data = await response.json();
@@ -120,25 +95,12 @@ export default function CodingAiPanel({
         <div>
           <h2 className="text-xl font-semibold">Coding AI</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Programming coach for Python, Java, and web — Local, Auto, or Cloud.
+            Programming coach for Python, Java, and web — Local, Website API, or Your own API.
           </p>
         </div>
       )}
 
       {!hideChannelUi && <LocalAIControls />}
-
-      {!hideChannelUi && localAI.mode !== "local" && (
-        <AiApiChannel
-          channel={channel}
-          onChannelChange={onChannelChange}
-          siteModel={siteModel}
-          onSiteModelChange={onSiteModelChange}
-          provider={provider}
-          onProviderChange={onProviderChange}
-          userKey={userKey}
-          onUserKeyChange={onUserKeyChange}
-        />
-      )}
 
       <form onSubmit={submit} className="card space-y-4">
         <label className="block text-sm font-medium">

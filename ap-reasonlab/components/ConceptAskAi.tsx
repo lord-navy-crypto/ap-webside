@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import EthicsBanner from "@/components/EthicsBanner";
-import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
+import LocalAIControls from "@/components/LocalAIControls";
 import RichContent from "@/components/RichContent";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
-import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
+import { useLocalAI } from "@/components/LocalAIProvider";
 
 type Props = {
   defaultSubject?: string;
@@ -20,10 +20,7 @@ export default function ConceptAskAi({
   conceptSummary = "",
   lockToConcept = true,
 }: Props) {
-  const [channel, setChannel] = useState<ApiChannel>("site");
-  const [siteModel, setSiteModel] = useState<SiteModelChoice>("auto");
-  const [provider, setProvider] = useState<AiProvider>("groq");
-  const [userKey, setUserKey] = useState("");
+  const localAI = useLocalAI();
   const [mode, setMode] = useState<"explain" | "quiz" | "ask">("explain");
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,8 +41,42 @@ export default function ConceptAskAi({
     setError("");
     setResult(null);
     try {
-      if (channel === "byok" && !userKey.trim()) {
-        throw new Error("Paste your own API key, or switch to Default website API.");
+      const askText =
+        nextMode === "ask"
+          ? question
+          : nextMode === "quiz"
+            ? "Quiz me on this concept."
+            : "Explain this concept for AP study.";
+
+      if (localAI.usesLocal) {
+        if (!localAI.ready) {
+          throw new Error(
+            "Local is selected, but no model is enabled. Enable Local above, or switch to Website API / Your own API."
+          );
+        }
+        const text = await localAI.complete([
+          {
+            role: "system",
+            content:
+              "You are a concise AP concept tutor. Explain clearly, use Markdown, and stay on the named concept. If unsure, say so.",
+          },
+          {
+            role: "user",
+            content: `Subject: ${defaultSubject}\nConcept: ${conceptTitle}\nSummary: ${conceptSummary}\nMode: ${nextMode}\nQuestion: ${askText}`,
+          },
+        ]);
+        setResult({
+          refused: false,
+          reply: text,
+          quizPrompt: "",
+          aiMayBeWrong: "Local AI may be wrong — verify with your notes.",
+          note: "Local · processed in this browser",
+        });
+        return;
+      }
+
+      if (localAI.mode === "byok" && !localAI.userKey.trim()) {
+        throw new Error("Paste your own API key, or switch to Website API.");
       }
       const res = await fetch("/api/ai/concept", {
         method: "POST",
@@ -55,16 +86,9 @@ export default function ConceptAskAi({
           conceptTitle,
           conceptSummary,
           mode: nextMode,
-          question:
-            nextMode === "ask"
-              ? question
-              : nextMode === "quiz"
-                ? "Quiz me on this concept."
-                : "Explain this concept for AP study.",
+          question: askText,
           lockToConcept,
-          userApiKey: channel === "byok" ? userKey.trim() : undefined,
-          provider,
-          siteModel: channel === "site" ? siteModel : "auto",
+          ...localAI.cloudRequestFields,
         }),
       });
       const data = await res.json();
@@ -86,16 +110,7 @@ export default function ConceptAskAi({
         </p>
       </div>
       <EthicsBanner />
-      <AiApiChannel
-        channel={channel}
-        onChannelChange={setChannel}
-        siteModel={siteModel}
-        onSiteModelChange={setSiteModel}
-        provider={provider}
-        onProviderChange={setProvider}
-        userKey={userKey}
-        onUserKeyChange={setUserKey}
-      />
+      <LocalAIControls />
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn-primary" disabled={loading} onClick={() => run("explain")}>
           {loading && mode === "explain" ? "Explaining…" : "Explain"}
@@ -122,16 +137,16 @@ export default function ConceptAskAi({
           {loading && mode === "ask" ? "Thinking…" : "Ask"}
         </button>
       </div>
-      {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       {result && (
-        <div className={`rounded-xl px-4 py-3 text-sm ${result.refused ? "border border-amber-200 bg-amber-50 text-amber-950" : "border border-slate-200 bg-white text-slate-800"}`}>
-          <RichContent>{result.reply}</RichContent>
-          {result.quizPrompt && (
-            <div className="mt-3 rounded-lg bg-brand-50 px-3 py-2 text-brand-900">
-              <strong>Try:</strong> <RichContent className="mt-1 inline [&>p]:inline">{result.quizPrompt}</RichContent>
-            </div>
-          )}
-          <p className="mt-3 text-xs text-slate-500">{result.aiMayBeWrong}</p>
+        <div className={`rounded-xl border p-4 ${result.refused ? "border-amber-200 bg-amber-50" : "border-slate-200"}`}>
+          <RichContent className="text-sm text-slate-800">{result.reply}</RichContent>
+          {result.quizPrompt ? (
+            <p className="mt-3 text-sm text-slate-700">
+              <strong>Quiz:</strong> {result.quizPrompt}
+            </p>
+          ) : null}
+          <p className="mt-3 text-xs text-amber-800">{result.aiMayBeWrong}</p>
           <p className="mt-1 text-xs text-slate-400">{result.note}</p>
         </div>
       )}

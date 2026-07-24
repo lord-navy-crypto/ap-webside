@@ -1,40 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import AiApiChannel from "@/components/AiApiChannel";
 import {
   useLocalAI,
   type AIMode,
   type LocalModelGroup,
 } from "@/components/LocalAIProvider";
 
-const MODES: Array<{
+const PATHS: Array<{
   value: AIMode;
   label: string;
   detail: string;
-  badge?: string;
-  badgeTone?: "recommend" | "backup";
 }> = [
   {
     value: "local",
-    label: "Local AI",
-    detail:
-      "Local AI is the best. We recommend using Local AI. There are no restrictions. Enable a model below.",
-    badge: "Best · recommend",
-    badgeTone: "recommend",
+    label: "Local",
+    detail: "Runs in this browser. Private on your device — enable a model below.",
   },
   {
-    value: "auto",
-    label: "Auto",
-    detail: "Uses Local when enabled; otherwise falls back to cloud. Prefer enabling Local first.",
-    badge: "Backup path",
-    badgeTone: "backup",
+    value: "site",
+    label: "Website API",
+    detail: "Uses the API this site provides (shared Instant or Advanced Default).",
   },
   {
-    value: "cloud",
-    label: "Cloud AI",
-    detail: "Website Instant (lowest) or your own mid-tier API. Use when Local is not available.",
-    badge: "Backup · limited",
-    badgeTone: "backup",
+    value: "byok",
+    label: "Your own API",
+    detail: "Paste your provider key. Key is used for this session only.",
   },
 ];
 
@@ -45,6 +37,10 @@ const MODEL_GROUPS: Array<{ value: LocalModelGroup; label: string }> = [
   { value: "heavy", label: "Heavy" },
 ];
 
+/**
+ * One shared AI settings panel for every tool:
+ * Local · Website API · Your own API.
+ */
 export default function LocalAIControls() {
   const localAI = useLocalAI();
   const [pendingModelId, setPendingModelId] = useState("");
@@ -61,8 +57,7 @@ export default function LocalAIControls() {
   const cachedModels = localAI.models.filter((model) => model.cached);
   const cacheChecked = localAI.models.every((model) => model.cached !== null);
   const busy = localAI.status === "loading" || localAI.status === "generating";
-  const modeNeedsModel =
-    (localAI.mode === "local" || localAI.mode === "auto") && !localAI.ready;
+  const modeNeedsModel = localAI.mode === "local" && !localAI.ready;
 
   function requestModel(modelId: string) {
     if (localAI.ready && modelId !== localAI.loadedModelId) {
@@ -82,8 +77,7 @@ export default function LocalAIControls() {
 
   function selectMode(next: AIMode) {
     localAI.setMode(next);
-    // Choosing Local / Auto does NOT load a model by itself — prompt Enable.
-    if ((next === "local" || next === "auto") && !localAI.ready && !busy) {
+    if (next === "local" && !localAI.ready && !busy) {
       openLoadConfirmation(localAI.selectedModelId);
     }
   }
@@ -94,8 +88,7 @@ export default function LocalAIControls() {
     setPendingModelId("");
     setLoadError("");
     try {
-      // Prefer local once the user explicitly enables a model.
-      if (localAI.mode === "cloud") localAI.setMode("auto");
+      if (localAI.mode !== "local") localAI.setMode("local");
       await localAI.enable(modelId);
     } catch (caught) {
       setLoadError(caught instanceof Error ? caught.message : "Could not enable local AI.");
@@ -112,53 +105,28 @@ export default function LocalAIControls() {
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
+    <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
       <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">AI mode</p>
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
-            Local first
-          </span>
-        </div>
-        <div className="mt-2 grid gap-2 md:grid-cols-3">
-          {MODES.map((item) => (
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">AI settings</p>
+        <p className="mt-1 text-sm text-slate-600">
+          Same three paths for every AI tool: Local, Website API, or Your own API.
+        </p>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {PATHS.map((item) => (
             <button
               key={item.value}
               type="button"
               onClick={() => selectMode(item.value)}
               className={
                 localAI.mode === item.value
-                  ? item.value === "local"
-                    ? "rounded-xl bg-emerald-700 px-4 py-3 text-left text-white shadow"
-                    : "rounded-xl bg-violet-700 px-4 py-3 text-left text-white shadow"
-                  : item.value === "local"
-                    ? "rounded-xl border-2 border-emerald-400 bg-white px-4 py-3 text-left text-slate-800 shadow-sm hover:border-emerald-500"
-                    : "rounded-xl border border-violet-200 bg-white px-4 py-3 text-left text-slate-800 hover:border-violet-400"
+                  ? "rounded-xl bg-slate-900 px-4 py-3 text-left text-white shadow"
+                  : "rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-slate-800 hover:border-slate-400"
               }
             >
-              <span className="flex flex-wrap items-center gap-2">
-                <span className="block text-sm font-semibold">{item.label}</span>
-                {item.badge && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                      localAI.mode === item.value
-                        ? "bg-white/20 text-white"
-                        : item.badgeTone === "recommend"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </span>
+              <span className="block text-sm font-semibold">{item.label}</span>
               <span
                 className={`mt-1 block text-xs ${
-                  localAI.mode === item.value
-                    ? item.value === "local"
-                      ? "text-emerald-50"
-                      : "text-violet-100"
-                    : "text-slate-500"
+                  localAI.mode === item.value ? "text-slate-200" : "text-slate-500"
                 }`}
               >
                 {item.detail}
@@ -168,215 +136,229 @@ export default function LocalAIControls() {
         </div>
       </div>
 
-      {modeNeedsModel && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          <strong>Local mode is selected, but no model is loaded yet.</strong>
-          <p className="mt-1">
-            Clicking Local AI only sets preference. Press <strong>Enable local AI</strong> to
-            download/load a model in this browser.
-          </p>
-        </div>
+      {localAI.mode === "site" && (
+        <AiApiChannel
+          path="site"
+          siteModel={localAI.siteModel}
+          onSiteModelChange={localAI.setSiteModel}
+          provider={localAI.provider}
+          onProviderChange={localAI.setProvider}
+          userKey={localAI.userKey}
+          onUserKeyChange={localAI.setUserKey}
+        />
       )}
 
-      <div className="rounded-xl border border-violet-200 bg-white p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="font-semibold text-slate-900">Local model library</h2>
-            <p className="mt-1 max-w-2xl text-sm font-semibold text-emerald-800">
-              Local AI is the best. We recommend using Local AI. There are no restrictions.
-            </p>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              No website token bill, prompts stay on your device, and we do not apply cloud-style
-              output caps. Pick Super light → Light → Medium → Heavy below, then Enable.
-            </p>
-          </div>
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              localAI.ready
-                ? "bg-emerald-100 text-emerald-800"
-                : localAI.webGPUSupported === false
-                  ? "bg-red-100 text-red-700"
-                  : localAI.status === "loading"
-                    ? "bg-amber-100 text-amber-800"
-                    : "bg-slate-100 text-slate-600"
-            }`}
-          >
-            {localAI.ready
-              ? `Enabled · ${loaded?.parameterSize || "model"}`
-              : localAI.status === "loading"
-                ? "Enabling…"
-                : localAI.webGPUSupported === false
-                  ? "WebGPU unavailable"
-                  : "Not enabled"}
-          </span>
-        </div>
+      {localAI.mode === "byok" && (
+        <AiApiChannel
+          path="byok"
+          siteModel={localAI.siteModel}
+          onSiteModelChange={localAI.setSiteModel}
+          provider={localAI.provider}
+          onProviderChange={localAI.setProvider}
+          userKey={localAI.userKey}
+          onUserKeyChange={localAI.setUserKey}
+        />
+      )}
 
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Choose local model</label>
-            <select
-              className="input"
-              value={localAI.selectedModelId}
-              onChange={(event) => requestModel(event.target.value)}
-              disabled={busy}
-            >
-              {MODEL_GROUPS.map((group) => (
-                <optgroup key={group.value} label={group.label}>
-                  {localAI.models
-                    .filter((model) => model.group === group.value)
-                    .map((model) => (
-                      <option key={model.id} value={model.id}>
-                        {model.label} · {model.parameterSize} · about {model.vramMB} MB memory
-                        {model.recommended ? " · recommended" : ""}
-                        {model.cached ? " · downloaded" : ""}
-                        {model.id === localAI.loadedModelId ? " · active" : ""}
-                      </option>
-                    ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-wrap items-end gap-2">
-            {!localAI.ready ? (
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={busy || !localAI.selectedModelId || localAI.webGPUSupported === false}
-                onClick={() => openLoadConfirmation()}
-              >
-                {localAI.status === "loading"
-                  ? "Enabling…"
-                  : selected?.cached
-                    ? "Enable local AI"
-                    : "Enable / download"}
-              </button>
-            ) : (
-              <button type="button" className="btn-secondary" onClick={() => void localAI.stop()}>
-                Stop local AI
-              </button>
-            )}
-            <button
-              type="button"
-              className="btn-secondary"
-              disabled={busy || localAI.cacheScanning}
-              onClick={() => void openDownloads()}
-            >
-              {localAI.cacheScanning
-                ? "Checking…"
-                : showDownloads
-                  ? "Hide downloads"
-                  : "Manage downloads"}
-            </button>
-          </div>
-        </div>
-
-        {selected && !localAI.ready && (
-          <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <strong className="text-slate-900">{selected.label}</strong>
-              {selected.recommended && (
-                <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-800">
-                  Recommended
-                </span>
-              )}
-              {selected.cached && (
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                  Downloaded
-                </span>
-              )}
+      {localAI.mode === "local" && (
+        <>
+          {modeNeedsModel && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+              <strong>Local is selected, but no model is loaded yet.</strong>
+              <p className="mt-1">
+                Press <strong>Enable local AI</strong> to download/load a model in this browser, or
+                switch to Website API / Your own API.
+              </p>
             </div>
-            <p className="mt-1 text-slate-600">{selected.summary}</p>
-            <p className="mt-1 text-xs text-slate-500">
-              Best for: {selected.bestFor}. Estimated device memory: {selected.vramMB} MB.
-            </p>
-          </div>
-        )}
+          )}
 
-        {localAI.ready && loaded && (
-          <div className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-950">
-            <strong>Active: {loaded.label}</strong>
-            <p className="mt-1">{loaded.bestFor}.</p>
-            <p className="mt-1 text-xs text-emerald-800">
-              Pick another model above to switch. You will confirm before the current model unloads.
-            </p>
-          </div>
-        )}
-
-        <p className="mt-3 text-xs text-slate-500">
-          Recommended starters: <strong>Qwen Chinese starter (0.5B)</strong> for bilingual study, or{" "}
-          <strong>Tiny local AI</strong> just to test Enable. Desktop Chrome/Edge with GPU works
-          best. First enable may download hundreds of MB; later loads reuse this browser cache. Only
-          your device limits speed and length — not the website quota.
-        </p>
-
-        {localAI.status === "loading" && (
-          <div className="mt-4" aria-live="polite">
-            <div className="mb-1 flex justify-between text-xs text-slate-600">
-              <span>{localAI.statusText}</span>
-              <span>{Math.round(localAI.progress * 100)}%</span>
-            </div>
-            <progress className="h-2 w-full accent-violet-700" max={1} value={localAI.progress} />
-          </div>
-        )}
-        {localAI.status !== "loading" && (
-          <p className="mt-3 text-xs text-slate-500" aria-live="polite">
-            {localAI.statusText}
-          </p>
-        )}
-        {(localAI.error || loadError) && (
-          <p className="mt-2 whitespace-pre-wrap text-sm text-red-700" role="alert">
-            {loadError || localAI.error}
-          </p>
-        )}
-
-        {showDownloads && (
-          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-slate-900">Downloaded model files</h3>
-                <p className="text-xs text-slate-500">
-                  Cache belongs to this browser profile on this device.
+                <h2 className="font-semibold text-slate-900">Local model</h2>
+                <p className="mt-1 max-w-2xl text-sm text-slate-600">
+                  Pick a size, then Enable. Prompts stay on this device.
                 </p>
               </div>
-              <button
-                type="button"
-                className="text-xs font-medium text-violet-700 hover:underline"
-                disabled={localAI.cacheScanning}
-                onClick={() => void localAI.refreshCacheStatus()}
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  localAI.ready
+                    ? "bg-emerald-100 text-emerald-800"
+                    : localAI.webGPUSupported === false
+                      ? "bg-red-100 text-red-700"
+                      : localAI.status === "loading"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-slate-100 text-slate-600"
+                }`}
               >
-                Check again
-              </button>
+                {localAI.ready
+                  ? `Enabled · ${loaded?.parameterSize || "model"}`
+                  : localAI.status === "loading"
+                    ? "Enabling…"
+                    : localAI.webGPUSupported === false
+                      ? "WebGPU unavailable"
+                      : "Not enabled"}
+              </span>
             </div>
-            {cacheChecked && cachedModels.length === 0 && (
-              <p className="mt-3 text-sm text-slate-500">No downloaded models were found.</p>
-            )}
-            <div className="mt-3 space-y-2">
-              {cachedModels.map((model) => (
-                <div
-                  key={model.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-3 py-2"
+
+            <div className="mt-4 grid gap-3 md:grid-cols-[1fr_auto]">
+              <div>
+                <label className="mb-1 block text-sm font-medium">Choose local model</label>
+                <select
+                  className="input"
+                  value={localAI.selectedModelId}
+                  onChange={(event) => requestModel(event.target.value)}
+                  disabled={busy}
                 >
+                  {MODEL_GROUPS.map((group) => (
+                    <optgroup key={group.value} label={group.label}>
+                      {localAI.models
+                        .filter((model) => model.group === group.value)
+                        .map((model) => (
+                          <option key={model.id} value={model.id}>
+                            {model.label} · {model.parameterSize} · about {model.vramMB} MB memory
+                            {model.recommended ? " · recommended" : ""}
+                            {model.cached ? " · downloaded" : ""}
+                            {model.id === localAI.loadedModelId ? " · active" : ""}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-wrap items-end gap-2">
+                {!localAI.ready ? (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    disabled={busy || !localAI.selectedModelId || localAI.webGPUSupported === false}
+                    onClick={() => openLoadConfirmation()}
+                  >
+                    {localAI.status === "loading"
+                      ? "Enabling…"
+                      : selected?.cached
+                        ? "Enable local AI"
+                        : "Enable / download"}
+                  </button>
+                ) : (
+                  <button type="button" className="btn-secondary" onClick={() => void localAI.stop()}>
+                    Stop local AI
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  disabled={busy || localAI.cacheScanning}
+                  onClick={() => void openDownloads()}
+                >
+                  {localAI.cacheScanning
+                    ? "Checking…"
+                    : showDownloads
+                      ? "Hide downloads"
+                      : "Manage downloads"}
+                </button>
+              </div>
+            </div>
+
+            {selected && !localAI.ready && (
+              <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <strong className="text-slate-900">{selected.label}</strong>
+                  {selected.recommended && (
+                    <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                      Recommended
+                    </span>
+                  )}
+                  {selected.cached && (
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                      Downloaded
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-slate-600">{selected.summary}</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Best for: {selected.bestFor}. Estimated device memory: {selected.vramMB} MB.
+                </p>
+              </div>
+            )}
+
+            {localAI.ready && loaded && (
+              <div className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-950">
+                <strong>Active: {loaded.label}</strong>
+                <p className="mt-1">{loaded.bestFor}.</p>
+              </div>
+            )}
+
+            {localAI.status === "loading" && (
+              <div className="mt-4" aria-live="polite">
+                <div className="mb-1 flex justify-between text-xs text-slate-600">
+                  <span>{localAI.statusText}</span>
+                  <span>{Math.round(localAI.progress * 100)}%</span>
+                </div>
+                <progress className="h-2 w-full accent-slate-800" max={1} value={localAI.progress} />
+              </div>
+            )}
+            {localAI.status !== "loading" && (
+              <p className="mt-3 text-xs text-slate-500" aria-live="polite">
+                {localAI.statusText}
+              </p>
+            )}
+            {(localAI.error || loadError) && (
+              <p className="mt-2 whitespace-pre-wrap text-sm text-red-700" role="alert">
+                {loadError || localAI.error}
+              </p>
+            )}
+
+            {showDownloads && (
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium text-slate-800">{model.label}</p>
+                    <h3 className="text-sm font-semibold text-slate-900">Downloaded model files</h3>
                     <p className="text-xs text-slate-500">
-                      {model.parameterSize} · about {model.vramMB} MB device memory
-                      {model.id === localAI.loadedModelId ? " · active" : ""}
+                      Cache belongs to this browser profile on this device.
                     </p>
                   </div>
                   <button
                     type="button"
-                    className="text-xs font-medium text-red-600 hover:underline"
-                    disabled={busy}
-                    onClick={() => setConfirmRemoveId(model.id)}
+                    className="text-xs font-medium text-slate-700 hover:underline"
+                    disabled={localAI.cacheScanning}
+                    onClick={() => void localAI.refreshCacheStatus()}
                   >
-                    Remove
+                    Check again
                   </button>
                 </div>
-              ))}
-            </div>
+                {cacheChecked && cachedModels.length === 0 && (
+                  <p className="mt-3 text-sm text-slate-500">No downloaded models were found.</p>
+                )}
+                <div className="mt-3 space-y-2">
+                  {cachedModels.map((model) => (
+                    <div
+                      key={model.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white px-3 py-2"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">{model.label}</p>
+                        <p className="text-xs text-slate-500">
+                          {model.parameterSize} · about {model.vramMB} MB device memory
+                          {model.id === localAI.loadedModelId ? " · active" : ""}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-xs font-medium text-red-600 hover:underline"
+                        disabled={busy}
+                        onClick={() => setConfirmRemoveId(model.id)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       {confirmLoad && target && (
         <div
@@ -404,9 +386,6 @@ export default function LocalAIControls() {
                 {target.cached
                   ? "This model looks cached and should load from this browser."
                   : "First enable downloads model files (needs internet). Later visits reuse the cache."}
-              </p>
-              <p className="font-medium text-slate-800">
-                Prompts stay on this device while local AI is active.
               </p>
             </div>
             <div className="mt-5 flex justify-end gap-2">

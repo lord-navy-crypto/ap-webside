@@ -14,8 +14,16 @@ import type {
   InitProgressReport,
   MLCEngineInterface,
 } from "@mlc-ai/web-llm";
+import type { AiProvider, SiteModelChoice } from "@/lib/ai-site-models";
+import { parseSiteModelChoice } from "@/lib/ai-site-models";
 
-export type AIMode = "auto" | "local" | "cloud";
+/**
+ * Shared AI path for every tool:
+ * - local  = runs in this browser
+ * - site   = website API we provide
+ * - byok   = user's own API key
+ */
+export type AIMode = "local" | "site" | "byok";
 /** Weight tiers for the local model library (WebLLM / WebGPU). */
 export type LocalModelGroup = "superlight" | "light" | "medium" | "heavy";
 
@@ -36,6 +44,22 @@ type LocalAIStatus = "idle" | "loading" | "ready" | "generating" | "error";
 type LocalAIContextValue = {
   mode: AIMode;
   setMode: (mode: AIMode) => void;
+  /** True when the active path is Local AI. */
+  usesLocal: boolean;
+  /** True when the active path is website API or your own API. */
+  usesCloud: boolean;
+  siteModel: SiteModelChoice;
+  setSiteModel: (model: SiteModelChoice) => void;
+  provider: AiProvider;
+  setProvider: (provider: AiProvider) => void;
+  userKey: string;
+  setUserKey: (key: string) => void;
+  /** Payload fields for /api/ai/* cloud calls from the shared settings. */
+  cloudRequestFields: {
+    userApiKey?: string;
+    provider: AiProvider;
+    siteModel: SiteModelChoice;
+  };
   models: LocalModelOption[];
   selectedModelId: string;
   setSelectedModelId: (id: string) => void;
@@ -60,6 +84,15 @@ type LocalAIContextValue = {
 const LocalAIContext = createContext<LocalAIContextValue | null>(null);
 const MODE_KEY = "results-ai-mode";
 const MODEL_KEY = "results-local-ai-model";
+const SITE_MODEL_KEY = "results-ai-site-model";
+const PROVIDER_KEY = "results-ai-provider";
+
+function migrateMode(raw: string | null): AIMode | null {
+  if (raw === "local" || raw === "site" || raw === "byok") return raw;
+  // Older Local / Auto / Cloud UI
+  if (raw === "auto" || raw === "cloud") return "site";
+  return null;
+}
 /** Safe default for first enable — Super light Chinese/English starter. */
 const DEFAULT_MODEL_ID = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
 
@@ -261,7 +294,10 @@ async function detectWebGPU(): Promise<boolean> {
 }
 
 export function LocalAIProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<AIMode>("auto");
+  const [mode, setModeState] = useState<AIMode>("site");
+  const [siteModel, setSiteModelState] = useState<SiteModelChoice>("auto");
+  const [provider, setProviderState] = useState<AiProvider>("groq");
+  const [userKey, setUserKey] = useState("");
   const [models, setModels] = useState<LocalModelOption[]>(LOCAL_MODELS);
   const [selectedModelId, setSelectedModelIdState] = useState(DEFAULT_MODEL_ID);
   const [loadedModelId, setLoadedModelId] = useState("");
@@ -280,19 +316,43 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     void detectWebGPU().then(setWebGPUSupported);
-    const savedMode = localStorage.getItem(MODE_KEY);
-    if (savedMode === "auto" || savedMode === "local" || savedMode === "cloud") {
+    const savedMode = migrateMode(localStorage.getItem(MODE_KEY));
+    if (savedMode) {
       setModeState(savedMode);
+      localStorage.setItem(MODE_KEY, savedMode);
     }
     const savedModel = localStorage.getItem(MODEL_KEY);
     if (LOCAL_MODELS.some((item) => item.id === savedModel)) {
       setSelectedModelIdState(String(savedModel));
+    }
+    const savedSiteModel = parseSiteModelChoice(localStorage.getItem(SITE_MODEL_KEY));
+    if (savedSiteModel) setSiteModelState(savedSiteModel);
+    const savedProvider = localStorage.getItem(PROVIDER_KEY);
+    if (
+      savedProvider === "groq" ||
+      savedProvider === "gemini" ||
+      savedProvider === "githubmodels" ||
+      savedProvider === "kimi" ||
+      savedProvider === "openrouter" ||
+      savedProvider === "deepseek"
+    ) {
+      setProviderState(savedProvider);
     }
   }, []);
 
   const setMode = useCallback((nextMode: AIMode) => {
     setModeState(nextMode);
     localStorage.setItem(MODE_KEY, nextMode);
+  }, []);
+
+  const setSiteModel = useCallback((next: SiteModelChoice) => {
+    setSiteModelState(next);
+    localStorage.setItem(SITE_MODEL_KEY, next);
+  }, []);
+
+  const setProvider = useCallback((next: AiProvider) => {
+    setProviderState(next);
+    localStorage.setItem(PROVIDER_KEY, next);
   }, []);
 
   const setSelectedModelId = useCallback((id: string) => {
@@ -328,7 +388,7 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
         if (!gpuOk) {
           setStatus("error");
           setError(
-            "WebGPU is unavailable (need a desktop Chrome/Edge with GPU acceleration, or a compatible GPU). Switch to Cloud AI meanwhile."
+            "WebGPU is unavailable (need a desktop Chrome/Edge with GPU acceleration, or a compatible GPU). Switch to Website API or Your own API meanwhile."
           );
           setStatusText("Local AI could not start — WebGPU missing.");
           throw new Error("WebGPU is not supported.");
@@ -500,6 +560,19 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
     () => ({
       mode,
       setMode,
+      usesLocal: mode === "local",
+      usesCloud: mode === "site" || mode === "byok",
+      siteModel,
+      setSiteModel,
+      provider,
+      setProvider,
+      userKey,
+      setUserKey,
+      cloudRequestFields: {
+        userApiKey: mode === "byok" ? userKey.trim() || undefined : undefined,
+        provider,
+        siteModel: mode === "site" ? siteModel : "auto",
+      },
       models,
       selectedModelId,
       setSelectedModelId,
@@ -526,14 +599,19 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
       mode,
       models,
       progress,
+      provider,
       refreshCacheStatus,
       removeCachedModel,
       selectedModelId,
       setMode,
+      setProvider,
       setSelectedModelId,
+      setSiteModel,
+      siteModel,
       status,
       statusText,
       stop,
+      userKey,
       webGPUSupported,
     ]
   );

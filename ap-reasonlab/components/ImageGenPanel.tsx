@@ -11,7 +11,7 @@ import LocalImageEditor from "@/components/LocalImageEditor";
 import { useLocalAI } from "@/components/LocalAIProvider";
 
 /**
- * Image generation — Local (SVG via local LLM), Auto, or Cloud (Pollinations).
+ * Image generation — Local (SVG via local LLM) or Website / Your own API path (Pollinations).
  * Saved images stay private in this browser (Learning Box / local storage).
  */
 export default function ImageGenPanel({ embedded = false }: { embedded?: boolean }) {
@@ -49,7 +49,7 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
   async function generateLocalSvg(userPrompt: string): Promise<string> {
     if (!localAI.ready) {
       throw new Error(
-        "Local AI mode is on, but no model is enabled. Enable Local AI above, or switch to Auto / Cloud."
+        "Local is selected, but no model is enabled. Enable Local above, or switch to Website API / Your own API."
       );
     }
     const text = await localAI.complete([
@@ -65,7 +65,7 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
     ]);
     const match = text.match(/<svg[\s\S]*?<\/svg>/i);
     if (!match) {
-      throw new Error("Local AI did not return valid SVG. Try Cloud mode or simplify the prompt.");
+      throw new Error("Local AI did not return valid SVG. Try Website API or simplify the prompt.");
     }
     return svgToDataUrl(match[0]);
   }
@@ -92,25 +92,18 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
     setCurrentUrl("");
     setModeNote("");
     try {
-      const preferLocal =
-        localAI.mode === "local" || (localAI.mode === "auto" && localAI.ready);
-      if (preferLocal) {
+      if (localAI.usesLocal) {
         const dataUrl = await generateLocalSvg(prompt.trim());
         setCurrentUrl(dataUrl);
-        setModeNote("Local AI · SVG diagram generated in this browser");
+        setModeNote("Local · SVG diagram generated in this browser");
         return;
-      }
-      if (localAI.mode === "local" && !localAI.ready) {
-        throw new Error(
-          "Local AI mode is on, but no model is enabled. Enable Local AI above, or switch to Auto / Cloud."
-        );
       }
       const url = await generateCloudPollinations(prompt.trim());
       setCurrentUrl(url);
       setModeNote(
-        localAI.mode === "auto"
-          ? "Auto · Cloud Pollinations (Local not ready)"
-          : "Cloud · Pollinations.ai"
+        localAI.mode === "byok"
+          ? "Your own API path · Pollinations.ai image host"
+          : "Website API path · Pollinations.ai image host"
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");
@@ -153,10 +146,8 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
 
   const modeHint =
     localAI.mode === "local"
-      ? "Local AI will draw an SVG study diagram in this browser."
-      : localAI.mode === "auto"
-        ? "Auto: Local SVG when a model is enabled; otherwise Cloud Pollinations."
-        : "Cloud: Pollinations.ai raster images.";
+      ? "Local will draw an SVG study diagram in this browser."
+      : "Website API / Your own API path uses Pollinations.ai for raster images.";
 
   return (
     <div className="space-y-4">
@@ -164,14 +155,14 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
         <div>
           <h2 className="text-xl font-semibold">Image Generation</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Study diagrams from a text prompt. Uses Local, Auto, or Cloud (same mode switch as other AI tools).
+            Study diagrams from a text prompt. Uses the same Local / Website API / Your own API
+            settings as other AI tools.
           </p>
         </div>
       )}
 
       <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
-        <strong className="text-slate-800">Runtime:</strong> {modeHint} Set Local / Auto / Cloud in the
-        library above.
+        <strong className="text-slate-800">Runtime:</strong> {modeHint}
       </div>
 
       <form onSubmit={handleGenerate} className="card space-y-4">

@@ -4,21 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { AdvancedModelMap, AiProvider, SiteModelChoice } from "@/lib/ai-site-models";
 import { siteModelOptionsForTier } from "@/lib/ai-site-models";
 
-export type ApiChannel = "site" | "byok";
-
-type Props = {
-  channel: ApiChannel;
-  onChannelChange: (channel: ApiChannel) => void;
-  /** Official Instant / Advanced Default model when using Default website API */
-  siteModel: SiteModelChoice;
-  onSiteModelChange: (model: SiteModelChoice) => void;
-  /** BYOK provider */
-  provider: AiProvider;
-  onProviderChange: (provider: AiProvider) => void;
-  userKey: string;
-  onUserKeyChange: (key: string) => void;
-};
-
 const byokOptions: Array<{ value: AiProvider; label: string; placeholder: string }> = [
   { value: "groq", label: "Groq mid · llama-3.3-70b-versatile", placeholder: "gsk_..." },
   { value: "gemini", label: "Gemini · gemini-2.0-flash", placeholder: "AIza..." },
@@ -40,9 +25,26 @@ const byokOptions: Array<{ value: AiProvider; label: string; placeholder: string
   { value: "deepseek", label: "DeepSeek (deepseek-chat)", placeholder: "sk-..." },
 ];
 
+/** @deprecated Prefer shared LocalAIProvider settings + LocalAIControls. Kept for type imports. */
+export type ApiChannel = "site" | "byok";
+
+type Props = {
+  /** Which cloud path options to show — parent already chose Website API vs Your own API. */
+  path: "site" | "byok";
+  siteModel: SiteModelChoice;
+  onSiteModelChange: (model: SiteModelChoice) => void;
+  provider: AiProvider;
+  onProviderChange: (provider: AiProvider) => void;
+  userKey: string;
+  onUserKeyChange: (key: string) => void;
+};
+
+/**
+ * Detail fields for Website API or Your own API.
+ * Path choice lives in LocalAIControls (Local / Website API / Your own API).
+ */
 export default function AiApiChannel({
-  channel,
-  onChannelChange,
+  path,
   siteModel,
   onSiteModelChange,
   provider,
@@ -84,139 +86,65 @@ export default function AiApiChannel({
     [advancedDefault, advancedModels]
   );
 
-  return (
-    <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Cloud API channel
+  if (path === "site") {
+    return (
+      <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
+        <label className="block text-sm font-medium text-slate-800">
+          Website model{" "}
+          <span className="font-normal text-slate-400">
+            ({advancedDefault ? "Advanced Default" : "Instant · lowest limits"})
+          </span>
+        </label>
+        <select
+          className="input"
+          value={siteModel}
+          onChange={(e) => onSiteModelChange(e.target.value as SiteModelChoice)}
+        >
+          {siteOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+              {option.value === "auto" ? "" : ` · ${option.model}`}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-slate-500">
+          {advancedDefault
+            ? "Uses the site’s mid-tier models on shared keys."
+            : "Shared Instant-class keys with the tightest limits."}
         </p>
-        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
-          Backup to Local AI
-        </span>
       </div>
-      <p className="text-xs text-slate-500">
-        Prefer Local AI above when you can. Cloud is for devices without WebGPU or when you need a
-        server model.
+    );
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/80 p-3">
+      <p className="text-xs text-amber-900">
+        Your key is sent only for this request and is not stored on the site.
       </p>
-      <div className="grid gap-2 sm:grid-cols-2">
-        <button
-          type="button"
-          onClick={() => onChannelChange("site")}
-          className={
-            channel === "site"
-              ? "rounded-xl bg-brand-600 px-4 py-3 text-left text-sm font-semibold text-white shadow"
-              : "rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 hover:border-brand-300"
-          }
+      <div>
+        <label className="mb-1 block text-sm font-medium">Provider</label>
+        <select
+          className="input"
+          value={provider}
+          onChange={(e) => onProviderChange(e.target.value as AiProvider)}
         >
-          <span className="flex flex-wrap items-center gap-2">
-            <span>Default website API</span>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                channel === "site"
-                  ? "bg-white/20 text-white"
-                  : advancedDefault
-                    ? "bg-emerald-100 text-emerald-800"
-                    : "bg-amber-100 text-amber-800"
-              }`}
-            >
-              {advancedDefault ? "Advanced Default" : "Instant · lowest"}
-            </span>
-          </span>
-          <span
-            className={`mt-1 block text-xs font-normal ${channel === "site" ? "text-blue-100" : "text-slate-500"}`}
-          >
-            {advancedDefault
-              ? "Owner enabled Advanced Default — same mid-tier class as Your own API on shared site keys."
-              : "Shared Instant-class keys with the tightest limits. Free to try; may hit shared quotas."}
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={() => onChannelChange("byok")}
-          className={
-            channel === "byok"
-              ? "rounded-xl bg-brand-600 px-4 py-3 text-left text-sm font-semibold text-white shadow"
-              : "rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 hover:border-brand-300"
-          }
-        >
-          <span className="flex flex-wrap items-center gap-2">
-            <span>Your own API</span>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                channel === "byok" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-800"
-              }`}
-            >
-              Advanced
-            </span>
-          </span>
-          <span
-            className={`mt-1 block text-xs font-normal ${channel === "byok" ? "text-blue-100" : "text-slate-500"}`}
-          >
-            Personal mid versatile models — same Advanced class as Advanced Default (personal quota).
-          </span>
-        </button>
+          {byokOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </div>
-
-      {channel === "site" && (
-        <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
-          <label className="block text-sm font-medium text-slate-800">
-            Official site model{" "}
-            <span className="font-normal text-slate-400">
-              ({advancedDefault ? "showing Advanced mid models" : "showing Instant models"})
-            </span>
-          </label>
-          <select
-            className="input"
-            value={siteModel}
-            onChange={(e) => onSiteModelChange(e.target.value as SiteModelChoice)}
-          >
-            {siteOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-                {option.value === "auto" ? "" : ` · ${option.model}`}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs text-slate-500">
-            {advancedDefault
-              ? "Advanced Default is ON — requests use these mid versatile models (e.g. Groq llama-3.3-70b-versatile), not Instant 8B. Check the AI reply note for the real model id."
-              : "Advanced Default is OFF — Instant / Flash / fast-chat with low token caps. Turn ON Advanced Default in the ✎ Page edit menu to switch models."}
-          </p>
-        </div>
-      )}
-
-      {channel === "byok" && (
-        <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/80 p-3">
-          <p className="text-xs text-amber-900">
-            Your key is sent only for this request and is not stored. BYOK always uses Advanced
-            mid-tier models.
-          </p>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Provider</label>
-            <select
-              className="input"
-              value={provider}
-              onChange={(e) => onProviderChange(e.target.value as AiProvider)}
-            >
-              {byokOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Your API key</label>
-            <input
-              type="password"
-              className="input"
-              placeholder={selected.placeholder}
-              value={userKey}
-              onChange={(e) => onUserKeyChange(e.target.value)}
-            />
-          </div>
-        </div>
-      )}
+      <div>
+        <label className="mb-1 block text-sm font-medium">Your API key</label>
+        <input
+          type="password"
+          className="input"
+          placeholder={selected.placeholder}
+          value={userKey}
+          onChange={(e) => onUserKeyChange(e.target.value)}
+        />
+      </div>
     </div>
   );
 }

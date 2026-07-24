@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import EthicsBanner from "@/components/EthicsBanner";
-import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import LocalAIControls from "@/components/LocalAIControls";
 import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { useLocalAI } from "@/components/LocalAIProvider";
@@ -14,7 +13,6 @@ import TIGrapher from "@/components/TIGrapher";
 import ImageGenPanel from "@/components/ImageGenPanel";
 import EnglishAiTutor from "@/components/EnglishAiTutor";
 import CodingAiPanel from "@/components/CodingAiPanel";
-import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
 type Tool =
   | "hint"
@@ -72,11 +70,6 @@ function ToolboxContent() {
   const searchParams = useSearchParams();
   const localAI = useLocalAI();
   const [tool, setTool] = useState<Tool>("hint");
-  const [channel, setChannel] = useState<ApiChannel>("site");
-  const [siteModel, setSiteModel] = useState<SiteModelChoice>("auto");
-  const [provider, setProvider] = useState<AiProvider>("groq");
-  const [userKey, setUserKey] = useState("");
-
   const [subject, setSubject] = useState(() => resolveSubject(searchParams.get("subject")));
   const [question, setQuestion] = useState("");
   const [notes, setNotes] = useState("");
@@ -111,18 +104,16 @@ function ToolboxContent() {
     : ([subject, ...SUBJECT_OPTIONS] as string[]);
 
   function requireByok() {
-    if (channel === "byok" && !userKey.trim()) {
-      throw new Error("Paste your own API key, or switch to Default website API.");
+    if (localAI.mode === "byok" && !localAI.userKey.trim()) {
+      throw new Error("Paste your own API key, or switch to Website API.");
     }
   }
 
   async function runLocalIfSelected(system: string, prompt: string) {
-    const useLocal =
-      localAI.mode === "local" || (localAI.mode === "auto" && localAI.ready);
-    if (!useLocal) return false;
+    if (!localAI.usesLocal) return false;
     if (!localAI.ready) {
       throw new Error(
-        "Local AI mode is on, but the model is not enabled yet. In Local model library click “Enable local AI”, or switch mode to Cloud AI / Auto."
+        "Local is selected, but no model is enabled yet. Enable a local model above, or switch to Website API / Your own API."
       );
     }
 
@@ -172,9 +163,7 @@ function ToolboxContent() {
           question,
           subject,
           notes,
-          userApiKey: channel === "byok" ? userKey.trim() : undefined,
-          provider,
-          siteModel: channel === "site" ? siteModel : "auto",
+          ...localAI.cloudRequestFields,
         }),
       });
       const data = await res.json();
@@ -223,9 +212,7 @@ function ToolboxContent() {
                 ? "Quiz me on this concept."
                 : "Explain this concept for AP study.",
           lockToConcept: false,
-          userApiKey: channel === "byok" ? userKey.trim() : undefined,
-          provider,
-          siteModel: channel === "site" ? siteModel : "auto",
+          ...localAI.cloudRequestFields,
         }),
       });
       const data = await res.json();
@@ -259,9 +246,7 @@ function ToolboxContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question: guideQuestion,
-          userApiKey: channel === "byok" ? userKey.trim() : undefined,
-          provider,
-          siteModel: channel === "site" ? siteModel : "auto",
+          ...localAI.cloudRequestFields,
         }),
       });
       const data = await res.json();
@@ -303,17 +288,17 @@ function ToolboxContent() {
     {
       id: "imagegen",
       label: "Image Gen",
-      blurb: "Local SVG / Auto / Cloud diagrams from a prompt; save privately in this browser.",
+      blurb: "Study diagrams from a prompt (Local / Website API / Your own API); save privately in this browser.",
     },
     {
       id: "english",
       label: "English AI",
-      blurb: "Writing, grammar, vocabulary, TOEFL / IELTS / SAT — Local, Auto, or Cloud.",
+      blurb: "Writing, grammar, vocabulary, TOEFL / IELTS / SAT — shared AI settings.",
     },
     {
       id: "coding",
       label: "Coding AI",
-      blurb: "Python, Java, and web coaching — Local, Auto, or Cloud (hints, not graded dumps).",
+      blurb: "Python, Java, and web coaching — shared AI settings (hints, not graded dumps).",
     },
   ];
 
@@ -329,41 +314,11 @@ function ToolboxContent() {
     <div className="space-y-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">AI Toolbox</p>
-        <h1 className="mt-1 text-3xl font-bold">Study tools — Local AI first</h1>
-        <p className="mt-2 max-w-2xl text-lg font-semibold text-emerald-800">
-          Local AI is the best. We recommend using Local AI. There are no restrictions.
-        </p>
+        <h1 className="mt-1 text-3xl font-bold">Study tools</h1>
         <p className="mt-2 max-w-2xl text-slate-600">
-          Free for the site, private on your computer, no shared cloud caps. Use Cloud (public
-          Instant = lowest) or your own mid-tier API only as backup.
+          Every AI tool uses the same settings: <strong>Local</strong>,{" "}
+          <strong>Website API</strong>, or <strong>Your own API</strong>.
         </p>
-      </div>
-
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-950">
-        <p className="font-semibold">Site recommendations</p>
-        <p className="mt-1 font-medium text-emerald-900">
-          Local AI is the best. We recommend using Local AI. There are no restrictions.
-        </p>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-emerald-900/90">
-          <li>
-            <strong>Local AI</strong> — enable a model in the library below (no site token bill,
-            private on your device, no product-side caps).
-          </li>
-          <li>
-            <strong>Auto / Cloud</strong> — backup when WebGPU is missing; public website API stays
-            Instant with the lowest limits.
-          </li>
-          <li>
-            <strong>Author mid-tier</strong> — turn on{" "}
-            <strong>Advanced Default</strong> in Manage → Settings (or{" "}
-            <code className="rounded bg-emerald-100/80 px-1">SITE_AI_TIER=author</code> fallback)
-            for mid versatile models (not Instant) with modestly higher caps.
-          </li>
-          <li>
-            <strong>Your own API</strong> — optional mid-tier; easier personal quota than the shared
-            Instant pool.
-          </li>
-        </ul>
       </div>
 
       <EthicsBanner />
@@ -401,25 +356,6 @@ function ToolboxContent() {
         ))}
       </div>
 
-      {isAiTool && localAI.mode !== "local" && (
-        <div className="space-y-2">
-          {localAI.mode === "auto" && (
-            <p className="text-xs text-slate-500">
-              Auto fallback: these cloud settings are used only while local AI is not ready.
-            </p>
-          )}
-          <AiApiChannel
-            channel={channel}
-            onChannelChange={setChannel}
-            siteModel={siteModel}
-            onSiteModelChange={setSiteModel}
-            provider={provider}
-            onProviderChange={setProvider}
-            userKey={userKey}
-            onUserKeyChange={setUserKey}
-          />
-        </div>
-      )}
 
       {tool === "hint" && (
         <form onSubmit={submitHint} className="card space-y-4">
@@ -569,7 +505,8 @@ function ToolboxContent() {
           <div>
             <h2 className="text-xl font-semibold">Image Generation</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Local SVG, Auto, or Cloud diagrams. Images stay private on this device. Upload your own
+              Local, Website API, or Your own API diagrams. Images stay private on this device. Upload
+              your own
               photos in the{" "}
               <a href="/learning-box?tab=pictures" className="font-medium text-brand-700 underline">
                 Private Learning Box
@@ -586,26 +523,14 @@ function ToolboxContent() {
           <div>
             <h2 className="text-xl font-semibold">English AI Tutor</h2>
             <p className="mt-1 text-sm text-slate-600">
-              English-only coaching with Local / Auto / Cloud — writing, grammar, vocabulary, and
-              test strategy. Also linked from the{" "}
+              English-only coaching using the shared AI settings above. Also linked from the{" "}
               <a href="/english/ai" className="font-medium text-brand-700 underline">
                 English hub
               </a>
               .
             </p>
           </div>
-          <EnglishAiTutor
-            embedded
-            hideChannelUi
-            channel={channel}
-            onChannelChange={setChannel}
-            siteModel={siteModel}
-            onSiteModelChange={setSiteModel}
-            provider={provider}
-            onProviderChange={setProvider}
-            userKey={userKey}
-            onUserKeyChange={setUserKey}
-          />
+          <EnglishAiTutor embedded hideChannelUi />
         </section>
       )}
 
@@ -614,25 +539,15 @@ function ToolboxContent() {
           <div>
             <h2 className="text-xl font-semibold">Coding AI</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Programming coach for Python, Java, and web — Local, Auto, or Cloud. Use the{" "}
+              Programming coach for Python, Java, and web — uses the shared AI settings above. Use
+              the{" "}
               <a href="/code" className="font-medium text-brand-700 underline">
                 Code area
               </a>{" "}
               playgrounds to run snippets yourself.
             </p>
           </div>
-          <CodingAiPanel
-            embedded
-            hideChannelUi
-            channel={channel}
-            onChannelChange={setChannel}
-            siteModel={siteModel}
-            onSiteModelChange={setSiteModel}
-            provider={provider}
-            onProviderChange={setProvider}
-            userKey={userKey}
-            onUserKeyChange={setUserKey}
-          />
+          <CodingAiPanel embedded hideChannelUi />
         </section>
       )}
 

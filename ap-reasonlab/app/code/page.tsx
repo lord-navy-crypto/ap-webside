@@ -37,7 +37,7 @@ export default function CodePage() {
           <Link href="/hints?tool=coding" className="font-medium text-brand-700 underline">
             AI Toolbox · Coding AI
           </Link>{" "}
-          (Local / Auto / Cloud).
+          (Local / Website API / Your own API).
         </p>
       </div>
 

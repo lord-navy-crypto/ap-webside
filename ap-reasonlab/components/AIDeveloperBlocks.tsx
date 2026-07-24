@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import LocalAIControls from "@/components/LocalAIControls";
 import { useLocalAI } from "@/components/LocalAIProvider";
 import RichContent from "@/components/RichContent";
 import { handleRichPaste } from "@/lib/rich-paste";
-import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 import type { ManagedContent } from "@/lib/managed-types";
 
 type DeveloperAction =
@@ -142,11 +140,6 @@ export default function AIDeveloperBlocks({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [confirmApply, setConfirmApply] = useState(false);
-  const [apiChannel, setApiChannel] = useState<ApiChannel>("site");
-  const [siteModel, setSiteModel] = useState<SiteModelChoice>("auto");
-  const [provider, setProvider] = useState<AiProvider>("groq");
-  const [userKey, setUserKey] = useState("");
-
   useEffect(() => {
     fetch("/api/edit", { cache: "no-store" })
       .then((response) => response.json())
@@ -156,8 +149,7 @@ export default function AIDeveloperBlocks({
 
   const targets = useMemo(() => editableTargets(data), [data]);
   const selectedTarget = targets.find((item) => item.key === selectedTargetKey);
-  const useLocal =
-    localAI.mode === "local" || (localAI.mode === "auto" && localAI.ready);
+  const useLocal = localAI.usesLocal;
   const canGenerate = Boolean(source.trim()) && (!useLocal || localAI.ready);
 
   function chooseTarget(key: string) {
@@ -187,7 +179,7 @@ export default function AIDeveloperBlocks({
       return;
     }
     if (useLocal && !localAI.ready) {
-      setMessage("Load a local model first, or switch AI mode to Cloud.");
+      setMessage("Load a local model first, or switch to Website API / Your own API.");
       return;
     }
 
@@ -226,9 +218,7 @@ export default function AIDeveloperBlocks({
             action,
             instruction,
             source: selectedText,
-            siteModel,
-            provider,
-            userApiKey: apiChannel === "byok" ? userKey : undefined,
+            ...localAI.cloudRequestFields,
           }),
         });
         const result = await response.json();
@@ -297,7 +287,7 @@ export default function AIDeveloperBlocks({
           </p>
           <h1 className="mt-1 text-3xl font-bold">AI Developer</h1>
           <p className="mt-2 max-w-3xl text-slate-600">
-            Select managed website content, generate a local or cloud AI proposal, review it, then
+            Select managed website content, generate a Local / Website API / Your own API proposal, review it, then
             explicitly apply it. Every applied change can be restored from History &amp; Undo.
           </p>
         </header>
@@ -309,19 +299,6 @@ export default function AIDeveloperBlocks({
       </div>
 
       <LocalAIControls />
-
-      {!useLocal && (
-        <AiApiChannel
-          channel={apiChannel}
-          onChannelChange={setApiChannel}
-          siteModel={siteModel}
-          onSiteModelChange={setSiteModel}
-          provider={provider}
-          onProviderChange={setProvider}
-          userKey={userKey}
-          onUserKeyChange={setUserKey}
-        />
-      )}
 
       <section className="card space-y-4">
         <div>
