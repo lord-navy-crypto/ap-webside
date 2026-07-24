@@ -8,9 +8,16 @@ import { useEditorMode } from "@/components/EditorModeProvider";
 
 type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "image" | "folder";
 
+type SubjectOption = {
+  id: string;
+  name: string;
+};
+
 type Props = {
   subjectId?: string;
   subjectName?: string;
+  /** When provided, Subject is a chooser (not a locked field). */
+  subjects?: SubjectOption[];
   units?: ManagedUnit[];
   onSaved?: () => void;
   label?: string;
@@ -29,11 +36,21 @@ const contentTypes: Array<{ value: ContentType; label: string }> = [
 export default function UnifiedAddContent({
   subjectId = "",
   subjectName = "",
+  subjects,
   onSaved,
   label = "+ Add content",
 }: Props) {
   const { active: editMode, unlocked } = useEditorMode();
-  const storageKey = useMemo(() => `results-content-draft:${subjectId || "general"}`, [subjectId]);
+  const canPickSubject = Boolean(subjects && subjects.length > 0);
+  const initialSubjectId = useMemo(() => {
+    if (subjectId && subjectId !== "all") return subjectId;
+    return subjects?.[0]?.id || "";
+  }, [subjectId, subjects]);
+  const [chosenSubjectId, setChosenSubjectId] = useState(initialSubjectId);
+  const storageKey = useMemo(
+    () => `results-content-draft:${chosenSubjectId || subjectId || "general"}`,
+    [chosenSubjectId, subjectId]
+  );
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<ContentType>("concept");
   const [title, setTitle] = useState("");
@@ -43,6 +60,25 @@ export default function UnifiedAddContent({
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setChosenSubjectId(initialSubjectId);
+  }, [initialSubjectId]);
+
+  const chosenSubject = useMemo(() => {
+    const fromList = subjects?.find((subject) => subject.id === chosenSubjectId);
+    if (fromList) return fromList;
+    if (chosenSubjectId) {
+      return {
+        id: chosenSubjectId,
+        name: subjectName || chosenSubjectId,
+      };
+    }
+    return {
+      id: subjectId,
+      name: subjectName || subjectId || "Content manager",
+    };
+  }, [chosenSubjectId, subjectId, subjectName, subjects]);
 
   useEffect(() => {
     const stored = localStorage.getItem(storageKey);
@@ -61,9 +97,9 @@ export default function UnifiedAddContent({
     if (!open) return;
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ type, title, content })
+      JSON.stringify({ type, title, content, subjectId: chosenSubject.id })
     );
-  }, [content, open, storageKey, title, type]);
+  }, [chosenSubject.id, content, open, storageKey, title, type]);
 
   async function fileAsDataUrl(selected: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -81,6 +117,9 @@ export default function UnifiedAddContent({
     setBusy(true);
     setMessage("");
     try {
+      if (!chosenSubject.id) {
+        throw new Error("Choose a subject first.");
+      }
       const action =
         type === "file" || type === "image"
           ? "add_files"
@@ -88,7 +127,7 @@ export default function UnifiedAddContent({
             ? "add_folder"
             : "add_content_item";
       let item: Record<string, unknown> = {
-        subjectId,
+        subjectId: chosenSubject.id,
         type: type === "image" ? "file" : type,
         title,
         content,
@@ -108,10 +147,15 @@ export default function UnifiedAddContent({
           dataUrl: await fileAsDataUrl(file),
           note: title,
           area: "ap-subject",
-          space: subjectName || subjectId,
+          space: chosenSubject.name || chosenSubject.id,
         })));
       } else if (type === "folder") {
-        item = { title, note: content, area: "ap-subject", space: subjectName || subjectId };
+        item = {
+          title,
+          note: content,
+          area: "ap-subject",
+          space: chosenSubject.name || chosenSubject.id,
+        };
       }
       const response = await fetch("/api/edit", {
         method: "POST",
@@ -149,7 +193,7 @@ export default function UnifiedAddContent({
           <form onSubmit={submit} className="w-full max-w-2xl space-y-4 rounded-3xl bg-white p-5 shadow-2xl md:p-7">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">{subjectName || "Content manager"}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">{chosenSubject.name || "Content manager"}</p>
                 <h2 id="add-content-title" className="mt-1 text-2xl font-bold">Add content</h2>
               </div>
               <button type="button" className="btn-ghost" onClick={() => setOpen(false)} aria-label="Close">✕</button>
@@ -166,7 +210,28 @@ export default function UnifiedAddContent({
               </div>
             </fieldset>
 
-            <label className="block text-sm font-medium">Subject<input className="input mt-1" value={subjectName || subjectId} disabled /></label>
+            {canPickSubject ? (
+              <label className="block text-sm font-medium">
+                Subject
+                <select
+                  className="input mt-1"
+                  value={chosenSubject.id}
+                  onChange={(event) => setChosenSubjectId(event.target.value)}
+                  required
+                >
+                  {subjects!.map((subject) => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <label className="block text-sm font-medium">
+                Subject
+                <input className="input mt-1" value={chosenSubject.name || chosenSubject.id} disabled />
+              </label>
+            )}
 
             {type === "file" || type === "image" ? (
               <label className="block text-sm font-medium">
