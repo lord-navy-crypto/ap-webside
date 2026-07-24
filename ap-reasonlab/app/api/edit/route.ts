@@ -407,7 +407,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "title and subject required" }, { status: 400 });
       }
       const setId = uid("m-quiz");
-      const firstPrompt = String(item.firstPrompt || item.prompt || "").trim();
+      const firstPrompt = normalizeAuthoredText(String(item.firstPrompt || item.prompt || "")).trim();
       const items: QuestionnaireItem[] = [];
       if (firstPrompt) {
         items.push({
@@ -415,14 +415,18 @@ export async function POST(req: NextRequest) {
           format: (String(item.format || "concept_check") as QuestionFormat) || "concept_check",
           prompt: firstPrompt,
           hints: Array.isArray(item.hints)
-            ? item.hints.map(String)
-            : [String(item.hint || "Attempt before asking AI for more hints.")],
+            ? item.hints.map((h: unknown) => normalizeAuthoredText(String(h)))
+            : [normalizeAuthoredText(String(item.hint || "Attempt before asking AI for more hints."))],
           visibleSteps: Array.isArray(item.visibleSteps)
-            ? item.visibleSteps.map(String)
+            ? item.visibleSteps.map((s: unknown) => normalizeAuthoredText(String(s)))
             : undefined,
-          blankSteps: Array.isArray(item.blankSteps) ? item.blankSteps.map(String) : undefined,
+          blankSteps: Array.isArray(item.blankSteps)
+            ? item.blankSteps.map((s: unknown) => normalizeAuthoredText(String(s)))
+            : undefined,
           choices: Array.isArray(item.choices) ? item.choices.map(String) : undefined,
-          conceptIntro: item.conceptIntro ? String(item.conceptIntro) : undefined,
+          conceptIntro: item.conceptIntro
+            ? normalizeAuthoredText(String(item.conceptIntro))
+            : undefined,
         });
       }
       current.questionnaires.push({
@@ -430,7 +434,9 @@ export async function POST(req: NextRequest) {
         title: String(item.title),
         subject: String(item.subject),
         kind: "generated",
-        description: String(item.description || "AI-generated practice set added from the UI."),
+        description: normalizeAuthoredText(
+          String(item.description || "AI-generated practice set added from the UI.")
+        ),
         generationNote: String(
           item.generationNote || `Added via change-code UI · ${new Date().toISOString().slice(0, 10)}`
         ),
@@ -451,16 +457,20 @@ export async function POST(req: NextRequest) {
       quiz.items.push({
         id: uid("m-item"),
         format: (String(item.format || "concept_check") as QuestionFormat) || "concept_check",
-        prompt: String(item.prompt),
+        prompt: normalizeAuthoredText(String(item.prompt)),
         hints: Array.isArray(item.hints)
-          ? item.hints.map(String)
-          : [String(item.hint || "Try yourself first.")],
+          ? item.hints.map((h: unknown) => normalizeAuthoredText(String(h)))
+          : [normalizeAuthoredText(String(item.hint || "Try yourself first."))],
         visibleSteps: Array.isArray(item.visibleSteps)
-          ? item.visibleSteps.map(String)
+          ? item.visibleSteps.map((s: unknown) => normalizeAuthoredText(String(s)))
           : undefined,
-        blankSteps: Array.isArray(item.blankSteps) ? item.blankSteps.map(String) : undefined,
+        blankSteps: Array.isArray(item.blankSteps)
+          ? item.blankSteps.map((s: unknown) => normalizeAuthoredText(String(s)))
+          : undefined,
         choices: Array.isArray(item.choices) ? item.choices.map(String) : undefined,
-        conceptIntro: item.conceptIntro ? String(item.conceptIntro) : undefined,
+        conceptIntro: item.conceptIntro
+          ? normalizeAuthoredText(String(item.conceptIntro))
+          : undefined,
       });
     } else if (action === "add_formula") {
       const item = body.item || {};

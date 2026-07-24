@@ -8,6 +8,7 @@ import { keyConceptGuides } from "@/data/key-concepts";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
 import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
+import RichContent from "@/components/RichContent";
 import {
   ROOT_SPACE,
   isFolderSpace,
@@ -276,7 +277,7 @@ function ConceptsContent() {
               >
                 <span className="badge">{item.kind === "concept" ? "Topic" : "Guide"}</span>
                 <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
-                <p className="mt-2 line-clamp-2 text-sm text-slate-600">{item.summary}</p>
+                <RichContent clampLines={2} className="mt-2 text-sm text-slate-600">{item.summary}</RichContent>
               </Link>
             ))
           ) : (

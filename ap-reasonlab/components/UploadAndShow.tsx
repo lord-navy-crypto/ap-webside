@@ -462,7 +462,7 @@ export default function UploadAndShow({
                           >
                             {c.title}
                           </Link>
-                          <p className="mt-1 line-clamp-2 text-xs text-slate-600">{c.summary}</p>
+                          <RichContent clampLines={2} className="mt-1 text-xs text-slate-600">{c.summary}</RichContent>
                         </div>
                         {editMode && <div className="flex shrink-0 items-center gap-1">
                           <ResourceEditor target={c.id.startsWith("m-topic") ? "topic" : "concept"} item={c} onSaved={(content) => applyContent(content as ManagedContent)} />
@@ -521,9 +521,9 @@ export default function UploadAndShow({
                           >
                             {q.title}
                           </Link>
-                          <p className="mt-1 line-clamp-2 text-xs text-slate-600">
+                          <RichContent clampLines={2} className="mt-1 text-xs text-slate-600">
                             {q.description || q.subject}
-                          </p>
+                          </RichContent>
                         </div>
                         {editMode && <div className="flex shrink-0 items-center gap-1">
                           <ResourceEditor target="questionnaire" item={q} onSaved={(content) => applyContent(content as ManagedContent)} />

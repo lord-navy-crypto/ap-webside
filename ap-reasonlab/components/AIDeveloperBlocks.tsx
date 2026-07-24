@@ -5,6 +5,7 @@ import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import LocalAIControls from "@/components/LocalAIControls";
 import { useLocalAI } from "@/components/LocalAIProvider";
 import RichContent from "@/components/RichContent";
+import { handleRichPaste } from "@/lib/rich-paste";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 import type { ManagedContent } from "@/lib/managed-types";
 
@@ -372,12 +373,17 @@ export default function AIDeveloperBlocks({
 
         <div>
           <label className="mb-2 block text-sm font-medium">Original content / working draft</label>
+          <p className="mb-2 text-xs text-slate-500">
+            Markdown + LaTeX supported. Paste from ChatGPT keeps math as{" "}
+            <code className="rounded bg-slate-100 px-1">$...$</code>.
+          </p>
           <textarea
             ref={sourceRef}
-            className="textarea min-h-[280px] resize-y font-mono text-sm"
+            className="textarea min-h-[280px] resize-y text-sm leading-relaxed"
             value={source}
             onChange={(event) => setSource(event.target.value)}
-            placeholder="Choose an existing website field above, or paste Markdown here. Select part of the text to edit only that part."
+            onPaste={(event) => handleRichPaste(event, source, setSource)}
+            placeholder="Choose an existing website field above, or paste Markdown + LaTeX here. Select part of the text to edit only that part."
           />
         </div>
 

@@ -6,6 +6,8 @@ import { useParams } from "next/navigation";
 import EthicsBanner from "@/components/EthicsBanner";
 import QuestionnaireItemCard from "@/components/QuestionnaireItemCard";
 import ChangePanel from "@/components/ChangePanel";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
+import RichContent from "@/components/RichContent";
 import { getQuestionnaireById } from "@/data/questionnaires";
 import type { Questionnaire } from "@/lib/types";
 
@@ -129,7 +131,7 @@ export default function QuestionnaireDetailPage() {
           {isManaged && <span className="badge">UI-added</span>}
         </div>
         <h1 className="text-3xl font-bold">{quiz.title}</h1>
-        <p className="text-slate-600">{quiz.description}</p>
+        <p className="text-slate-600"><RichContent>{quiz.description}</RichContent></p>
         <p className="rounded-xl bg-slate-50 px-4 py-2 text-sm text-slate-500">
           {quiz.generationNote}
         </p>
@@ -148,18 +150,22 @@ export default function QuestionnaireDetailPage() {
             Paste an original FRQ prompt (no College Board text). Hints only — no answer key.
           </p>
           <form onSubmit={addItem} className="space-y-3">
-            <textarea
-              className="textarea min-h-[100px]"
-              placeholder="Question prompt..."
+            <MarkdownLatexField
+              label="Question prompt"
               value={itemPrompt}
-              onChange={(e) => setItemPrompt(e.target.value)}
+              onChange={setItemPrompt}
               required
+              minHeightClass="min-h-[8rem]"
+              placeholder="Paste FRQ / concept-check prompt (Markdown + $math$)…"
             />
-            <input
-              className="input"
-              placeholder="Hint (optional)"
+            <MarkdownLatexField
+              label="Hint (optional)"
+              help="Hint text only — Markdown + LaTeX supported."
               value={itemHint}
-              onChange={(e) => setItemHint(e.target.value)}
+              onChange={setItemHint}
+              minHeightClass="min-h-[5rem]"
+              placeholder="Strategy hint…"
+              showPreview={Boolean(itemHint.trim())}
             />
             <input
               type="password"

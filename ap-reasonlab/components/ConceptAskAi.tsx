@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import EthicsBanner from "@/components/EthicsBanner";
 import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import RichContent from "@/components/RichContent";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
 type Props = {
@@ -104,11 +105,12 @@ export default function ConceptAskAi({
         </button>
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium">Or ask a follow-up (must stay on this concept)</label>
-        <textarea
-          className="textarea min-h-[90px]"
+        <MarkdownLatexField
+          label="Or ask a follow-up (must stay on this concept)"
+          help="Markdown + LaTeX supported when you paste a math question."
           value={question}
-          onChange={(e) => setQuestion(e.target.value)}
+          onChange={setQuestion}
+          minHeightClass="min-h-[6rem]"
           placeholder="e.g. Why do students mix this up with …?"
         />
         <button
@@ -125,9 +127,9 @@ export default function ConceptAskAi({
         <div className={`rounded-xl px-4 py-3 text-sm ${result.refused ? "border border-amber-200 bg-amber-50 text-amber-950" : "border border-slate-200 bg-white text-slate-800"}`}>
           <RichContent>{result.reply}</RichContent>
           {result.quizPrompt && (
-            <p className="mt-3 rounded-lg bg-brand-50 px-3 py-2 text-brand-900">
-              <strong>Try:</strong> {result.quizPrompt}
-            </p>
+            <div className="mt-3 rounded-lg bg-brand-50 px-3 py-2 text-brand-900">
+              <strong>Try:</strong> <RichContent className="mt-1 inline [&>p]:inline">{result.quizPrompt}</RichContent>
+            </div>
           )}
           <p className="mt-3 text-xs text-slate-500">{result.aiMayBeWrong}</p>
           <p className="mt-1 text-xs text-slate-400">{result.note}</p>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import RichContent from "@/components/RichContent";
+import MarkdownLatexField from "@/components/MarkdownLatexField";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
 type Result = {
@@ -72,7 +73,15 @@ export default function EnglishAiTutor({ embedded = false }: { embedded?: boolea
     <AiApiChannel channel={channel} onChannelChange={setChannel} siteModel={siteModel} onSiteModelChange={setSiteModel} provider={provider} onProviderChange={setProvider} userKey={userKey} onUserKeyChange={setUserKey} />
     <form onSubmit={submit} className="card space-y-4">
       <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm font-medium">Tool<select className="input mt-1" value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}>{modes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><label className="text-sm font-medium">Target<select className="input mt-1" value={target} onChange={(event) => setTarget(event.target.value)}><option>General academic English</option><option>TOEFL iBT</option><option>IELTS Academic</option><option>SAT Reading & Writing</option><option>School writing</option></select></label></div>
-      <label className="block text-sm font-medium">Your text or English-learning question<textarea className="textarea mt-1 min-h-52" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Paste your own paragraph, sentence, vocabulary question, or ask for an original practice exercise…" required /></label>
+      <MarkdownLatexField
+        label="Your text or English-learning question"
+        help="Paste writing, vocab questions, or practice prompts. Markdown supported; math rarely needed but $...$ works."
+        value={input}
+        onChange={setInput}
+        required
+        minHeightClass="min-h-52"
+        placeholder="Paste your own paragraph, sentence, vocabulary question, or ask for an original practice exercise…"
+      />
       <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-slate-500">Maximum 10,000 characters · AI feedback is not an official test score.</p><button type="submit" className="btn-primary" disabled={loading || !input.trim()}>{loading ? "Reviewing…" : "Ask English AI"}</button></div>
     </form>
     {error && <div role="alert" className="card border-red-200 bg-red-50 text-sm text-red-700">{error}</div>}

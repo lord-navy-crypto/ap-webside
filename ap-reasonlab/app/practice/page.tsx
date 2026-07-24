@@ -248,7 +248,7 @@ function PracticeContent() {
                   {q.id.startsWith("m-quiz") && <span className="badge">UI-added</span>}
                 </div>
                 <h2 className="mt-3 text-xl font-semibold text-slate-900">{q.title}</h2>
-                <p className="mt-2 text-sm text-slate-600">{q.description}</p>
+                <RichContent clampLines={3} className="mt-2 text-sm text-slate-600">{q.description}</RichContent>
                 <p className="mt-3 text-xs text-slate-400">
                   {q.items?.length || 0} items · {q.generationNote}
                 </p>
