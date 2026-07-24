@@ -19,6 +19,21 @@ import { normalizeAuthoredText } from "@/lib/unicode-math";
 
 const forumWriteTimes = new Map<string, number>();
 
+/** Drop heavy dataUrls from save responses so clients don't hit Request Entity Too Large. */
+function slimManagedContent(content: ManagedContent): ManagedContent {
+  return {
+    ...content,
+    files: (content.files || []).map((file) => {
+      if (!file.dataUrl) return file;
+      const { dataUrl: _omit, ...rest } = file;
+      return {
+        ...rest,
+        note: rest.note || "File stored — open this page folder to download.",
+      };
+    }),
+  };
+}
+
 function forumRateLimited(req: NextRequest): boolean {
   const client = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const now = Date.now();
@@ -47,6 +62,14 @@ export async function GET(req: NextRequest) {
   const content = await loadManagedContent(token);
   const area = req.nextUrl.searchParams.get("area")?.trim() || "";
   const space = req.nextUrl.searchParams.get("space")?.trim() || "";
+  const fileId = req.nextUrl.searchParams.get("fileId")?.trim() || "";
+  const includeData = req.nextUrl.searchParams.get("includeData") === "1";
+
+  if (fileId) {
+    const file = (content.files || []).find((entry) => entry.id === fileId);
+    if (!file) return NextResponse.json({ error: "File not found" }, { status: 404 });
+    return NextResponse.json({ file });
+  }
 
   // Optional scope: return only one area+folder bucket so panels stay separate.
   if (area) {
@@ -93,7 +116,8 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  return NextResponse.json(content);
+  // Unscoped Manage load: omit base64 by default (payload was >1.5MB and triggered 413s).
+  return NextResponse.json(includeData ? content : slimManagedContent(content));
 }
 
 export async function POST(req: NextRequest) {
@@ -660,10 +684,12 @@ export async function POST(req: NextRequest) {
       ok: true,
       mode: result.mode,
       level,
-      content: current,
+      // Omit base64 payloads — full file bytes stay in storage; clients refetch scoped panels.
+      content: slimManagedContent(current),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Save failed";
+    // Platform 413 bodies are plain text; still always return JSON from this handler.
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

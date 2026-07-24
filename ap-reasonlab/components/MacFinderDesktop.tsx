@@ -757,14 +757,39 @@ export default function MacFinderDesktop({
                   Open on site →
                 </Link>
               ) : null}
-              {selected.kind === "file" && selected.raw.dataUrl && !selected.imageUrl ? (
-                <a
-                  href={String(selected.raw.dataUrl)}
-                  download={selected.label}
-                  className="inline-flex text-xs font-medium text-sky-700 underline"
-                >
-                  Download
-                </a>
+              {selected.kind === "file" && !selected.imageUrl ? (
+                selected.raw.dataUrl ? (
+                  <a
+                    href={String(selected.raw.dataUrl)}
+                    download={selected.label}
+                    className="inline-flex text-xs font-medium text-sky-700 underline"
+                  >
+                    Download
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    className="inline-flex text-xs font-medium text-sky-700 underline"
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/edit?fileId=${encodeURIComponent(String(selected.id))}`, {
+                          cache: "no-store",
+                        });
+                        const payload = await res.json();
+                        const dataUrl = payload?.file?.dataUrl;
+                        if (!res.ok || !dataUrl) throw new Error(payload?.error || "Download unavailable");
+                        const link = document.createElement("a");
+                        link.href = String(dataUrl);
+                        link.download = selected.label;
+                        link.click();
+                      } catch (error) {
+                        setMessage(error instanceof Error ? error.message : "Download failed");
+                      }
+                    }}
+                  >
+                    Download
+                  </button>
+                )
               ) : null}
 
               {selected.kind === "recycle" ? (

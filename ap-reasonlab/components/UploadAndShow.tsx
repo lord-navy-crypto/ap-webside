@@ -14,6 +14,7 @@ import type {
 } from "@/lib/managed-types";
 import { managedSubjectNames } from "@/lib/managed-types";
 import type { Concept, Formula } from "@/lib/types";
+import { readResponseJson } from "@/lib/safe-json";
 import {
   ROOT_SPACE,
   folderSpaceId,
@@ -112,9 +113,10 @@ export default function UploadAndShow({
         space: scopedSpace,
       });
       const res = await fetch(`/api/edit?${params}`, { cache: "no-store" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load files");
-      applyContent(data);
+      const parsed = await readResponseJson<ManagedContent & { error?: string }>(res);
+      if (!parsed.ok) throw new Error(parsed.error);
+      if (!res.ok) throw new Error(parsed.data.error || "Failed to load files");
+      applyContent(parsed.data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load files");
     } finally {
@@ -132,9 +134,8 @@ export default function UploadAndShow({
     if (editMode || unlocked) setExpanded(true);
   }, [editMode, unlocked]);
 
-  const onSaved = (content?: unknown) => {
-    if (content) applyContent(content as ManagedContent);
-    else void refresh();
+  const onSaved = (_content?: unknown) => {
+    void refresh();
   };
 
   async function handleDelete(

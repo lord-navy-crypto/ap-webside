@@ -143,9 +143,21 @@ export default function AIDeveloperBlocks({
   const [confirmApply, setConfirmApply] = useState(false);
   useEffect(() => {
     fetch("/api/edit", { cache: "no-store" })
-      .then((response) => response.json())
-      .then(setData)
-      .catch(() => setMessage("Could not load website content."));
+      .then(async (response) => {
+        const text = await response.text();
+        try {
+          setData(JSON.parse(text));
+        } catch {
+          throw new Error(
+            /request entity too large/i.test(text)
+              ? "Managed content payload too large. Remove unused large files in Manage, then reload."
+              : "Could not load website content."
+          );
+        }
+      })
+      .catch((error) =>
+        setMessage(error instanceof Error ? error.message : "Could not load website content.")
+      );
   }, []);
 
   const targets = useMemo(() => editableTargets(data), [data]);

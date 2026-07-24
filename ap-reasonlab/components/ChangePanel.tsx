@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
+import { readResponseJson } from "@/lib/safe-json";
 
 export type ChangeMode =
   | "concept"
@@ -196,13 +197,14 @@ export default function ChangePanel({
           publicContribution: allowPublicContribution || undefined,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Save failed");
+      const parsed = await readResponseJson<{ error?: string; content?: unknown; note?: string }>(res);
+      if (!parsed.ok) throw new Error(parsed.error);
+      if (!res.ok) throw new Error(parsed.data.error || "Save failed");
 
-      setNote(data.note || "Saved. It should appear in this panel / subject list now.");
+      setNote(parsed.data.note || "Saved. It should appear in this panel / subject list now.");
       reset();
       setOpen(false);
-      onSaved?.(data.content);
+      onSaved?.(parsed.data.content);
       void refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");

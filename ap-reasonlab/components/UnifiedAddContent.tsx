@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ManagedUnit } from "@/lib/managed-types";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
 import { useEditorMode } from "@/components/EditorModeProvider";
+import { readResponseJson } from "@/lib/safe-json";
 
 type ContentType = "concept" | "formula" | "practice" | "document" | "file" | "image" | "folder";
 
@@ -168,8 +169,9 @@ export default function UnifiedAddContent({
           githubToken: githubToken.trim() || undefined,
         }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Save failed");
+      const parsed = await readResponseJson<{ error?: string }>(response);
+      if (!parsed.ok) throw new Error(parsed.error);
+      if (!response.ok) throw new Error(parsed.data.error || "Save failed");
       localStorage.removeItem(storageKey);
       setTitle("");
       setContent("");

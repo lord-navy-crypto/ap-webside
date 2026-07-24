@@ -7,6 +7,7 @@ import MarkdownLatexField from "@/components/MarkdownLatexField";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import type { ManagedDocument, ManagedFile } from "@/lib/managed-types";
 import { ROOT_SPACE, matchesSpace, normalizeSpace } from "@/lib/storage-space";
+import { readResponseJson } from "@/lib/safe-json";
 
 type Tab = "all" | "pics" | "docs" | "files";
 
@@ -61,8 +62,13 @@ export function FloatingMediaWindow({
     try {
       const params = new URLSearchParams({ area: folderArea, space: scoped });
       const res = await fetch(`/api/edit?${params}`, { cache: "no-store" });
-      const data = await res.json();
-      if (!res.ok) return;
+      const parsed = await readResponseJson<{
+        files?: ManagedFile[];
+        documents?: ManagedDocument[];
+        error?: string;
+      }>(res);
+      if (!parsed.ok || !res.ok) return;
+      const data = parsed.data;
       const allFiles: ManagedFile[] = Array.isArray(data.files) ? data.files : [];
       const allDocs: ManagedDocument[] = Array.isArray(data.documents) ? data.documents : [];
       setFiles(
@@ -157,29 +163,12 @@ export function FloatingMediaWindow({
           changeCode: changeCode.trim() || undefined,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed");
+      const parsed = await readResponseJson<{ error?: string }>(res);
+      if (!parsed.ok) throw new Error(parsed.error);
+      if (!res.ok) throw new Error(parsed.data.error || "Upload failed");
       setNote(`Added ${items.length} item(s) — showing on this page now.`);
       if (uploadRef.current) uploadRef.current.value = "";
-      // Prefer server content when returned
-      if (data.content) {
-        const allFiles: ManagedFile[] = Array.isArray(data.content.files) ? data.content.files : [];
-        const allDocs: ManagedDocument[] = Array.isArray(data.content.documents)
-          ? data.content.documents
-          : [];
-        setFiles(
-          allFiles
-            .filter((f) => matchesSpace(f, folderArea, scoped))
-            .sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0))
-        );
-        setDocuments(
-          allDocs
-            .filter((d) => matchesSpace(d, folderArea, scoped))
-            .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
-        );
-      } else {
-        await refresh();
-      }
+      await refresh();
       // Auto-open Pics tab if we uploaded images
       if (chosen.some((f) => f.type.startsWith("image/"))) setTab("pics");
     } catch (caught) {
@@ -216,8 +205,9 @@ export function FloatingMediaWindow({
           changeCode: changeCode.trim() || undefined,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Save failed");
+      const parsed = await readResponseJson<{ error?: string }>(res);
+      if (!parsed.ok) throw new Error(parsed.error);
+      if (!res.ok) throw new Error(parsed.data.error || "Save failed");
       setDocTitle("");
       setDocBody("");
       setShowDocForm(false);

@@ -12,6 +12,7 @@ import RichContent from "@/components/RichContent";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
 import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
 import MacFinderDesktop from "@/components/MacFinderDesktop";
+import { readResponseJson } from "@/lib/safe-json";
 
 type Tab = "content" | "subjects" | "units" | "files" | "trash" | "ai" | "settings" | "history";
 
@@ -44,9 +45,14 @@ export default function ManagePage() {
 
   const refresh = useCallback(() => {
     fetch("/api/edit", { cache: "no-store" })
-      .then((response) => response.json())
-      .then(setData)
-      .catch(() => setMessage("Could not load managed content."));
+      .then(async (response) => {
+        const parsed = await readResponseJson<Partial<ManagedContent>>(response);
+        if (!parsed.ok) throw new Error(parsed.error);
+        setData(parsed.data);
+      })
+      .catch((error) =>
+        setMessage(error instanceof Error ? error.message : "Could not load managed content.")
+      );
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -88,13 +94,18 @@ export default function ManagePage() {
         ...extra,
       }),
     });
-    const result = await response.json();
+    const parsed = await readResponseJson<{ error?: string; content?: ManagedContent }>(response);
+    if (!parsed.ok) {
+      setMessage(parsed.error);
+      return false;
+    }
     if (!response.ok) {
-      setMessage(result.error || "Save failed");
+      setMessage(parsed.data.error || "Save failed");
       return false;
     }
     setMessage("Saved. GitHub/Vercel may take a moment to refresh.");
-    setData(result.content || {});
+    if (parsed.data.content) setData(parsed.data.content);
+    else refresh();
     void refreshEditor();
     return true;
   }
