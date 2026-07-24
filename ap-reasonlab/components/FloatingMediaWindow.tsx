@@ -254,7 +254,7 @@ export function FloatingMediaWindow({
 
           <div className="max-h-[200px] overflow-y-auto border-t border-white/10 bg-[#252525] px-2 py-2">
             <UploadAndShow
-              title="Upload"
+              title="Upload to this page"
               folderArea={folderArea}
               spaceKey={scoped}
               spaceBasePath={spaceBasePath}
@@ -283,7 +283,7 @@ export function FloatingMediaWindow({
                     disabled={privateBusy}
                     onChange={(e) => void onPrivateImages(e.target.files)}
                   />
-                  <Link href="/learning-box" className="text-[10px] text-violet-200 underline">
+                  <Link href="/learning-box?tab=pictures" className="text-[10px] text-violet-200 underline">
                     Learning Box
                   </Link>
                 </div>
@@ -292,7 +292,7 @@ export function FloatingMediaWindow({
               </div>
             ) : null}
             <p className="mt-1 px-1 text-[9px] text-white/35">
-              Scroll · View · Green → Manage Mac Files
+              This page’s uploads · scroll · View · green → Manage Mac Finder
             </p>
           </div>
         </>
@@ -308,7 +308,7 @@ export function FloatingMediaWindow({
     <>
       <div
         className={`fixed z-[70] hidden sm:block ${
-          minimized ? "top-3 right-3 w-[220px]" : "top-3 right-3 w-[300px]"
+          minimized ? "top-16 right-3 w-[220px]" : "top-16 right-3 w-[300px]"
         }`}
       >
         {chrome}

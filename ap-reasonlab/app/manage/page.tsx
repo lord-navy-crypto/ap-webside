@@ -237,10 +237,11 @@ export default function ManagePage() {
       {tab === "files" && (
         <section className="space-y-3">
           <div>
-            <h2 className="section-title">Mac Files backend</h2>
+            <h2 className="section-title">Mac site Finder</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Full Finder-style manager for the same uploaded files, pictures, and documents shown in
-              the top-right Media window on every page. Drag icons onto Locations to move them.
+              Whole-website file system (like a Mac desktop). Open a big section folder (AP, English,
+              Academic, Tools…), then a webpage folder, to see that page’s uploaded files, pictures,
+              and documents — the same items as the small top-right Media box on every page.
             </p>
           </div>
           <MacFinderDesktop

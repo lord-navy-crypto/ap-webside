@@ -1,16 +1,27 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useMemo, useState } from "react";
 import ChangePanel from "@/components/ChangePanel";
 import RichContent from "@/components/RichContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
-import type { ManagedContent, ManagedDocument, ManagedFile, ManagedFolder } from "@/lib/managed-types";
+import type { ManagedContent, ManagedDocument, ManagedFile } from "@/lib/managed-types";
+import {
+  SITE_SECTION_FOLDERS,
+  collectDynamicPageFolders,
+  type SitePageFolder,
+  type SiteSectionFolder,
+} from "@/lib/site-media-map";
 import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
 
-type Row =
+type FileRow =
   | { kind: "file"; item: ManagedFile }
-  | { kind: "document"; item: ManagedDocument }
-  | { kind: "folder"; item: ManagedFolder };
+  | { kind: "document"; item: ManagedDocument };
+
+type NavLevel =
+  | { kind: "desktop" }
+  | { kind: "section"; section: SiteSectionFolder }
+  | { kind: "page"; section: SiteSectionFolder; page: SitePageFolder };
 
 type Props = {
   data: Partial<ManagedContent>;
@@ -24,16 +35,27 @@ function isImage(file: ManagedFile): boolean {
   return Boolean(file.mime?.startsWith("image/") || file.dataUrl?.startsWith("data:image"));
 }
 
-function iconFor(row: Row): string {
-  if (row.kind === "folder") return "📁";
-  if (row.kind === "document") return "📄";
-  if (isImage(row.item as ManagedFile)) return "🖼";
-  return "📎";
+function countInPage(
+  data: Partial<ManagedContent>,
+  page: SitePageFolder
+): number {
+  const files = (data.files || []).filter(
+    (f) => (f.area || "general") === page.area && normalizeSpace(f.space) === normalizeSpace(page.space)
+  ).length;
+  const docs = (data.documents || []).filter(
+    (d) => (d.area || "general") === page.area && normalizeSpace(d.space) === normalizeSpace(page.space)
+  ).length;
+  return files + docs;
+}
+
+function countInSection(data: Partial<ManagedContent>, section: SiteSectionFolder): number {
+  return section.pages.reduce((sum, page) => sum + countInPage(data, page), 0);
 }
 
 /**
- * Mac Finder–style backend for Manage → Files.
- * Same site storage as the top-right media windows on every page.
+ * Mac desktop / Finder for the whole website.
+ * Big folders = site sections (AP, English, Academic…).
+ * Small folders = webpages. Open a page folder to see its uploaded files.
  */
 export default function MacFinderDesktop({
   data,
@@ -42,64 +64,85 @@ export default function MacFinderDesktop({
   onContent,
 }: Props) {
   const { unlocked } = useEditorMode();
-  const [areaFilter, setAreaFilter] = useState("all");
-  const [spaceFilter, setSpaceFilter] = useState("all");
+  const [nav, setNav] = useState<NavLevel>({ kind: "desktop" });
   const [view, setView] = useState<"icons" | "list">("icons");
-  const [selected, setSelected] = useState<Row | null>(null);
-  const [dragOverArea, setDragOverArea] = useState<string | null>(null);
+  const [selected, setSelected] = useState<FileRow | null>(null);
   const [message, setMessage] = useState("");
-  const dropRef = useRef<HTMLDivElement>(null);
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
 
-  const areas = useMemo(() => {
-    const set = new Set<string>();
-    for (const f of data.files || []) set.add(f.area || "general");
-    for (const d of data.documents || []) set.add(d.area || "general");
-    for (const folder of data.folders || []) set.add(folder.area || "general");
-    return ["all", ...Array.from(set).sort()];
-  }, [data.documents, data.files, data.folders]);
+  const dynamicPages = useMemo(
+    () =>
+      collectDynamicPageFolders(data.files || [], data.documents || [], data.folders || []),
+    [data.documents, data.files, data.folders]
+  );
 
-  const spacesInArea = useMemo(() => {
-    const set = new Set<string>();
-    const consider = (area?: string, space?: string) => {
-      if (areaFilter !== "all" && (area || "general") !== areaFilter) return;
-      set.add(normalizeSpace(space));
-    };
-    for (const f of data.files || []) consider(f.area, f.space);
-    for (const d of data.documents || []) consider(d.area, d.space);
-    for (const folder of data.folders || []) consider(folder.area, folder.space);
-    return ["all", ...Array.from(set).sort()];
-  }, [areaFilter, data.documents, data.files, data.folders]);
+  const sections = useMemo(() => {
+    const ap = SITE_SECTION_FOLDERS.find((s) => s.id === "ap");
+    const subjectPages = dynamicPages.filter((p) => p.area === "ap-subject");
+    const otherDynamic = dynamicPages.filter((p) => p.area !== "ap-subject");
 
-  const rows = useMemo(() => {
-    const fileRows: Row[] = (data.files || []).map((item) => ({ kind: "file", item }));
-    const docRows: Row[] = (data.documents || []).map((item) => ({ kind: "document", item }));
-    const folderRows: Row[] = (data.folders || []).map((item) => ({ kind: "folder", item }));
-    return [...folderRows, ...fileRows, ...docRows]
-      .filter((row) => {
-        const area =
-          row.kind === "folder"
-            ? row.item.area || "general"
-            : row.item.area || "general";
-        const space = normalizeSpace(row.item.space);
-        if (areaFilter !== "all" && area !== areaFilter) return false;
-        if (spaceFilter !== "all" && space !== spaceFilter) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        if (a.kind === "folder" && b.kind !== "folder") return -1;
-        if (b.kind === "folder" && a.kind !== "folder") return 1;
-        const an = a.kind === "file" ? a.item.name : a.item.title;
-        const bn = b.kind === "file" ? b.item.name : b.item.title;
-        return an.localeCompare(bn);
+    const withApSubjects: SiteSectionFolder[] = SITE_SECTION_FOLDERS.map((section) => {
+      if (section.id !== "ap" || !ap) return section;
+      return {
+        ...section,
+        pages: [...section.pages, ...subjectPages],
+      };
+    });
+
+    if (otherDynamic.length === 0) return withApSubjects;
+
+    return [
+      ...withApSubjects,
+      {
+        id: "other",
+        label: "Other page folders",
+        icon: "📂",
+        pages: otherDynamic,
+      },
+    ];
+  }, [dynamicPages]);
+
+  const pageFiles = useMemo((): FileRow[] => {
+    if (nav.kind !== "page") return [];
+    const { area, space } = nav.page;
+    const scoped = normalizeSpace(space);
+    const files: FileRow[] = (data.files || [])
+      .filter((f) => (f.area || "general") === area && normalizeSpace(f.space) === scoped)
+      .map((item) => ({ kind: "file", item }));
+    const docs: FileRow[] = (data.documents || [])
+      .filter((d) => (d.area || "general") === area && normalizeSpace(d.space) === scoped)
+      .map((item) => ({ kind: "document", item }));
+    return [...files, ...docs].sort((a, b) => {
+      const an = a.kind === "file" ? a.item.name : a.item.title;
+      const bn = b.kind === "file" ? b.item.name : b.item.title;
+      return an.localeCompare(bn);
+    });
+  }, [data.documents, data.files, nav]);
+
+  const breadcrumbs = useMemo(() => {
+    const crumbs: Array<{ label: string; go: () => void }> = [
+      { label: "Macintosh HD", go: () => { setNav({ kind: "desktop" }); setSelected(null); } },
+    ];
+    if (nav.kind === "section" || nav.kind === "page") {
+      crumbs.push({
+        label: nav.section.label,
+        go: () => {
+          setNav({ kind: "section", section: nav.section });
+          setSelected(null);
+        },
       });
-  }, [areaFilter, data.documents, data.files, data.folders, spaceFilter]);
+    }
+    if (nav.kind === "page") {
+      crumbs.push({
+        label: nav.page.label,
+        go: () => setSelected(null),
+      });
+    }
+    return crumbs;
+  }, [nav]);
 
   const relocate = useCallback(
-    async (row: Row, area: string, space = ROOT_SPACE) => {
-      if (row.kind === "folder") {
-        setMessage("Folders keep their own area; create a new folder in the target area instead.");
-        return;
-      }
+    async (row: FileRow, area: string, space: string) => {
       if (!unlocked && !changeCode.trim()) {
         setMessage("Unlock with the content code to move files.");
         return;
@@ -109,60 +152,65 @@ export default function MacFinderDesktop({
         id: row.item.id,
         item: { area, space },
       });
-      if (ok) setMessage(`Moved to ${area} / ${space}`);
+      if (ok) setMessage(`Moved into ${area} / ${space}`);
     },
     [changeCode, onMutate, unlocked]
   );
 
-  async function onDesktopDrop(event: React.DragEvent) {
+  async function onDesktopFileDrop(event: React.DragEvent) {
     event.preventDefault();
-    setDragOverArea(null);
-    const transfer = event.dataTransfer.getData("application/x-ke-media");
-    if (transfer) {
+    setDragOverKey(null);
+    if (nav.kind !== "page") {
+      setMessage("Open a page folder first, then drop files to upload into that webpage.");
+      return;
+    }
+    const fileList = event.dataTransfer.files;
+    if (!fileList?.length) {
+      const raw = event.dataTransfer.getData("application/x-ke-media");
+      if (!raw) return;
       try {
-        const payload = JSON.parse(transfer) as {
-          kind: "file" | "document";
-          id: string;
-        };
-        const row =
+        const payload = JSON.parse(raw) as { kind: "file" | "document"; id: string };
+        const source =
           payload.kind === "file"
-            ? rows.find((r) => r.kind === "file" && r.item.id === payload.id)
-            : rows.find((r) => r.kind === "document" && r.item.id === payload.id);
-        if (row && areaFilter !== "all" && (row.kind === "file" || row.kind === "document")) {
-          await relocate(row, areaFilter, spaceFilter === "all" ? ROOT_SPACE : spaceFilter);
-        }
+            ? (data.files || []).find((f) => f.id === payload.id)
+            : (data.documents || []).find((d) => d.id === payload.id);
+        if (!source) return;
+        await relocate(
+          { kind: payload.kind, item: source } as FileRow,
+          nav.page.area,
+          nav.page.space
+        );
       } catch {
         /* ignore */
       }
       return;
     }
-
-    const fileList = event.dataTransfer.files;
-    if (!fileList?.length) return;
     if (!unlocked && !changeCode.trim()) {
       setMessage("Unlock with the content code to upload.");
       return;
     }
-    const targetArea = areaFilter === "all" ? "manage" : areaFilter;
-    const targetSpace = spaceFilter === "all" ? ROOT_SPACE : spaceFilter;
-    const items: Array<{ name: string; mime: string; dataUrl: string }> = [];
+    const items: Array<{ name: string; mime: string; dataUrl: string; area: string; space: string }> =
+      [];
     for (const file of Array.from(fileList).slice(0, 10)) {
       if (file.size > 1_000_000) {
         setMessage(`${file.name} is too large (keep under ~1MB).`);
         continue;
       }
       const dataUrl = await readAsDataUrl(file);
-      items.push({ name: file.name, mime: file.type || "application/octet-stream", dataUrl });
+      items.push({
+        name: file.name,
+        mime: file.type || "application/octet-stream",
+        dataUrl,
+        area: nav.page.area,
+        space: nav.page.space,
+      });
     }
     if (!items.length) return;
-    const ok = await onMutate("add_files", {
-      items: items.map((item) => ({ ...item, area: targetArea, space: targetSpace })),
-    });
-    if (ok) setMessage(`Uploaded ${items.length} file(s) into ${targetArea}.`);
+    const ok = await onMutate("add_files", { items });
+    if (ok) setMessage(`Uploaded ${items.length} file(s) into ${nav.page.label}.`);
   }
 
-  function onItemDragStart(event: React.DragEvent, row: Row) {
-    if (row.kind === "folder") return;
+  function onItemDragStart(event: React.DragEvent, row: FileRow) {
     event.dataTransfer.setData(
       "application/x-ke-media",
       JSON.stringify({ kind: row.kind, id: row.item.id })
@@ -170,26 +218,28 @@ export default function MacFinderDesktop({
     event.dataTransfer.effectAllowed = "move";
   }
 
-  async function deleteRow(row: Row) {
-    if (row.kind === "folder") {
-      await onMutate("delete", { target: "folder", id: row.item.id });
-    } else {
-      await onMutate("delete", { target: row.kind, id: row.item.id });
-    }
+  async function deleteRow(row: FileRow) {
+    await onMutate("delete", { target: row.kind, id: row.item.id });
     if (selected?.item.id === row.item.id) setSelected(null);
   }
 
+  const titleBar =
+    nav.kind === "desktop"
+      ? "Knowledge Explorer · Macintosh HD"
+      : nav.kind === "section"
+        ? `${nav.section.label} · page folders`
+        : `${nav.page.label} · uploaded files`;
+
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-400 bg-[#c8c8c8] shadow-xl">
-      {/* Title bar */}
       <div className="flex items-center gap-3 border-b border-slate-400 bg-gradient-to-b from-[#e8e8e8] to-[#d0d0d0] px-3 py-2">
         <div className="flex gap-1.5" aria-hidden>
           <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
           <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
           <span className="h-3 w-3 rounded-full bg-[#28c840]" />
         </div>
-        <p className="flex-1 text-center text-xs font-semibold text-slate-700">
-          Knowledge Explorer · Finder
+        <p className="min-w-0 flex-1 truncate text-center text-xs font-semibold text-slate-700">
+          {titleBar}
         </p>
         <div className="flex gap-1">
           <button
@@ -213,207 +263,222 @@ export default function MacFinderDesktop({
         </div>
       </div>
 
-      <div className="grid min-h-[28rem] gap-0 md:grid-cols-[13rem_1fr_15rem]">
-        {/* Sidebar — areas like Finder favorites */}
-        <aside className="border-b border-slate-300 bg-[#f0f0f0] p-2 md:border-b-0 md:border-r">
-          <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-            Locations
-          </p>
-          <ul className="space-y-0.5">
-            {areas.map((area) => (
-              <li key={area}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAreaFilter(area);
-                    setSpaceFilter("all");
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOverArea(area);
-                  }}
-                  onDragLeave={() => setDragOverArea(null)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setDragOverArea(null);
-                    const raw = e.dataTransfer.getData("application/x-ke-media");
-                    if (!raw || area === "all") return;
-                    try {
-                      const payload = JSON.parse(raw) as { kind: "file" | "document"; id: string };
-                      const source =
-                        payload.kind === "file"
-                          ? (data.files || []).find((f) => f.id === payload.id)
-                          : (data.documents || []).find((d) => d.id === payload.id);
-                      if (!source) return;
-                      void relocate(
-                        { kind: payload.kind, item: source } as Row,
-                        area,
-                        normalizeSpace(source.space)
-                      );
-                    } catch {
-                      /* ignore */
-                    }
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm ${
-                    areaFilter === area
-                      ? "bg-[#0a84ff] font-semibold text-white"
-                      : dragOverArea === area
-                        ? "bg-sky-100 text-sky-900"
-                        : "text-slate-700 hover:bg-white"
-                  }`}
-                >
-                  <span aria-hidden>{area === "all" ? "🗂" : "📂"}</span>
-                  <span className="truncate">{area === "all" ? "All areas" : area}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          {spacesInArea.length > 2 ? (
-            <>
-              <p className="mb-1 mt-3 px-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                Spaces
-              </p>
-              <ul className="max-h-40 space-y-0.5 overflow-y-auto">
-                {spacesInArea.map((space) => (
-                  <li key={space}>
-                    <button
-                      type="button"
-                      onClick={() => setSpaceFilter(space)}
-                      className={`w-full truncate rounded-lg px-2 py-1 text-left text-xs ${
-                        spaceFilter === space
-                          ? "bg-white font-semibold text-slate-900 shadow-sm"
-                          : "text-slate-600 hover:bg-white/70"
-                      }`}
-                    >
-                      {space === "all" ? "All spaces" : space}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
-        </aside>
+      {/* Path bar */}
+      <div className="flex flex-wrap items-center gap-1 border-b border-slate-300 bg-[#ececec] px-3 py-1.5 text-[11px]">
+        {breadcrumbs.map((crumb, index) => (
+          <span key={`${crumb.label}-${index}`} className="flex items-center gap-1">
+            {index > 0 && <span className="text-slate-400">›</span>}
+            <button
+              type="button"
+              onClick={crumb.go}
+              className="rounded px-1.5 py-0.5 font-medium text-sky-800 hover:bg-white"
+            >
+              {crumb.label}
+            </button>
+          </span>
+        ))}
+      </div>
 
-        {/* Desktop / icon view */}
+      <div className="grid min-h-[30rem] gap-0 md:grid-cols-[1fr_15rem]">
         <div
-          ref={dropRef}
-          className={`relative overflow-y-auto bg-[radial-gradient(circle_at_20%_20%,#dce9f7,transparent_40%),linear-gradient(160deg,#6a8fad_0%,#3d5a73_100%)] p-4 ${
-            dragOverArea === "__desktop" ? "ring-2 ring-inset ring-sky-300" : ""
-          }`}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOverArea("__desktop");
-          }}
-          onDragLeave={() => setDragOverArea(null)}
-          onDrop={(e) => void onDesktopDrop(e)}
+          className="relative overflow-y-auto bg-[radial-gradient(circle_at_18%_12%,#dce9f7,transparent_42%),linear-gradient(165deg,#5f87a8_0%,#2f4a63_100%)] p-4"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => void onDesktopFileDrop(e)}
         >
-          <p className="mb-3 text-center text-[11px] font-medium text-white/90 drop-shadow">
-            Drag files onto Locations to move · Drop files here to upload · Same storage as page Media windows
+          <p className="mb-4 text-center text-[11px] font-medium text-white/90 drop-shadow">
+            {nav.kind === "desktop" &&
+              "Big folders = site sections. Double-click to open page folders for each webpage."}
+            {nav.kind === "section" &&
+              "Each small folder is a webpage. Open it to see files uploaded on that page."}
+            {nav.kind === "page" &&
+              "Files, pictures, and documents for this webpage (same as the top-right Media box)."}
           </p>
 
-          {rows.length === 0 ? (
-            <p className="mt-16 text-center text-sm text-white/80">This folder is empty.</p>
-          ) : view === "icons" ? (
-            <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
-              {rows.map((row) => {
-                const name = row.kind === "file" ? row.item.name : row.item.title;
-                const active = selected?.item.id === row.item.id && selected.kind === row.kind;
-                return (
-                  <li key={`${row.kind}-${row.item.id}`}>
-                    <button
-                      type="button"
-                      draggable={row.kind !== "folder"}
-                      onDragStart={(e) => onItemDragStart(e, row)}
-                      onClick={() => setSelected(row)}
-                      onDoubleClick={() => setSelected(row)}
-                      className={`flex w-full flex-col items-center gap-1 rounded-xl p-2 text-center ${
-                        active ? "bg-sky-500/40 ring-1 ring-white/50" : "hover:bg-white/15"
-                      }`}
-                    >
-                      {row.kind === "file" && isImage(row.item) && row.item.dataUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={row.item.dataUrl}
-                          alt=""
-                          className="h-14 w-14 rounded-lg object-cover shadow"
-                        />
-                      ) : (
-                        <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-white/90 text-2xl shadow">
-                          {iconFor(row)}
-                        </span>
-                      )}
-                      <span className="line-clamp-2 w-full text-[11px] font-medium text-white drop-shadow">
-                        {name}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <ul className="overflow-hidden rounded-xl bg-white/95 shadow">
-              {rows.map((row) => {
-                const name = row.kind === "file" ? row.item.name : row.item.title;
-                const area = row.item.area || "general";
-                const space = normalizeSpace(row.item.space);
-                const active = selected?.item.id === row.item.id && selected.kind === row.kind;
-                return (
-                  <li key={`${row.kind}-${row.item.id}`}>
-                    <button
-                      type="button"
-                      draggable={row.kind !== "folder"}
-                      onDragStart={(e) => onItemDragStart(e, row)}
-                      onClick={() => setSelected(row)}
-                      className={`flex w-full items-center gap-3 border-b border-slate-100 px-3 py-2 text-left text-sm ${
-                        active ? "bg-sky-100" : "hover:bg-slate-50"
-                      }`}
-                    >
-                      <span className="text-lg">{iconFor(row)}</span>
-                      <span className="min-w-0 flex-1 truncate font-medium text-slate-900">{name}</span>
-                      <span className="hidden text-xs text-slate-500 sm:inline">{row.kind}</span>
-                      <span className="hidden truncate text-xs text-slate-400 md:inline">
-                        {area}/{space}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+          {nav.kind === "desktop" && (
+            <FolderIconGrid
+              view={view}
+              items={sections.map((section) => ({
+                key: section.id,
+                icon: section.icon,
+                label: section.label,
+                meta: `${section.pages.length} pages · ${countInSection(data, section)} files`,
+                onOpen: () => {
+                  setNav({ kind: "section", section });
+                  setSelected(null);
+                },
+                dropKey: `section:${section.id}`,
+                dragOverKey,
+                setDragOverKey,
+                onDropMedia: async (payload) => {
+                  // Dropping on a section opens it — move into first page if any
+                  const target = section.pages[0];
+                  if (!target) return;
+                  const source =
+                    payload.kind === "file"
+                      ? (data.files || []).find((f) => f.id === payload.id)
+                      : (data.documents || []).find((d) => d.id === payload.id);
+                  if (!source) return;
+                  await relocate(
+                    { kind: payload.kind, item: source } as FileRow,
+                    target.area,
+                    target.space
+                  );
+                  setNav({ kind: "page", section, page: target });
+                },
+              }))}
+            />
           )}
+
+          {nav.kind === "section" && (
+            <FolderIconGrid
+              view={view}
+              items={nav.section.pages.map((page) => ({
+                key: `${page.area}:${page.space}`,
+                icon: "📁",
+                label: page.label,
+                meta: `${countInPage(data, page)} items · ${page.href}`,
+                onOpen: () => {
+                  setNav({ kind: "page", section: nav.section, page });
+                  setSelected(null);
+                },
+                dropKey: `page:${page.area}:${page.space}`,
+                dragOverKey,
+                setDragOverKey,
+                onDropMedia: async (payload) => {
+                  const source =
+                    payload.kind === "file"
+                      ? (data.files || []).find((f) => f.id === payload.id)
+                      : (data.documents || []).find((d) => d.id === payload.id);
+                  if (!source) return;
+                  await relocate(
+                    { kind: payload.kind, item: source } as FileRow,
+                    page.area,
+                    page.space
+                  );
+                },
+              }))}
+            />
+          )}
+
+          {nav.kind === "page" &&
+            (pageFiles.length === 0 ? (
+              <p className="mt-16 text-center text-sm text-white/85">
+                No uploads in this webpage folder yet. Drop files here or use Upload on the right.
+              </p>
+            ) : view === "icons" ? (
+              <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+                {pageFiles.map((row) => {
+                  const name = row.kind === "file" ? row.item.name : row.item.title;
+                  const active =
+                    selected?.kind === row.kind && selected.item.id === row.item.id;
+                  return (
+                    <li key={`${row.kind}-${row.item.id}`}>
+                      <button
+                        type="button"
+                        draggable
+                        onDragStart={(e) => onItemDragStart(e, row)}
+                        onClick={() => setSelected(row)}
+                        className={`flex w-full flex-col items-center gap-1 rounded-xl p-2 text-center ${
+                          active ? "bg-sky-500/40 ring-1 ring-white/50" : "hover:bg-white/15"
+                        }`}
+                      >
+                        {row.kind === "file" && isImage(row.item) && row.item.dataUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={row.item.dataUrl}
+                            alt=""
+                            className="h-14 w-14 rounded-lg object-cover shadow"
+                          />
+                        ) : (
+                          <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-white/90 text-2xl shadow">
+                            {row.kind === "document" ? "📄" : isImage(row.item) ? "🖼" : "📎"}
+                          </span>
+                        )}
+                        <span className="line-clamp-2 w-full text-[11px] font-medium text-white drop-shadow">
+                          {name}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <ul className="overflow-hidden rounded-xl bg-white/95 shadow">
+                {pageFiles.map((row) => {
+                  const name = row.kind === "file" ? row.item.name : row.item.title;
+                  const active =
+                    selected?.kind === row.kind && selected.item.id === row.item.id;
+                  return (
+                    <li key={`${row.kind}-${row.item.id}`}>
+                      <button
+                        type="button"
+                        draggable
+                        onDragStart={(e) => onItemDragStart(e, row)}
+                        onClick={() => setSelected(row)}
+                        className={`flex w-full items-center gap-3 border-b border-slate-100 px-3 py-2 text-left text-sm ${
+                          active ? "bg-sky-100" : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="text-lg">
+                          {row.kind === "document" ? "📄" : isImage(row.item) ? "🖼" : "📎"}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate font-medium">{name}</span>
+                        <span className="text-xs text-slate-500">{row.kind}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ))}
         </div>
 
-        {/* Preview / Get Info pane */}
         <aside className="border-t border-slate-300 bg-[#f6f6f6] p-3 md:border-l md:border-t-0">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Preview</p>
-          {!selected ? (
-            <p className="mt-4 text-sm text-slate-500">Select a file to preview what it looks like.</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Get Info</p>
+
+          {nav.kind === "page" ? (
+            <div className="mt-2 space-y-2 text-xs text-slate-600">
+              <p>
+                <strong className="text-slate-900">{nav.page.label}</strong>
+              </p>
+              <p>
+                Storage: {nav.page.area} / {nav.page.space}
+              </p>
+              <Link href={nav.page.href} className="inline-block text-sky-700 underline">
+                Open webpage →
+              </Link>
+            </div>
+          ) : nav.kind === "section" ? (
+            <p className="mt-3 text-sm text-slate-600">
+              Section <strong>{nav.section.label}</strong> contains webpage folders. Open one to
+              manage its uploads.
+            </p>
           ) : (
-            <div className="mt-3 space-y-3">
+            <p className="mt-3 text-sm text-slate-600">
+              Whole-site file system. Same files as the small Media box on every page.
+            </p>
+          )}
+
+          {selected ? (
+            <div className="mt-4 space-y-3 border-t border-slate-200 pt-3">
               <div className="flex justify-center">
                 {selected.kind === "file" && isImage(selected.item) && selected.item.dataUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={selected.item.dataUrl}
                     alt=""
-                    className="max-h-40 rounded-lg object-contain shadow"
+                    className="max-h-36 rounded-lg object-contain shadow"
                   />
                 ) : (
-                  <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white text-4xl shadow">
-                    {iconFor(selected)}
+                  <span className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-3xl shadow">
+                    {selected.kind === "document" ? "📄" : "📎"}
                   </span>
                 )}
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">
-                  {selected.kind === "file" ? selected.item.name : selected.item.title}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {selected.kind} · {selected.item.area || "general"} /{" "}
-                  {normalizeSpace(selected.item.space)}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-slate-900">
+                {selected.kind === "file" ? selected.item.name : selected.item.title}
+              </p>
               {selected.kind === "document" ? (
-                <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 text-xs">
+                <div className="max-h-32 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 text-xs">
                   <RichContent className="text-xs">{selected.item.content}</RichContent>
                 </div>
               ) : null}
@@ -423,7 +488,7 @@ export default function MacFinderDesktop({
                   download={selected.item.name}
                   className="inline-flex text-xs font-medium text-sky-700 underline"
                 >
-                  Download / open
+                  Download
                 </a>
               ) : null}
               <button
@@ -431,43 +496,149 @@ export default function MacFinderDesktop({
                 className="btn-ghost w-full text-xs text-red-600"
                 onClick={() => void deleteRow(selected)}
               >
-                Move to Trash (−)
+                Delete
               </button>
             </div>
+          ) : (
+            <p className="mt-4 text-sm text-slate-500">Select a file to preview.</p>
           )}
 
-          <div className="mt-6 border-t border-slate-200 pt-3">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-              Upload into current location
-            </p>
-            <ChangePanel
-              mode="file"
-              folderArea={areaFilter === "all" ? "manage" : areaFilter}
-              spaceKey={spaceFilter === "all" ? ROOT_SPACE : spaceFilter}
-              onSaved={(content) => {
-                if (content) onContent(content as ManagedContent);
-              }}
-            />
-            <div className="mt-2">
+          {nav.kind === "page" ? (
+            <div className="mt-6 border-t border-slate-200 pt-3">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                Upload into this webpage
+              </p>
               <ChangePanel
-                mode="document"
-                folderArea={areaFilter === "all" ? "manage" : areaFilter}
-                spaceKey={spaceFilter === "all" ? ROOT_SPACE : spaceFilter}
+                mode="file"
+                folderArea={nav.page.area}
+                spaceKey={nav.page.space}
                 onSaved={(content) => {
                   if (content) onContent(content as ManagedContent);
                 }}
               />
+              <div className="mt-2">
+                <ChangePanel
+                  mode="document"
+                  folderArea={nav.page.area}
+                  spaceKey={nav.page.space}
+                  onSaved={(content) => {
+                    if (content) onContent(content as ManagedContent);
+                  }}
+                />
+              </div>
             </div>
-          </div>
-          {message ? <p className="mt-2 text-xs text-slate-600">{message}</p> : null}
-          {!unlocked && !changeCode.trim() ? (
-            <p className="mt-2 text-[10px] text-amber-800">
-              Paste the content code above the tabs to move or delete files.
-            </p>
           ) : null}
+
+          {message ? <p className="mt-2 text-xs text-slate-600">{message}</p> : null}
         </aside>
       </div>
     </section>
+  );
+}
+
+type GridItem = {
+  key: string;
+  icon: string;
+  label: string;
+  meta: string;
+  onOpen: () => void;
+  dropKey: string;
+  dragOverKey: string | null;
+  setDragOverKey: (key: string | null) => void;
+  onDropMedia: (payload: { kind: "file" | "document"; id: string }) => Promise<void>;
+};
+
+function FolderIconGrid({
+  view,
+  items,
+}: {
+  view: "icons" | "list";
+  items: GridItem[];
+}) {
+  if (view === "list") {
+    return (
+      <ul className="overflow-hidden rounded-xl bg-white/95 shadow">
+        {items.map((item) => (
+          <li key={item.key}>
+            <button
+              type="button"
+              onDoubleClick={item.onOpen}
+              onClick={item.onOpen}
+              onDragOver={(e) => {
+                e.preventDefault();
+                item.setDragOverKey(item.dropKey);
+              }}
+              onDragLeave={() => item.setDragOverKey(null)}
+              onDrop={(e) => {
+                e.preventDefault();
+                item.setDragOverKey(null);
+                const raw = e.dataTransfer.getData("application/x-ke-media");
+                if (!raw) return;
+                try {
+                  void item.onDropMedia(JSON.parse(raw));
+                } catch {
+                  /* ignore */
+                }
+              }}
+              className={`flex w-full items-center gap-3 border-b border-slate-100 px-3 py-2.5 text-left ${
+                item.dragOverKey === item.dropKey ? "bg-sky-100" : "hover:bg-slate-50"
+              }`}
+            >
+              <span className="text-xl">{item.icon}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-slate-900">
+                  {item.label}
+                </span>
+                <span className="block truncate text-xs text-slate-500">{item.meta}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <ul className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-5">
+      {items.map((item) => (
+        <li key={item.key}>
+          <button
+            type="button"
+            onDoubleClick={item.onOpen}
+            onClick={item.onOpen}
+            onDragOver={(e) => {
+              e.preventDefault();
+              item.setDragOverKey(item.dropKey);
+            }}
+            onDragLeave={() => item.setDragOverKey(null)}
+            onDrop={(e) => {
+              e.preventDefault();
+              item.setDragOverKey(null);
+              const raw = e.dataTransfer.getData("application/x-ke-media");
+              if (!raw) return;
+              try {
+                void item.onDropMedia(JSON.parse(raw));
+              } catch {
+                /* ignore */
+              }
+            }}
+            className={`flex w-full flex-col items-center gap-1 rounded-xl p-2 text-center ${
+              item.dragOverKey === item.dropKey
+                ? "bg-sky-400/50 ring-2 ring-white/70"
+                : "hover:bg-white/15"
+            }`}
+          >
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-b from-sky-200 to-sky-400 text-3xl shadow-lg">
+              {item.icon}
+            </span>
+            <span className="line-clamp-2 w-full text-[11px] font-semibold text-white drop-shadow">
+              {item.label}
+            </span>
+            <span className="line-clamp-1 w-full text-[9px] text-white/75">{item.meta}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
