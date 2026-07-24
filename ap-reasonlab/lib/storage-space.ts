@@ -1,5 +1,7 @@
 /** Per-folder storage keys: each area + space is an isolated bucket. */
 
+import { AP_CATALOG } from "@/data/ap-catalog";
+
 export const ROOT_SPACE = "_root";
 
 export function normalizeSpace(space?: string | null): string {
@@ -48,6 +50,22 @@ export function spaceFromSearchParams(params: {
   return ROOT_SPACE;
 }
 
+/** Slug / full name / short name are the same AP subject bucket. */
+export function spaceAliases(space: string): Set<string> {
+  const n = normalizeSpace(space);
+  const set = new Set<string>([n]);
+  const hit =
+    AP_CATALOG.find((s) => s.slug === n) ||
+    AP_CATALOG.find((s) => s.name === n) ||
+    AP_CATALOG.find((s) => s.shortName === n);
+  if (hit) {
+    set.add(hit.slug);
+    set.add(hit.name);
+    if (hit.shortName) set.add(hit.shortName);
+  }
+  return set;
+}
+
 export function matchesSpace(
   item: { area?: string; space?: string },
   area: string,
@@ -59,11 +77,27 @@ export function matchesSpace(
     // Legacy unscoped rows: only show in materials root to avoid leaking everywhere
     return area === "materials" && space === ROOT_SPACE;
   }
-  return itemArea === area && itemSpace === space;
+  if (itemArea !== area) return false;
+  if (itemSpace === normalizeSpace(space)) return true;
+  // AP subject + exam archives were saved under full name or slug interchangeably
+  if (area === "ap-subject" || area === "past-papers") {
+    return spaceAliases(space).has(itemSpace);
+  }
+  return false;
 }
 
 export function spaceLabel(space: string, folderTitle?: string): string {
   if (space === ROOT_SPACE) return "This area (root)";
   if (isFolderSpace(space)) return folderTitle || "Custom folder";
   return space;
+}
+
+/** Prefer catalog slug for /ap/[slug] links when space is a subject name. */
+export function apSubjectHref(space: string): string {
+  const n = normalizeSpace(space);
+  const hit =
+    AP_CATALOG.find((s) => s.slug === n) ||
+    AP_CATALOG.find((s) => s.name === n) ||
+    AP_CATALOG.find((s) => s.shortName === n);
+  return hit ? `/ap/${hit.slug}` : `/ap/${encodeURIComponent(n)}`;
 }

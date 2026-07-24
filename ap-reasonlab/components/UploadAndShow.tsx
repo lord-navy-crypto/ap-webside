@@ -126,9 +126,11 @@ export default function UploadAndShow({
     refresh();
   }, [refresh]);
 
+  const canAdd = editMode || unlocked || allowPublicContributions;
+
   useEffect(() => {
-    if (editMode) setExpanded(true);
-  }, [editMode]);
+    if (editMode || unlocked) setExpanded(true);
+  }, [editMode, unlocked]);
 
   const onSaved = (content?: unknown) => {
     if (content) applyContent(content as ManagedContent);
@@ -257,8 +259,8 @@ export default function UploadAndShow({
         other areas or other subject folders.
       </div>
 
-      <div className={editMode || allowPublicContributions ? "grid gap-4 lg:grid-cols-2" : "grid gap-4"}>
-        {(editMode || allowPublicContributions) && <div className="space-y-3">
+      <div className={canAdd ? "grid gap-4 lg:grid-cols-2" : "grid gap-4"}>
+        {canAdd && <div className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Add / upload in this folder only
           </h2>
@@ -344,7 +346,7 @@ export default function UploadAndShow({
               />
             )}
           </div>
-          {editMode && <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          {(editMode || unlocked) && <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
             {unlocked ? (
               <p className="text-xs text-emerald-800">
                 Editor unlocked — delete uses your session. Optional code override below.

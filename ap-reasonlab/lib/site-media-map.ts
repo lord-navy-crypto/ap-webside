@@ -3,7 +3,8 @@
  * Used by the top-right Media window and Manage → Mac Finder.
  */
 
-import { ROOT_SPACE } from "@/lib/storage-space";
+import { ROOT_SPACE, apSubjectHref } from "@/lib/storage-space";
+import { getSubjectBySlug } from "@/data/ap-catalog";
 
 export type MediaAlsoShow = Array<
   "concept" | "topic" | "formula" | "document" | "member" | "folder" | "subject" | "questionnaire"
@@ -147,14 +148,16 @@ export function resolvePageMediaContext(
   if (pathname.startsWith("/ap/")) {
     const parts = pathname.split("/").filter(Boolean);
     if (parts.length >= 2) {
-      const slug = parts[1]!;
+      const slug = decodeURIComponent(parts[1]!);
+      const subject = getSubjectBySlug(slug);
+      const spaceKey = subject?.name || slug;
       return {
         folderArea: "ap-subject",
-        spaceKey: slug,
-        title: `AP · ${slug}`,
-        href: `/ap/${slug}`,
+        spaceKey,
+        title: `AP · ${subject?.shortName || slug}`,
+        href: `/ap/${subject?.slug || slug}`,
         alsoShow: UPLOAD_ONLY,
-        defaultSubject: slug,
+        defaultSubject: spaceKey,
       };
     }
   }
@@ -267,7 +270,7 @@ export function collectDynamicPageFolders(
         area: a,
         space: sp,
         label: label || `AP · ${sp}`,
-        href: href || `/ap/${sp}`,
+        href: href || apSubjectHref(sp),
       });
       return;
     }

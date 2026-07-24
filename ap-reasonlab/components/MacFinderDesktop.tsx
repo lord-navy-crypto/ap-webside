@@ -12,7 +12,7 @@ import {
   type SitePageFolder,
   type SiteSectionFolder,
 } from "@/lib/site-media-map";
-import { ROOT_SPACE, normalizeSpace } from "@/lib/storage-space";
+import { ROOT_SPACE, matchesSpace, normalizeSpace } from "@/lib/storage-space";
 
 type FileRow =
   | { kind: "file"; item: ManagedFile }
@@ -39,12 +39,8 @@ function countInPage(
   data: Partial<ManagedContent>,
   page: SitePageFolder
 ): number {
-  const files = (data.files || []).filter(
-    (f) => (f.area || "general") === page.area && normalizeSpace(f.space) === normalizeSpace(page.space)
-  ).length;
-  const docs = (data.documents || []).filter(
-    (d) => (d.area || "general") === page.area && normalizeSpace(d.space) === normalizeSpace(page.space)
-  ).length;
+  const files = (data.files || []).filter((f) => matchesSpace(f, page.area, page.space)).length;
+  const docs = (data.documents || []).filter((d) => matchesSpace(d, page.area, page.space)).length;
   return files + docs;
 }
 
@@ -107,10 +103,10 @@ export default function MacFinderDesktop({
     const { area, space } = nav.page;
     const scoped = normalizeSpace(space);
     const files: FileRow[] = (data.files || [])
-      .filter((f) => (f.area || "general") === area && normalizeSpace(f.space) === scoped)
+      .filter((f) => matchesSpace(f, area, scoped))
       .map((item) => ({ kind: "file", item }));
     const docs: FileRow[] = (data.documents || [])
-      .filter((d) => (d.area || "general") === area && normalizeSpace(d.space) === scoped)
+      .filter((d) => matchesSpace(d, area, scoped))
       .map((item) => ({ kind: "document", item }));
     return [...files, ...docs].sort((a, b) => {
       const an = a.kind === "file" ? a.item.name : a.item.title;

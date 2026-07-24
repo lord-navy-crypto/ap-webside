@@ -241,7 +241,7 @@ function SubjectWorkspaceContent() {
         <UnifiedMediaFrame
           title={`${subject.shortName} · pictures, documents & files`}
           folderArea="ap-subject"
-          spaceKey={params.subject}
+          spaceKey={subjectName}
           defaultSubject={subjectName}
           alsoShow={["document", "folder"]}
         />
@@ -361,7 +361,7 @@ function SubjectWorkspaceContent() {
         <UnifiedMediaFrame
           title={`${subject.shortName} · Exam archive`}
           folderArea="past-papers"
-          spaceKey={params.subject}
+          spaceKey={subjectName}
           defaultSubject={subjectName}
           alsoShow={["document", "folder"]}
           collapsedByDefault

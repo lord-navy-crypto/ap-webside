@@ -17,7 +17,7 @@ type Tab = "content" | "subjects" | "units" | "files" | "trash" | "ai" | "settin
 const TAB_IDS: Tab[] = ["content", "subjects", "units", "files", "trash", "ai", "settings", "history"];
 
 export default function ManagePage() {
-  const { active: editMode, unlocked, editor, refresh: refreshEditor } = useEditorMode();
+  const { active: editMode, setActive, unlocked, editor, refresh: refreshEditor } = useEditorMode();
   const [data, setData] = useState<Partial<ManagedContent>>({});
   const [tab, setTab] = useState<Tab>("content");
 
@@ -27,6 +27,11 @@ export default function ManagePage() {
     const next = params.get("tab");
     if (next && TAB_IDS.includes(next as Tab)) setTab(next as Tab);
   }, []);
+
+  // Visiting Manage with an unlocked content-code session turns the backend editor back on.
+  useEffect(() => {
+    if (unlocked && !editMode) setActive(true);
+  }, [unlocked, editMode, setActive]);
   const [query, setQuery] = useState("");
   const [subjectId, setSubjectId] = useState(AP_CATALOG[0].id);
   const [status, setStatus] = useState("all");
@@ -127,15 +132,22 @@ export default function ManagePage() {
     { id: "history", label: "History & Undo" },
   ];
 
-  if (!editMode) {
+  if (!unlocked) {
     return (
       <div className="space-y-6">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Manage" }]} />
         <section className="card mx-auto max-w-2xl text-center">
           <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-xl text-brand-700">✎</span>
-          <h1 className="mt-4 text-2xl font-bold">Content manager is hidden</h1>
+          <h1 className="mt-4 text-2xl font-bold">Unlock the content manager</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Use the edit circle in the lower-right corner, pass the content-code check, then choose “Start editing this page”.
+            Your Manage backend (Content, Subjects, Units, Files Finder, AI Developer, History) is
+            still here. Sign in with the content change code, then open Manage again.
+          </p>
+          <Link href="/login?next=/manage" className="btn-primary mt-5 inline-flex">
+            Unlock at /login
+          </Link>
+          <p className="mt-3 text-xs text-slate-500">
+            Or use the edit circle (bottom-right) → pass the content-code check.
           </p>
         </section>
       </div>

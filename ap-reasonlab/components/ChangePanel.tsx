@@ -221,7 +221,7 @@ export default function ChangePanel({
   const showSubjectField =
     mode === "concept" || mode === "topic" || mode === "formula" || mode === "questionnaire";
 
-  if (!editMode && !allowPublicContribution) return null;
+  if (!editMode && !unlocked && !allowPublicContribution) return null;
 
   return (
     <div className="space-y-3">
