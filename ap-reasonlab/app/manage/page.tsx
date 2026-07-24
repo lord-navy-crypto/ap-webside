@@ -159,7 +159,38 @@ export default function ManagePage() {
     <div className="space-y-7">
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Manage" }]} />
       <section className="rounded-3xl bg-slate-950 p-6 text-white md:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-5"><div><span className="text-xs font-semibold uppercase tracking-wider text-blue-300">KNOWLEDGE EXPLORER CONTROL CENTER</span><h1 className="mt-2 text-3xl font-bold">Manage the site without changing code</h1><p className="mt-2 max-w-2xl text-slate-300">Create and edit content, use AI Developer, review modification history, and safely undo a change. Content change code is enough.</p></div><UnifiedAddContent subjectId={selectedSubject?.id} subjectName={selectedSubject?.name} units={units} onSaved={refresh} /></div>
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-blue-300">
+              KNOWLEDGE EXPLORER CONTROL CENTER
+            </span>
+            <h1 className="mt-2 text-3xl font-bold">Manage the site without changing code</h1>
+            <p className="mt-2 max-w-2xl text-slate-300">
+              Create and edit content, use AI Developer, review modification history, and safely undo
+              a change. Content change code is enough.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setTab("files");
+              if (typeof window !== "undefined") {
+                const url = new URL(window.location.href);
+                url.searchParams.set("tab", "files");
+                window.history.replaceState({}, "", url.toString());
+                window.setTimeout(() => {
+                  document.getElementById("macintosh-hd")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 50);
+              }
+            }}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-amber-900/30 ring-1 ring-amber-200/80 hover:from-amber-200 hover:to-amber-400"
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-950 text-amber-300">
+              +
+            </span>
+            Add content · Macintosh HD
+          </button>
+        </div>
       </section>
 
       <section className="card grid gap-3 md:grid-cols-2">
@@ -248,15 +279,23 @@ export default function ManagePage() {
       )}
 
       {tab === "files" && (
-        <section className="space-y-3">
-          <div>
-            <h2 className="section-title">Knowledge Explorer · Macintosh HD</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Full-site editing desk. Open a section (AP, English, Academic…), then a webpage
-              folder — including every AP subject. Inside each folder you can view, add, edit, and
-              delete concepts, formulas, practice, documents, images, and files. Deleted items go to
-              the Recycle Bin on the desktop.
-            </p>
+        <section id="macintosh-hd" className="scroll-mt-24 space-y-3">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="section-title">Knowledge Explorer · Macintosh HD</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Full-site editing desk (MachineTools HD). Open a section → webpage folder to add
+                concepts, formulas, practice, documents, images, and files. The gold{" "}
+                <strong>Add content · Macintosh HD</strong> button opens this desk.
+              </p>
+            </div>
+            <UnifiedAddContent
+              subjectId={selectedSubject?.id}
+              subjectName={selectedSubject?.name}
+              units={units}
+              onSaved={refresh}
+              label="+ Add content (quick form)"
+            />
           </div>
           <MacFinderDesktop
             data={data}

@@ -13,9 +13,18 @@ import TICalculator from "@/components/TICalculator";
 import TIGrapher from "@/components/TIGrapher";
 import ImageGenPanel from "@/components/ImageGenPanel";
 import EnglishAiTutor from "@/components/EnglishAiTutor";
+import CodingAiPanel from "@/components/CodingAiPanel";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
-type Tool = "hint" | "concept" | "guide" | "calculator" | "grapher" | "imagegen" | "english";
+type Tool =
+  | "hint"
+  | "concept"
+  | "guide"
+  | "calculator"
+  | "grapher"
+  | "imagegen"
+  | "english"
+  | "coding";
 
 type HintResult = {
   hints: string[];
@@ -90,7 +99,8 @@ function ToolboxContent() {
       tab === "calculator" ||
       tab === "grapher" ||
       tab === "imagegen" ||
-      tab === "english"
+      tab === "english" ||
+      tab === "coding"
     ) {
       setTool(tab);
     }
@@ -293,16 +303,27 @@ function ToolboxContent() {
     {
       id: "imagegen",
       label: "Image Gen",
-      blurb: "Generate study diagrams from a prompt; save privately in this browser.",
+      blurb: "Local SVG / Auto / Cloud diagrams from a prompt; save privately in this browser.",
     },
     {
       id: "english",
       label: "English AI",
-      blurb: "Writing feedback, grammar, vocabulary, TOEFL / IELTS / SAT strategy.",
+      blurb: "Writing, grammar, vocabulary, TOEFL / IELTS / SAT — Local, Auto, or Cloud.",
+    },
+    {
+      id: "coding",
+      label: "Coding AI",
+      blurb: "Python, Java, and web coaching — Local, Auto, or Cloud (hints, not graded dumps).",
     },
   ];
 
-  const isAiTool = tool === "hint" || tool === "concept" || tool === "guide";
+  const isAiTool =
+    tool === "hint" ||
+    tool === "concept" ||
+    tool === "guide" ||
+    tool === "imagegen" ||
+    tool === "english" ||
+    tool === "coding";
 
   return (
     <div className="space-y-6">
@@ -548,8 +569,8 @@ function ToolboxContent() {
           <div>
             <h2 className="text-xl font-semibold">Image Generation</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Academic diagrams from text prompts. Lives in the AI Toolbox; images stay private on
-              this device. Upload your own photos in the{" "}
+              Local SVG, Auto, or Cloud diagrams. Images stay private on this device. Upload your own
+              photos in the{" "}
               <a href="/learning-box?tab=pictures" className="font-medium text-brand-700 underline">
                 Private Learning Box
               </a>
@@ -565,15 +586,53 @@ function ToolboxContent() {
           <div>
             <h2 className="text-xl font-semibold">English AI Tutor</h2>
             <p className="mt-1 text-sm text-slate-600">
-              English-only coaching — writing, grammar, vocabulary, and test strategy. Also linked
-              from the{" "}
+              English-only coaching with Local / Auto / Cloud — writing, grammar, vocabulary, and
+              test strategy. Also linked from the{" "}
               <a href="/english/ai" className="font-medium text-brand-700 underline">
                 English hub
               </a>
               .
             </p>
           </div>
-          <EnglishAiTutor embedded />
+          <EnglishAiTutor
+            embedded
+            hideChannelUi
+            channel={channel}
+            onChannelChange={setChannel}
+            siteModel={siteModel}
+            onSiteModelChange={setSiteModel}
+            provider={provider}
+            onProviderChange={setProvider}
+            userKey={userKey}
+            onUserKeyChange={setUserKey}
+          />
+        </section>
+      )}
+
+      {tool === "coding" && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-xl font-semibold">Coding AI</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Programming coach for Python, Java, and web — Local, Auto, or Cloud. Use the{" "}
+              <a href="/code" className="font-medium text-brand-700 underline">
+                Code area
+              </a>{" "}
+              playgrounds to run snippets yourself.
+            </p>
+          </div>
+          <CodingAiPanel
+            embedded
+            hideChannelUi
+            channel={channel}
+            onChannelChange={setChannel}
+            siteModel={siteModel}
+            onSiteModelChange={setSiteModel}
+            provider={provider}
+            onProviderChange={setProvider}
+            userKey={userKey}
+            onUserKeyChange={setUserKey}
+          />
         </section>
       )}
 

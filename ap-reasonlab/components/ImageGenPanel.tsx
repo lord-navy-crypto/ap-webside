@@ -8,16 +8,19 @@ import {
   type StoredImage,
 } from "@/lib/storage";
 import LocalImageEditor from "@/components/LocalImageEditor";
+import { useLocalAI } from "@/components/LocalAIProvider";
 
 /**
- * Pollinations image generation panel — used inside AI Toolbox.
+ * Image generation — Local (SVG via local LLM), Auto, or Cloud (Pollinations).
  * Saved images stay private in this browser (Learning Box / local storage).
  */
 export default function ImageGenPanel({ embedded = false }: { embedded?: boolean }) {
+  const localAI = useLocalAI();
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentUrl, setCurrentUrl] = useState("");
+  const [modeNote, setModeNote] = useState("");
   const [images, setImages] = useState<StoredImage[]>([]);
   const [mounted, setMounted] = useState(false);
   const [preview, setPreview] = useState<StoredImage | null>(null);
@@ -36,24 +39,79 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
     }
   }
 
+  function svgToDataUrl(svg: string): string {
+    const cleaned = svg.trim().startsWith("<svg")
+      ? svg.trim()
+      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768">${svg.trim()}</svg>`;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(cleaned)}`;
+  }
+
+  async function generateLocalSvg(userPrompt: string): Promise<string> {
+    if (!localAI.ready) {
+      throw new Error(
+        "Local AI mode is on, but no model is enabled. Enable Local AI above, or switch to Auto / Cloud."
+      );
+    }
+    const text = await localAI.complete([
+      {
+        role: "system",
+        content:
+          "You draw simple study diagrams as SVG only. Reply with ONE complete <svg>...</svg> element (viewBox 0 0 768 768), black strokes on white, clear labels. No markdown fences, no explanation.",
+      },
+      {
+        role: "user",
+        content: `Create a simple labeled study diagram for: ${userPrompt}`,
+      },
+    ]);
+    const match = text.match(/<svg[\s\S]*?<\/svg>/i);
+    if (!match) {
+      throw new Error("Local AI did not return valid SVG. Try Cloud mode or simplify the prompt.");
+    }
+    return svgToDataUrl(match[0]);
+  }
+
+  async function generateCloudPollinations(userPrompt: string): Promise<string> {
+    const seed = Math.floor(Math.random() * 1_000_000);
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(
+      userPrompt.trim()
+    )}?width=768&height=768&seed=${seed}&nologo=true`;
+    await new Promise<void>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Image generation failed. Try again."));
+      img.src = url;
+    });
+    return url;
+  }
+
   async function handleGenerate(e: React.FormEvent) {
     e.preventDefault();
     if (!prompt.trim()) return;
     setLoading(true);
     setError("");
     setCurrentUrl("");
+    setModeNote("");
     try {
-      const seed = Math.floor(Math.random() * 1_000_000);
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(
-        prompt.trim()
-      )}?width=768&height=768&seed=${seed}&nologo=true`;
-      await new Promise<void>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error("Image generation failed. Try again."));
-        img.src = url;
-      });
+      const preferLocal =
+        localAI.mode === "local" || (localAI.mode === "auto" && localAI.ready);
+      if (preferLocal) {
+        const dataUrl = await generateLocalSvg(prompt.trim());
+        setCurrentUrl(dataUrl);
+        setModeNote("Local AI · SVG diagram generated in this browser");
+        return;
+      }
+      if (localAI.mode === "local" && !localAI.ready) {
+        throw new Error(
+          "Local AI mode is on, but no model is enabled. Enable Local AI above, or switch to Auto / Cloud."
+        );
+      }
+      const url = await generateCloudPollinations(prompt.trim());
       setCurrentUrl(url);
+      setModeNote(
+        localAI.mode === "auto"
+          ? "Auto · Cloud Pollinations (Local not ready)"
+          : "Cloud · Pollinations.ai"
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");
     } finally {
@@ -64,14 +122,17 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
   async function handleSave() {
     if (!currentUrl) return;
     try {
-      const res = await fetch(currentUrl);
-      const blob = await res.blob();
-      const dataUrl = await blobToDataURL(blob);
+      let dataUrl = currentUrl;
+      if (!currentUrl.startsWith("data:")) {
+        const res = await fetch(currentUrl);
+        const blob = await res.blob();
+        dataUrl = await blobToDataURL(blob);
+      }
       const saved = await saveImage({
         kind: "generated",
         name: prompt.trim().slice(0, 60) || "Generated image",
         dataUrl,
-        note: prompt.trim(),
+        note: `${prompt.trim()}${modeNote ? ` · ${modeNote}` : ""}`,
         tags: ["ai-generated", "toolbox"],
       });
       await refresh();
@@ -90,16 +151,28 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
     await refresh();
   }
 
+  const modeHint =
+    localAI.mode === "local"
+      ? "Local AI will draw an SVG study diagram in this browser."
+      : localAI.mode === "auto"
+        ? "Auto: Local SVG when a model is enabled; otherwise Cloud Pollinations."
+        : "Cloud: Pollinations.ai raster images.";
+
   return (
     <div className="space-y-4">
       {!embedded && (
         <div>
           <h2 className="text-xl font-semibold">Image Generation</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Study diagrams from a text prompt (Pollinations.ai). Saved images stay in this browser.
+            Study diagrams from a text prompt. Uses Local, Auto, or Cloud (same mode switch as other AI tools).
           </p>
         </div>
       )}
+
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+        <strong className="text-slate-800">Runtime:</strong> {modeHint} Set Local / Auto / Cloud in the
+        library above.
+      </div>
 
       <form onSubmit={handleGenerate} className="card space-y-4">
         <div>
@@ -119,79 +192,62 @@ export default function ImageGenPanel({ embedded = false }: { embedded?: boolean
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? "Generating…" : "Generate image"}
           </button>
-          {currentUrl && !loading && (
-            <button type="button" onClick={handleSave} className="btn-secondary">
-              Save to my pictures
+          {currentUrl && (
+            <button type="button" className="btn-secondary" onClick={() => void handleSave()}>
+              Save to private pictures
             </button>
           )}
         </div>
+        {modeNote && <p className="text-xs text-emerald-700">{modeNote}</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
       </form>
 
       {currentUrl && (
-        <section className="card">
-          <h3 className="mb-3 text-lg font-semibold">Preview</h3>
+        <div className="card overflow-hidden p-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={currentUrl} alt={prompt} className="mx-auto max-h-[50vh] rounded-xl" />
-        </section>
+          <img src={currentUrl} alt="Generated" className="mx-auto max-h-[28rem] bg-white object-contain" />
+        </div>
       )}
 
-      {mounted && (
-        <section>
-          <h3 className="mb-3 text-lg font-semibold">
-            Saved generated images ({images.length})
-          </h3>
-          {images.length === 0 ? (
-            <div className="card text-sm text-slate-500">No saved generated images yet.</div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {images.map((img) => (
-                <figure
-                  key={img.id}
-                  className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
-                >
+      {mounted && images.length > 0 && (
+        <section className="space-y-3">
+          <h3 className="font-semibold text-slate-900">Saved generated pictures ({images.length})</h3>
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {images.map((image) => (
+              <li key={image.id} className="card space-y-2 p-3">
+                <button type="button" onClick={() => setPreview(image)} className="block w-full">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={img.dataUrl}
-                    alt={img.name}
-                    className="aspect-square w-full cursor-pointer object-cover"
-                    onClick={() => setPreview(img)}
-                  />
-                  <figcaption className="space-y-1 p-2 text-xs text-slate-600">
-                    <p className="truncate font-medium text-slate-800">{img.name}</p>
-                    <div className="flex gap-3">
-                      <LocalImageEditor item={img} onSaved={() => void refresh()} />
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(img.id)}
-                        className="text-[11px] text-red-500 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          )}
+                  <img src={image.dataUrl} alt={image.name} className="h-36 w-full rounded-lg object-cover" />
+                </button>
+                <p className="truncate text-sm font-medium">{image.name}</p>
+                <div className="flex gap-2">
+                  <LocalImageEditor item={image} onSaved={() => void refresh()} />
+                  <button
+                    type="button"
+                    className="btn-ghost text-xs text-red-600"
+                    onClick={() => void handleDelete(image.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
       {preview && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-          onClick={() => setPreview(null)}
-        >
-          <div
-            className="max-h-[90vh] max-w-3xl overflow-auto rounded-2xl bg-white p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-4">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="font-semibold">{preview.name}</h3>
+              <button type="button" className="btn-ghost" onClick={() => setPreview(null)}>
+                ✕
+              </button>
+            </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={preview.dataUrl} alt={preview.name} className="mx-auto max-h-[70vh]" />
+            <img src={preview.dataUrl} alt={preview.name} className="mx-auto mt-3 max-h-[70vh]" />
             <p className="mt-3 text-sm text-slate-700">{preview.note || preview.name}</p>
-            <button type="button" className="btn-ghost mt-3" onClick={() => setPreview(null)}>
-              Close
-            </button>
           </div>
         </div>
       )}
@@ -203,7 +259,7 @@ function blobToDataURL(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("Could not encode image"));
+    reader.onerror = () => reject(new Error("Could not read image"));
     reader.readAsDataURL(blob);
   });
 }

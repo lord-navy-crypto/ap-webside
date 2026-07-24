@@ -32,7 +32,12 @@ export default function CodePage() {
         <h1 className="text-3xl font-bold">Code Resource</h1>
         <p className="mt-2 text-slate-600">
           Python and Web include in-browser playgrounds. Java still uses snippets + uploads for now.
-          Upload files, add documents, or save simulation notes with a change code.
+          Upload files, add documents, or save simulation notes with a change code. Need coaching?
+          Open{" "}
+          <Link href="/hints?tool=coding" className="font-medium text-brand-700 underline">
+            AI Toolbox · Coding AI
+          </Link>{" "}
+          (Local / Auto / Cloud).
         </p>
       </div>
 

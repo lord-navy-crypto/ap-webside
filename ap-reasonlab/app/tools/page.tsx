@@ -28,6 +28,11 @@ const tools = [
     title: "English AI",
     blurb: "Open inside AI Toolbox — writing, grammar, vocabulary, test strategy.",
   },
+  {
+    href: "/hints?tool=coding",
+    title: "Coding AI",
+    blurb: "Open inside AI Toolbox — Python, Java, and web coaching (Local / Auto / Cloud).",
+  },
 ];
 
 export default function ToolsPage() {
