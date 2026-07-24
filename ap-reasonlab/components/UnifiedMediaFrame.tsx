@@ -48,6 +48,8 @@ export default function UnifiedMediaFrame({
 }: Props) {
   // Every page panel can create nested file folders (AP, Academic, Tools, Code, Forum…).
   const extras = Array.from(new Set([...alsoShow, "folder", "document"])) as AlsoShow;
+
+  return (
     <section
       id="page-media"
       className={`scroll-mt-24 overflow-hidden rounded-2xl border border-slate-300 bg-slate-100 shadow-lg ${className}`}
