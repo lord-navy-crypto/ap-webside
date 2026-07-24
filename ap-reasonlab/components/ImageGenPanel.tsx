@@ -11,7 +11,7 @@ import LocalImageEditor from "@/components/LocalImageEditor";
 
 /**
  * Pollinations image generation panel — used inside AI Toolbox.
- * Saved images stay private in this browser (Picture library).
+ * Saved images stay private in this browser (Learning Box / local storage).
  */
 export default function ImageGenPanel({ embedded = false }: { embedded?: boolean }) {
   const [prompt, setPrompt] = useState("");

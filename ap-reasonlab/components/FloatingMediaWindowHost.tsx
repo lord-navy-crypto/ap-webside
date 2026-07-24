@@ -28,7 +28,7 @@ function resolveContext(pathname: string, search: URLSearchParams) {
     };
   }
 
-  if (pathname.startsWith("/hints") || pathname.startsWith("/image-gen")) {
+  if (pathname.startsWith("/hints")) {
     return {
       folderArea: "hints",
       spaceKey: ROOT_SPACE,

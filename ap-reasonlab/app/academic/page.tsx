@@ -8,7 +8,7 @@ const academicTools = [
     href: "/learning-box",
     title: "Private Learning Box",
     description:
-      "A private browser folder for your own notes and text files, plus Random Draw. No change code needed.",
+      "Private notes, documents, and pictures in this browser — plus Random Draw. No change code needed.",
   },
   {
     href: "/academic/materials",
@@ -17,14 +17,9 @@ const academicTools = [
       "Public materials everyone can upload and view without a change code.",
   },
   {
-    href: "/picture",
-    title: "Picture",
-    description: "Upload photos of handwritten notes, textbook pages, and diagrams.",
-  },
-  {
-    href: "/image-gen",
+    href: "/hints?tool=imagegen",
     title: "Image Generation",
-    description: "Generate study visuals from a prompt. Free, no API key needed.",
+    description: "In AI Toolbox — generate study visuals from a prompt.",
   },
 ];
 

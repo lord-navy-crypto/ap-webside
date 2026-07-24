@@ -25,7 +25,7 @@ const modes = [
   { value: "original-practice", label: "Create original practice" },
 ] as const;
 
-export default function EnglishAiTutor() {
+export default function EnglishAiTutor({ embedded = false }: { embedded?: boolean }) {
   const [mode, setMode] = useState<(typeof modes)[number]["value"]>("writing-feedback");
   const [target, setTarget] = useState("General academic English");
   const [input, setInput] = useState("");
@@ -56,7 +56,19 @@ export default function EnglishAiTutor() {
   }
 
   return <div className="space-y-5">
-    <div className="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950"><strong>English-only boundary.</strong> This tutor handles English learning, writing feedback, vocabulary, grammar, TOEFL, IELTS, and SAT Reading & Writing. Use <Link href="/hints" className="font-semibold underline">AI Toolbox</Link> for AP subjects.</div>
+    {!embedded && (
+      <div className="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
+        <strong>English-only boundary.</strong> This tutor handles English learning, writing feedback, vocabulary, grammar, TOEFL, IELTS, and SAT Reading & Writing. Also available in the{" "}
+        <Link href="/hints?tool=english" className="font-semibold underline">AI Toolbox · English AI</Link>
+        {" "}tab. Use other Toolbox tabs for AP subjects.
+      </div>
+    )}
+    {embedded && (
+      <div className="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
+        <strong>English-only boundary.</strong> Writing, grammar, vocabulary, TOEFL / IELTS / SAT. Full English hub:{" "}
+        <Link href="/english" className="font-semibold underline">/english</Link>.
+      </div>
+    )}
     <AiApiChannel channel={channel} onChannelChange={setChannel} siteModel={siteModel} onSiteModelChange={setSiteModel} provider={provider} onProviderChange={setProvider} userKey={userKey} onUserKeyChange={setUserKey} />
     <form onSubmit={submit} className="card space-y-4">
       <div className="grid gap-3 sm:grid-cols-2"><label className="text-sm font-medium">Tool<select className="input mt-1" value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}>{modes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label><label className="text-sm font-medium">Target<select className="input mt-1" value={target} onChange={(event) => setTarget(event.target.value)}><option>General academic English</option><option>TOEFL iBT</option><option>IELTS Academic</option><option>SAT Reading & Writing</option><option>School writing</option></select></label></div>

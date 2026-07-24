@@ -17,6 +17,16 @@ const tools = [
     title: "KE Graph",
     blurb: "Open inside AI Toolbox — plot y = f(x) with zoom and trace.",
   },
+  {
+    href: "/hints?tool=imagegen",
+    title: "Image Gen",
+    blurb: "Open inside AI Toolbox — generate study diagrams from a prompt.",
+  },
+  {
+    href: "/hints?tool=english",
+    title: "English AI",
+    blurb: "Open inside AI Toolbox — writing, grammar, vocabulary, test strategy.",
+  },
 ];
 
 export default function ToolsPage() {
@@ -26,11 +36,11 @@ export default function ToolsPage() {
       <section className="space-y-2">
         <h1 className="section-title">Online tools</h1>
         <p className="max-w-2xl text-sm text-slate-600">
-          Calculator and grapher live in the{" "}
+          These tools live in the{" "}
           <Link href="/hints" className="font-medium text-brand-700 underline">
             AI Toolbox
           </Link>
-          . These links jump straight to each tab.
+          . Links jump straight to each tab.
         </p>
       </section>
       <div className="grid gap-4 md:grid-cols-2">

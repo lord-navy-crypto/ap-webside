@@ -15,13 +15,13 @@ const boxes = [
   },
   {
     title: "Academic Platform",
-    description: "Private Learning Box, shared materials, Picture, Image Gen.",
+    description: "Private Learning Box (notes + pictures) and shared materials.",
     href: "/academic",
   },
   {
     title: "AI Toolbox",
     description:
-      "Local AI is the best. We recommend using Local AI — no restrictions. Hint & Process, Concept Explainer, Site Guide, calculator & grapher.",
+      "Local AI first — hints, concepts, Site Guide, calculator, grapher, Image Gen, English AI.",
     href: "/hints",
   },
   {

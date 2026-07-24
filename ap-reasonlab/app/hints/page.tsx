@@ -10,9 +10,10 @@ import RichContent from "@/components/RichContent";
 import TICalculator from "@/components/TICalculator";
 import TIGrapher from "@/components/TIGrapher";
 import ImageGenPanel from "@/components/ImageGenPanel";
+import EnglishAiTutor from "@/components/EnglishAiTutor";
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-client";
 
-type Tool = "hint" | "concept" | "guide" | "calculator" | "grapher" | "imagegen";
+type Tool = "hint" | "concept" | "guide" | "calculator" | "grapher" | "imagegen" | "english";
 
 type HintResult = {
   hints: string[];
@@ -86,7 +87,8 @@ function ToolboxContent() {
       tab === "hint" ||
       tab === "calculator" ||
       tab === "grapher" ||
-      tab === "imagegen"
+      tab === "imagegen" ||
+      tab === "english"
     ) {
       setTool(tab);
     }
@@ -291,6 +293,11 @@ function ToolboxContent() {
       label: "Image Gen",
       blurb: "Generate study diagrams from a prompt; save privately in this browser.",
     },
+    {
+      id: "english",
+      label: "English AI",
+      blurb: "Writing feedback, grammar, vocabulary, TOEFL / IELTS / SAT strategy.",
+    },
   ];
 
   const isAiTool = tool === "hint" || tool === "concept" || tool === "guide";
@@ -345,7 +352,7 @@ function ToolboxContent() {
 
       {isAiTool && <LocalAIControls />}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {tools.map((item) => (
           <button
             key={item.id}
@@ -535,11 +542,32 @@ function ToolboxContent() {
           <div>
             <h2 className="text-xl font-semibold">Image Generation</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Academic diagrams from text prompts. Integrated into the AI Toolbox; images stay private
-              on this device.
+              Academic diagrams from text prompts. Lives in the AI Toolbox; images stay private on
+              this device. Upload your own photos in the{" "}
+              <a href="/learning-box?tab=pictures" className="font-medium text-brand-700 underline">
+                Private Learning Box
+              </a>
+              .
             </p>
           </div>
           <ImageGenPanel embedded />
+        </section>
+      )}
+
+      {tool === "english" && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-xl font-semibold">English AI Tutor</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              English-only coaching — writing, grammar, vocabulary, and test strategy. Also linked
+              from the{" "}
+              <a href="/english/ai" className="font-medium text-brand-700 underline">
+                English hub
+              </a>
+              .
+            </p>
+          </div>
+          <EnglishAiTutor embedded />
         </section>
       )}
 

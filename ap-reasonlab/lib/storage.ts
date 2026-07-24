@@ -1,6 +1,6 @@
 /**
  * Client-side persistence using IndexedDB.
- * Used by /picture, /image-gen, and /learning-box pages.
+ * Used by Private Learning Box pictures and AI Toolbox Image Gen.
  * All data stays in the user's browser — nothing is uploaded to a server.
  */
 

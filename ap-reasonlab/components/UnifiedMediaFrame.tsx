@@ -82,7 +82,7 @@ export default function UnifiedMediaFrame({
           category: "Private image",
         });
       }
-      setPrivateNote("Saved privately in this browser (Learning Box + Picture).");
+      setPrivateNote("Saved privately in this browser (Learning Box).");
       if (fileRef.current) fileRef.current.value = "";
     } catch (caught) {
       setPrivateError(caught instanceof Error ? caught.message : "Private save failed");
@@ -127,9 +127,9 @@ export default function UnifiedMediaFrame({
           <div className="mt-4 rounded-xl border border-violet-200 bg-violet-50/70 p-3">
             <p className="text-sm font-semibold text-violet-950">Private picture (this device)</p>
             <p className="mt-1 text-xs text-violet-900/80">
-              Uploads stay in your browser — Learning Box &amp;{" "}
-              <Link href="/picture" className="underline">
-                Picture
+              Uploads stay in your browser —{" "}
+              <Link href="/learning-box?tab=pictures" className="underline">
+                Private Learning Box · Pictures
               </Link>
               . Not published to the shared site.
             </p>
