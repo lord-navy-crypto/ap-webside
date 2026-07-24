@@ -139,13 +139,150 @@ async function githubGet(
       },
       cache: "no-store",
     });
+    if (res.status === 404) return null;
     if (!res.ok) continue;
     const body = await res.json();
-    if (!body.content || !body.sha) continue;
-    const text = Buffer.from(body.content.replace(/\n/g, ""), "base64").toString("utf8");
-    return { text, sha: body.sha };
+    // Directory listing — not a file.
+    if (Array.isArray(body) || !body?.sha) continue;
+
+    let text = "";
+    if (typeof body.content === "string" && body.content.length > 0) {
+      text = Buffer.from(String(body.content).replace(/\n/g, ""), "base64").toString("utf8");
+    } else if (typeof body.download_url === "string" && body.download_url) {
+      // Files over ~1MB omit inline content; fetch via download_url or git blob.
+      const raw = await fetch(body.download_url, {
+        headers: {
+          ...(auth ? { Authorization: `Bearer ${auth}` } : {}),
+          Accept: "application/vnd.github.raw",
+        },
+        cache: "no-store",
+      });
+      if (raw.ok) text = await raw.text();
+    }
+
+    if (!text && auth) {
+      const blobRes = await fetch(`https://api.github.com/repos/${repo}/git/blobs/${body.sha}`, {
+        headers: {
+          Authorization: `Bearer ${auth}`,
+          Accept: "application/vnd.github+json",
+        },
+        cache: "no-store",
+      });
+      if (blobRes.ok) {
+        const blob = await blobRes.json();
+        if (blob?.encoding === "base64" && typeof blob.content === "string") {
+          text = Buffer.from(String(blob.content).replace(/\n/g, ""), "base64").toString("utf8");
+        }
+      }
+    }
+
+    // Return sha even when text is empty so writers can update existing files.
+    return { text, sha: String(body.sha) };
   }
   return null;
+}
+
+/** Contents API rejects bodies over ~1MB — use Git Data API for large files. */
+const CONTENTS_API_SOFT_LIMIT = 900_000;
+
+async function githubWriteViaGitData(
+  apiPath: string,
+  content: string,
+  message: string,
+  auth: string,
+  repo: string,
+  branch: string
+): Promise<{ ok: true } | { ok: false; status: number; text: string }> {
+  const headers = {
+    Authorization: `Bearer ${auth}`,
+    Accept: "application/vnd.github+json",
+    "Content-Type": "application/json",
+  };
+
+  const refRes = await fetch(`https://api.github.com/repos/${repo}/git/ref/heads/${branch}`, {
+    headers,
+    cache: "no-store",
+  });
+  if (!refRes.ok) {
+    return { ok: false, status: refRes.status, text: await refRes.text() };
+  }
+  const refBody = await refRes.json();
+  const parentCommitSha = String(refBody?.object?.sha || "");
+  if (!parentCommitSha) {
+    return { ok: false, status: 500, text: "Could not resolve branch head commit." };
+  }
+
+  const commitRes = await fetch(`https://api.github.com/repos/${repo}/git/commits/${parentCommitSha}`, {
+    headers,
+    cache: "no-store",
+  });
+  if (!commitRes.ok) {
+    return { ok: false, status: commitRes.status, text: await commitRes.text() };
+  }
+  const commitBody = await commitRes.json();
+  const baseTreeSha = String(commitBody?.tree?.sha || "");
+  if (!baseTreeSha) {
+    return { ok: false, status: 500, text: "Could not resolve base tree." };
+  }
+
+  const blobRes = await fetch(`https://api.github.com/repos/${repo}/git/blobs`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ content, encoding: "utf-8" }),
+  });
+  if (!blobRes.ok) {
+    return { ok: false, status: blobRes.status, text: await blobRes.text() };
+  }
+  const blobBody = await blobRes.json();
+  const blobSha = String(blobBody?.sha || "");
+  if (!blobSha) {
+    return { ok: false, status: 500, text: "Git blob create returned no sha." };
+  }
+
+  const treeRes = await fetch(`https://api.github.com/repos/${repo}/git/trees`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      base_tree: baseTreeSha,
+      tree: [{ path: apiPath, mode: "100644", type: "blob", sha: blobSha }],
+    }),
+  });
+  if (!treeRes.ok) {
+    return { ok: false, status: treeRes.status, text: await treeRes.text() };
+  }
+  const treeBody = await treeRes.json();
+  const treeSha = String(treeBody?.sha || "");
+  if (!treeSha) {
+    return { ok: false, status: 500, text: "Git tree create returned no sha." };
+  }
+
+  const newCommitRes = await fetch(`https://api.github.com/repos/${repo}/git/commits`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      message,
+      tree: treeSha,
+      parents: [parentCommitSha],
+    }),
+  });
+  if (!newCommitRes.ok) {
+    return { ok: false, status: newCommitRes.status, text: await newCommitRes.text() };
+  }
+  const newCommitBody = await newCommitRes.json();
+  const newCommitSha = String(newCommitBody?.sha || "");
+  if (!newCommitSha) {
+    return { ok: false, status: 500, text: "Git commit create returned no sha." };
+  }
+
+  const updateRef = await fetch(`https://api.github.com/repos/${repo}/git/refs/heads/${branch}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ sha: newCommitSha }),
+  });
+  if (!updateRef.ok) {
+    return { ok: false, status: updateRef.status, text: await updateRef.text() };
+  }
+  return { ok: true };
 }
 
 async function githubWrite(
@@ -166,12 +303,30 @@ async function githubWrite(
 
   const apiPath = filePathInRepo.replace(/^\/+/, "");
   const url = `https://api.github.com/repos/${repo}/contents/${apiPath}`;
+  const useGitData = Buffer.byteLength(content, "utf8") > CONTENTS_API_SOFT_LIMIT;
 
   let lastStatus = 0;
   let lastText = "";
 
   for (const auth of candidates) {
+    if (useGitData) {
+      const viaData = await githubWriteViaGitData(apiPath, content, message, auth, repo, branch);
+      if (viaData.ok) return { ok: true };
+      lastStatus = viaData.status;
+      lastText = viaData.text;
+      if (viaData.status !== 401) break;
+      continue;
+    }
+
     const existing = await githubGet(apiPath, auth);
+    const payload: Record<string, unknown> = {
+      message,
+      content: Buffer.from(content, "utf8").toString("base64"),
+      branch,
+    };
+    // Updating an existing file REQUIRES sha. Creating a new file must omit it.
+    if (existing?.sha) payload.sha = existing.sha;
+
     const putRes = await fetch(url, {
       method: "PUT",
       headers: {
@@ -179,17 +334,25 @@ async function githubWrite(
         Accept: "application/vnd.github+json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        message,
-        content: Buffer.from(content, "utf8").toString("base64"),
-        branch,
-        sha: existing?.sha,
-      }),
+      body: JSON.stringify(payload),
     });
     if (putRes.ok) return { ok: true };
     lastStatus = putRes.status;
     lastText = await putRes.text();
-    // Try next candidate on bad credentials; stop on other errors (403/422/…)
+
+    // Retry once via Git Data if Contents API rejects for size/sha quirks.
+    if (
+      putRes.status === 422 &&
+      (/sha/i.test(lastText) || /too large|1 mb|1mb/i.test(lastText))
+    ) {
+      const viaData = await githubWriteViaGitData(apiPath, content, message, auth, repo, branch);
+      if (viaData.ok) return { ok: true };
+      lastStatus = viaData.status;
+      lastText = viaData.text;
+      if (viaData.status !== 401) break;
+      continue;
+    }
+
     if (putRes.status !== 401) break;
   }
 
@@ -200,6 +363,9 @@ async function githubWrite(
   } else if (lastStatus === 403) {
     hint =
       " Token was accepted but lacks write access. Fine-grained PAT: repo ap-webside + Contents: Read and write. Classic PAT: repo scope.";
+  } else if (lastStatus === 422 && /sha/i.test(lastText)) {
+    hint =
+      " File already exists on GitHub but its sha could not be read (often when managed-content.json is over 1MB). Retry after redeploy; large saves now use the Git Data API.";
   }
   return {
     ok: false,
@@ -209,7 +375,7 @@ async function githubWrite(
 
 export async function loadManagedContent(token?: string): Promise<ManagedContent> {
   const fromGh = await githubGet(MANAGED_CONTENT_REPO_PATH, token);
-  if (fromGh) {
+  if (fromGh?.text) {
     try {
       return normalizeManagedContent(JSON.parse(fromGh.text) as ManagedContent);
     } catch {
@@ -225,7 +391,7 @@ export async function loadManagedContentAtRef(
 ): Promise<ManagedContent | null> {
   if (!/^[a-f0-9]{40}$/i.test(ref)) return null;
   const fromGithub = await githubGet(MANAGED_CONTENT_REPO_PATH, token, ref);
-  if (!fromGithub) return null;
+  if (!fromGithub?.text) return null;
   try {
     return normalizeManagedContent(JSON.parse(fromGithub.text) as ManagedContent);
   } catch {
@@ -304,7 +470,7 @@ export async function saveManagedContent(
 
 export async function loadUsers(token?: string): Promise<UsersFile> {
   const fromGh = await githubGet("ap-reasonlab/data/users.json", token);
-  if (fromGh) {
+  if (fromGh?.text) {
     try {
       return JSON.parse(fromGh.text) as UsersFile;
     } catch {
