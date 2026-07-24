@@ -4,7 +4,7 @@
  */
 
 import { ROOT_SPACE, apSubjectHref } from "@/lib/storage-space";
-import { getSubjectBySlug } from "@/data/ap-catalog";
+import { AP_CATALOG, getSubjectBySlug } from "@/data/ap-catalog";
 
 export type MediaAlsoShow = Array<
   "concept" | "topic" | "formula" | "document" | "member" | "folder" | "subject" | "questionnaire"
@@ -246,6 +246,16 @@ export function resolvePageMediaContext(
   };
 }
 
+/** Every built-in AP subject as its own page folder under Macintosh HD → AP. */
+export function apSubjectPageFolders(): SitePageFolder[] {
+  return AP_CATALOG.map((subject) => ({
+    area: "ap-subject",
+    space: subject.name,
+    label: subject.shortName,
+    href: `/ap/${subject.slug}`,
+  }));
+}
+
 /** Dynamic AP subject page folders derived from uploaded content + known areas. */
 export function collectDynamicPageFolders(
   files: Array<{ area?: string; space?: string }>,
@@ -253,7 +263,10 @@ export function collectDynamicPageFolders(
   managedFolders: Array<{ area?: string; space?: string; title?: string; id?: string }>
 ): SitePageFolder[] {
   const known = new Set(
-    SITE_SECTION_FOLDERS.flatMap((s) => s.pages.map((p) => `${p.area}::${p.space}`))
+    [
+      ...SITE_SECTION_FOLDERS.flatMap((s) => s.pages.map((p) => `${p.area}::${p.space}`)),
+      ...apSubjectPageFolders().map((p) => `${p.area}::${p.space}`),
+    ]
   );
   const extra: SitePageFolder[] = [];
   const seen = new Set<string>();
@@ -265,6 +278,15 @@ export function collectDynamicPageFolders(
     if (known.has(key) || seen.has(key)) return;
     // Skip root placeholders already covered
     if (a === "ap-subject" && sp !== ROOT_SPACE) {
+      // Prefer catalog name/slug aliases so we don't duplicate subject folders
+      const hit =
+        AP_CATALOG.find((s) => s.name === sp) ||
+        AP_CATALOG.find((s) => s.slug === sp) ||
+        AP_CATALOG.find((s) => s.shortName === sp);
+      if (hit) {
+        const catalogKey = `${a}::${hit.name}`;
+        if (known.has(catalogKey) || seen.has(catalogKey)) return;
+      }
       seen.add(key);
       extra.push({
         area: a,

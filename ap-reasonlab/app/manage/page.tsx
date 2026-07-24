@@ -249,11 +249,12 @@ export default function ManagePage() {
       {tab === "files" && (
         <section className="space-y-3">
           <div>
-            <h2 className="section-title">Mac site Finder</h2>
+            <h2 className="section-title">Knowledge Explorer · Macintosh HD</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Whole-website file system (like a Mac desktop). Open a big section folder (AP, English,
-              Academic, Tools…), then a webpage folder, to see that page’s uploaded pictures,
-              documents, and files — the same storage as the in-page media panel on each webpage.
+              Full-site editing desk. Open a section (AP, English, Academic…), then a webpage
+              folder — including every AP subject. Inside each folder you can view, add, edit, and
+              delete concepts, formulas, practice, documents, images, and files. Deleted items go to
+              the Recycle Bin on the desktop.
             </p>
           </div>
           <MacFinderDesktop

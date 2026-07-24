@@ -307,6 +307,48 @@ export async function POST(req: NextRequest) {
       if (!target) return NextResponse.json({ error: "Content item not found" }, { status: 404 });
       delete target.deletedAt;
       target.updatedAt = Date.now();
+    } else if (action === "restore_recycle") {
+      const entryId = String(body.id || "");
+      const entry = (current.recycleBin || []).find((item) => item.id === entryId);
+      if (!entry) return NextResponse.json({ error: "Recycle item not found" }, { status: 404 });
+      const payload = entry.payload as Record<string, unknown>;
+      if (entry.target === "file") current.files.unshift(payload as never);
+      else if (entry.target === "document") current.documents.unshift(payload as never);
+      else if (entry.target === "folder") current.folders.unshift(payload as never);
+      else if (entry.target === "concept" || entry.target === "topic") {
+        current.concepts.unshift(payload as never);
+        if (entry.target === "topic") {
+          current.topics.unshift({
+            id: String(payload.id),
+            title: String(payload.title || ""),
+            subject: String(payload.subject || ""),
+            summary: String(payload.summary || ""),
+            createdAt: Date.now(),
+          });
+        }
+      } else if (entry.target === "formula") current.formulas.unshift(payload as never);
+      else if (entry.target === "questionnaire") current.questionnaires.unshift(payload as never);
+      else if (entry.target === "member") current.members.unshift(payload as never);
+      else if (entry.target === "content_item") {
+        const item = current.contentItems.find((c) => c.id === String(payload.id || ""));
+        if (item) delete item.deletedAt;
+        else current.contentItems.unshift(payload as never);
+      }
+      current.recycleBin = (current.recycleBin || []).filter((item) => item.id !== entryId);
+    } else if (action === "purge_recycle") {
+      const entryId = String(body.id || "");
+      if (!entryId) {
+        current.recycleBin = [];
+      } else {
+        current.recycleBin = (current.recycleBin || []).filter((item) => item.id !== entryId);
+      }
+    } else if (action === "purge_content_item") {
+      const id = String(body.id || "");
+      current.contentItems = current.contentItems.filter((item) => item.id !== id);
+      current.recycleBin = (current.recycleBin || []).filter((entry) => {
+        const payload = entry.payload as { id?: string };
+        return !(entry.target === "content_item" && payload?.id === id);
+      });
     } else if (action === "move_content_item") {
       const target = current.contentItems.find((item) => item.id === String(body.id || ""));
       if (!target) return NextResponse.json({ error: "Content item not found" }, { status: 404 });
@@ -515,27 +557,68 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
+      if (!current.recycleBin) current.recycleBin = [];
+      const pushRecycle = (entryTarget: typeof current.recycleBin[number]["target"], label: string, payload: unknown) => {
+        current.recycleBin.unshift({
+          id: uid("recycle"),
+          target: entryTarget,
+          label,
+          deletedAt: Date.now(),
+          payload,
+        });
+      };
       if (target === "content_item") {
         const item = current.contentItems.find((entry) => entry.id === id);
         if (item) {
           item.deletedAt = Date.now();
           item.updatedAt = Date.now();
+          pushRecycle("content_item", item.title, { ...item });
         }
-      } else if (target === "concept") {
-        current.concepts = current.concepts.filter((c) => c.id !== id);
-        current.topics = current.topics.filter((t) => t.id !== id);
-      } else if (target === "topic") {
-        current.topics = current.topics.filter((t) => t.id !== id);
-        current.concepts = current.concepts.filter((c) => c.id !== id);
-      } else if (target === "formula") current.formulas = current.formulas.filter((f) => f.id !== id);
-      else if (target === "document") current.documents = current.documents.filter((d) => d.id !== id);
-      else if (target === "file") current.files = current.files.filter((f) => f.id !== id);
-      else if (target === "member") current.members = current.members.filter((m) => m.id !== id);
-      else if (target === "folder") current.folders = current.folders.filter((f) => f.id !== id);
-      else if (target === "subject") {
+      } else if (target === "concept" || target === "topic") {
+        const found = current.concepts.find((c) => c.id === id);
+        if (found) {
+          pushRecycle(target === "topic" ? "topic" : "concept", found.title, found);
+          current.concepts = current.concepts.filter((c) => c.id !== id);
+          current.topics = current.topics.filter((t) => t.id !== id);
+        }
+      } else if (target === "formula") {
+        const found = current.formulas.find((f) => f.id === id);
+        if (found) {
+          pushRecycle("formula", found.name, found);
+          current.formulas = current.formulas.filter((f) => f.id !== id);
+        }
+      } else if (target === "document") {
+        const found = current.documents.find((d) => d.id === id);
+        if (found) {
+          pushRecycle("document", found.title, found);
+          current.documents = current.documents.filter((d) => d.id !== id);
+        }
+      } else if (target === "file") {
+        const found = current.files.find((f) => f.id === id);
+        if (found) {
+          pushRecycle("file", found.name, found);
+          current.files = current.files.filter((f) => f.id !== id);
+        }
+      } else if (target === "member") {
+        const found = current.members.find((m) => m.id === id);
+        if (found) {
+          pushRecycle("member", found.name, found);
+          current.members = current.members.filter((m) => m.id !== id);
+        }
+      } else if (target === "folder") {
+        const found = current.folders.find((f) => f.id === id);
+        if (found) {
+          pushRecycle("folder", found.title, found);
+          current.folders = current.folders.filter((f) => f.id !== id);
+        }
+      } else if (target === "subject") {
         current.subjects = current.subjects.filter((s) => s.id !== id && s.name !== id && s.slug !== id);
       } else if (target === "questionnaire") {
-        current.questionnaires = current.questionnaires.filter((q) => q.id !== id);
+        const found = current.questionnaires.find((q) => q.id === id);
+        if (found) {
+          pushRecycle("questionnaire", found.title, found);
+          current.questionnaires = current.questionnaires.filter((q) => q.id !== id);
+        }
       } else if (target === "forum_post") current.forumPosts = current.forumPosts.filter((post) => post.id !== id);
       else if (target === "forum_reply") {
         const post = current.forumPosts.find((entry) => entry.id === String(body.postId || ""));
