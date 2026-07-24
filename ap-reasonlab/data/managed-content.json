@@ -8,6 +8,15 @@
       "keyPoints": [],
       "commonMistakes": [],
       "example": ""
+    },
+    {
+      "id": "m-concept-mrytg9kz-ibnem",
+      "title": "Gauss’s law",
+      "subject": "AP Physics C: E&M",
+      "summary": "# Gauss’s Law — AP Physics C: Electricity and Magnetism\n\nGauss’s law is included in the electric-fields unit of AP Physics C: Electricity and Magnetism. It connects the total electric flux through a closed surface with the net electric charge enclosed by that surface.\n\n## 1. Electric flux\n\nElectric flux measures the amount of electric field passing through a surface.\n\nFor a small surface element, the area vector is defined as\n\n$d\\vec{A}=\\hat{n},dA$\n\nThe vector $d\\vec{A}$ is perpendicular to the surface. For a closed surface, it always points outward.\n\nFor a flat surface of area $A$ placed in a uniform electric field,\n\n$\\Phi_E=\\vec{E}\\cdot\\vec{A}=EA\\cos\\theta$\n\nwhere $\\theta$ is the angle between the electric-field vector $\\vec{E}$ and the area vector $\\vec{A}$.\n\nFor a general open surface,\n\n$\\Phi_E=\\int_S\\vec{E}\\cdot d\\vec{A}$\n\nFor a closed surface,\n\n$\\Phi_E=\\oint_S\\vec{E}\\cdot d\\vec{A}$\n\nThe circle on the integral sign indicates that the surface is closed.\n\nFor each part of a closed surface:\n\n- the flux is positive when the electric field points outward;\n- the flux is negative when the electric field points inward;\n- the flux is zero when the electric field is tangent to the surface.\n\nThe SI unit of electric flux is\n\n$\\mathrm{N,m^2/C}$\n\nElectric flux is a scalar quantity, even though it is calculated using the electric-field vector.\n\n## 2. Gauss’s law\n\nGauss’s law states that the total electric flux through any closed surface equals the net charge enclosed by that surface divided by the permittivity of free space:\n\n$\\oint_S\\vec{E}\\cdot d\\vec{A}=\\frac{Q_{\\mathrm{enc}}}{\\varepsilon_0}$\n\nHere,\n\n- $Q_{\\mathrm{enc}}$ is the algebraic sum of all charges inside the Gaussian surface;\n- $\\varepsilon_0$ is the permittivity of free space.\n\nIts approximate value is\n\n$\\varepsilon_0\\approx8.85\\times10^{-12}\\ \\mathrm{C^2/(N,m^2)}$\n\nThe enclosed charge may be calculated from linear, surface, or volume charge density:\n\n$Q=\\int\\lambda,d\\ell,\\qquad Q=\\int\\sigma,dA,\\qquad Q=\\int\\rho,dV$\n\nHere,\n\n- $\\lambda$ is linear charge density, measured in $\\mathrm{C/m}$;\n- $\\sigma$ is surface charge density, measured in $\\mathrm{C/m^2}$;\n- $\\rho$ is volume charge density, measured in $\\mathrm{C/m^3}$.\n\nGauss’s law is always valid for every closed surface, regardless of the shape of the surface or the arrangement of charge.\n\nHowever, it is only easy to use for calculating the electric field when the charge distribution has sufficient symmetry.\n\n### Differential form\n\nGauss’s law can also be written in differential form:\n\n$\\nabla\\cdot\\vec{E}=\\frac{\\rho}{\\varepsilon_0}$\n\nThis equation means that electric charge is the source of electric field.\n\nPositive charge acts as a source from which electric-field lines emerge, while negative charge acts as a sink toward which electric-field lines converge.\n\nThe differential form is part of Maxwell’s equations, but AP Physics C problems usually use the integral form.\n\n## 3. What Gauss’s law does and does not say\n\nGauss’s law relates the **net electric flux** through a closed surface to the **net enclosed charge**.\n\nIt does not say that the electric field at each point depends only on the enclosed charge.\n\nCharges outside a Gaussian surface may affect the electric field at every point on the surface. However, their total contribution to the net flux through the entire closed surface is zero.\n\nTherefore,\n\n$Q_{\\mathrm{enc}}=0\\quad\\Longrightarrow\\quad\\Phi_E=0$\n\nHowever, this does not necessarily mean\n\n$\\vec{E}=0$\n\nFor example, suppose a closed box is placed in a uniform external electric field. The field enters one side of the box and leaves the opposite side. The incoming and outgoing fluxes cancel, so the net flux is zero even though the electric field is not zero.\n\nSimilarly,\n\n$\\Phi_E=0$\n\ndoes not necessarily mean that no charges are inside the surface.\n\nThere may be both positive and negative charges inside whose algebraic sum is zero.\n\nTherefore:\n\n- zero enclosed charge means zero net flux;\n- zero net flux does not necessarily mean zero electric field;\n- zero net flux does not necessarily mean no charge is present.\n\n## 4. Choosing a Gaussian surface\n\nA Gaussian surface is an imaginary three-dimensional closed surface used to apply Gauss’s law.\n\nIt does not have to correspond to the surface of a real physical object.\n\nA useful Gaussian surface should satisfy as many of the following conditions as possible:\n\n1. The electric field has the same magnitude over a large part of the surface.\n2. The electric field is parallel or antiparallel to the area vector on surfaces where the flux is nonzero.\n3. The electric field is perpendicular to the area vector on surfaces where the flux is zero.\n4. The enclosed charge can be calculated easily.\n5. The Gaussian surface follows the symmetry of the charge distribution.\n\nThe three most important types of symmetry are:\n\n| Charge distribution | Symmetry | Useful Gaussian surface |\n| --- | --- | --- |\n| Point charge, spherical shell, uniform sphere | Spherical symmetry | Sphere |\n| Infinite line charge, infinite cylinder | Cylindrical symmetry | Coaxial cylinder |\n| Infinite sheet, infinite slab | Planar symmetry | Pillbox |\n\nA Gaussian surface may always be drawn, but Gauss’s law cannot always be simplified enough to solve for $E$.\n\nFor example, Gauss’s law is valid for a cube surrounding a point charge. However, if the charge is not positioned symmetrically, the electric field is not constant over the faces of the cube. Therefore, the flux integral cannot simply be written as $EA$.\n\n## 5. Spherical symmetry\n\nFor a spherically symmetric charge distribution, the electric field must point radially.\n\nIts magnitude depends only on the distance $r$ from the center.\n\nChoose a spherical Gaussian surface of radius $r$.\n\nBecause $\\vec{E}$ is parallel to the outward area vector at every point,\n\n$\\oint_S\\vec{E}\\cdot d\\vec{A}=E(r)\\oint_S dA$\n\nThe surface area of a sphere is\n\n$4\\pi r^2$\n\nTherefore,\n\n$\\oint_S\\vec{E}\\cdot d\\vec{A}=E(r)(4\\pi r^2)$\n\nUsing Gauss’s law,\n\n$E(r)(4\\pi r^2)=\\frac{Q_{\\mathrm{enc}}(r)}{\\varepsilon_0}$\n\nThus,\n\n$\\vec{E}(r)=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q_{\\mathrm{enc}}(r)}{r^2}\\hat{r}$\n\nThis equation may be used directly only when the charge distribution is spherically symmetric.\n\nThe sign of the enclosed charge determines the direction:\n\n- if $Q_{\\mathrm{enc}}>0$, the field points outward;\n- if $Q_{\\mathrm{enc}}<0$, the field points inward.\n\n### Uniform thin spherical shell\n\nConsider a uniformly charged thin spherical shell with total charge $Q$ and radius $R$.\n\n#### Outside the shell: $r>R$\n\nThe Gaussian surface encloses the entire charge:\n\n$Q_{\\mathrm{enc}}=Q$\n\nTherefore,\n\n$\\vec{E}(r)=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q}{r^2}\\hat{r}$\n\nThe shell produces the same external electric field as a point charge $Q$ placed at its center.\n\n#### Inside the shell: $r<R$\n\nThe Gaussian surface encloses no charge:\n\n$Q_{\\mathrm{enc}}=0$\n\nBecause of spherical symmetry, the electric field has the same magnitude everywhere on the Gaussian surface.\n\nGauss’s law gives\n\n$E(4\\pi r^2)=0$\n\nTherefore,\n\n$\\vec{E}=0$\n\nThe complete result is\n\n$\\vec{E}(r)=\\begin{cases}0,&r<R,\\[6pt]\\dfrac{1}{4\\pi\\varepsilon_0}\\dfrac{Q}{r^2}\\hat{r},&r>R.\\end{cases}$\n\nThe electric field is zero at every point inside a uniformly charged spherical shell, not only at the center.\n\nFor an ideal infinitely thin charged shell, the normal component of the electric field changes discontinuously at the surface:\n\n$E_{\\perp,\\mathrm{out}}-E_{\\perp,\\mathrm{in}}=\\frac{\\sigma}{\\varepsilon_0}$\n\nFor the spherical shell,\n\n$\\sigma=\\frac{Q}{4\\pi R^2}$\n\nSince the electric field inside is zero,\n\n$E_{\\mathrm{in}}=0$\n\nso immediately outside the shell,\n\n$E_{\\mathrm{out}}=\\frac{\\sigma}{\\varepsilon_0}=\\frac{Q}{4\\pi\\varepsilon_0R^2}$\n\n### Uniform solid insulating sphere\n\nConsider a uniformly charged insulating sphere with radius $R$ and total charge $Q$.\n\nIts volume charge density is\n\n$\\rho=\\frac{Q}{\\frac{4}{3}\\pi R^3}=\\frac{3Q}{4\\pi R^3}$\n\nFor a point inside the sphere, where $r<R$, the enclosed charge is\n\n$Q_{\\mathrm{enc}}(r)=\\rho\\left(\\frac{4}{3}\\pi r^3\\right)$\n\nSubstituting the density,\n\n$Q_{\\mathrm{enc}}(r)=Q\\frac{r^3}{R^3}$\n\nUsing Gauss’s law,\n\n$E(r)=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q_{\\mathrm{enc}}(r)}{r^2}$\n\nTherefore,\n\n$E(r)=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Qr}{R^3}$\n\nThe complete electric field is\n\n$\\vec{E}(r)=\\begin{cases}\\dfrac{1}{4\\pi\\varepsilon_0}\\dfrac{Qr}{R^3}\\hat{r},&r<R,\\[8pt]\\dfrac{1}{4\\pi\\varepsilon_0}\\dfrac{Q}{r^2}\\hat{r},&r\\geq R.\\end{cases}$\n\nFor a uniform solid insulating sphere, the electric field is:\n\n- zero at the center;\n- proportional to $r$ inside the sphere;\n- largest at the surface;\n- proportional to $1/r^2$ outside the sphere.\n\nA solid insulating sphere is different from a conducting sphere.\n\nAn insulator may contain charge throughout its volume, so the electric field inside it may be nonzero.\n\n### Uniform thick spherical shell\n\nConsider a uniformly charged nonconducting thick spherical shell with inner radius $a$, outer radius $b$, and volume charge density $\\rho$.\n\n#### Region 1: $r<a$\n\nThe Gaussian surface encloses no charge:\n\n$Q_{\\mathrm{enc}}=0$\n\nTherefore,\n\n$\\vec{E}=0$\n\n#### Region 2: $a<r<b$\n\nThe enclosed charged volume is\n\n$V_{\\mathrm{enc}}=\\frac{4}{3}\\pi(r^3-a^3)$\n\nThus,\n\n$Q_{\\mathrm{enc}}=\\frac{4}{3}\\pi\\rho(r^3-a^3)$\n\nGauss’s law gives\n\n$E(4\\pi r^2)=\\frac{\\frac{4}{3}\\pi\\rho(r^3-a^3)}{\\varepsilon_0}$\n\nTherefore,\n\n$\\vec{E}(r)=\\frac{\\rho}{3\\varepsilon_0}\\left(r-\\frac{a^3}{r^2}\\right)\\hat{r}$\n\n#### Region 3: $r>b$\n\nThe total charge of the shell is\n\n$Q=\\frac{4}{3}\\pi\\rho(b^3-a^3)$\n\nTherefore,\n\n$\\vec{E}(r)=\\frac{\\rho(b^3-a^3)}{3\\varepsilon_0r^2}\\hat{r}$\n\nThe complete result is\n\n$\\vec{E}(r)=\\begin{cases}0,&r<a,\\[8pt]\\dfrac{\\rho}{3\\varepsilon_0}\\left(r-\\dfrac{a^3}{r^2}\\right)\\hat{r},&a<r<b,\\[10pt]\\dfrac{\\rho(b^3-a^3)}{3\\varepsilon_0r^2}\\hat{r},&r>b.\\end{cases}$\n\n## 6. Cylindrical symmetry\n\nCylindrical symmetry applies to idealized infinitely long line charges and infinitely long uniformly charged cylinders.\n\nThe electric field points radially away from or toward the central axis.\n\nIts magnitude depends only on the perpendicular distance $r$ from the axis.\n\nChoose a cylindrical Gaussian surface with radius $r$ and length $L$.\n\nThe curved surface area is\n\n$A_{\\mathrm{curved}}=2\\pi rL$\n\nThe electric field is perpendicular to the curved surface and parallel to the two end caps.\n\nTherefore, the flux through the end caps is zero.\n\nOnly the curved surface contributes to the total flux:\n\n$\\Phi_E=E(2\\pi rL)$\n\n### Infinite line of charge\n\nConsider an infinitely long line with uniform linear charge density $\\lambda$.\n\nThe enclosed charge is\n\n$Q_{\\mathrm{enc}}=\\lambda L$\n\nGauss’s law gives\n\n$E(2\\pi rL)=\\frac{\\lambda L}{\\varepsilon_0}$\n\nThe arbitrary length $L$ cancels:\n\n$\\vec{E}(r)=\\frac{\\lambda}{2\\pi\\varepsilon_0r}\\hat{r}$\n\nThe electric field of an infinite line charge decreases according to\n\n$E\\propto\\frac{1}{r}$\n\nThis differs from the field of a point charge, which decreases according to $1/r^2$.\n\nThe difference occurs because the flux of a line charge spreads over a cylindrical area proportional to $r$, rather than a spherical area proportional to $r^2$.\n\n### Uniform solid insulating cylinder\n\nConsider an infinitely long insulating cylinder with radius $R$ and uniform volume charge density $\\rho$.\n\n#### Inside the cylinder: $r<R$\n\nThe enclosed charge is\n\n$Q_{\\mathrm{enc}}=\\rho\\pi r^2L$\n\nGauss’s law gives\n\n$E(2\\pi rL)=\\frac{\\rho\\pi r^2L}{\\varepsilon_0}$\n\nTherefore,\n\n$\\vec{E}(r)=\\frac{\\rho r}{2\\varepsilon_0}\\hat{r}$\n\n#### Outside the cylinder: $r\\geq R$\n\nThe enclosed charge is\n\n$Q_{\\mathrm{enc}}=\\rho\\pi R^2L$\n\nTherefore,\n\n$E(2\\pi rL)=\\frac{\\rho\\pi R^2L}{\\varepsilon_0}$\n\nThus,\n\n$\\vec{E}(r)=\\frac{\\rho R^2}{2\\varepsilon_0r}\\hat{r}$\n\nThe complete result is\n\n$\\vec{E}(r)=\\begin{cases}\\dfrac{\\rho r}{2\\varepsilon_0}\\hat{r},&r<R,\\[8pt]\\dfrac{\\rho R^2}{2\\varepsilon_0r}\\hat{r},&r\\geq R.\\end{cases}$\n\nInside the uniformly charged solid cylinder, the field increases linearly with $r$.\n\nOutside the cylinder, it decreases according to $1/r$.\n\n## 7. Planar symmetry\n\nPlanar symmetry applies to idealized infinite sheets and infinite slabs of charge.\n\nThe electric field must be perpendicular to the plane.\n\nIts magnitude cannot depend on position parallel to the plane because every point on an infinite uniform plane is equivalent.\n\nA short cylindrical Gaussian surface called a pillbox is normally used.\n\n### Infinite nonconducting sheet\n\nConsider an infinite nonconducting sheet with uniform surface charge density $\\sigma$.\n\nThe electric field has equal magnitude on both sides of the sheet.\n\nThe curved side of the pillbox contributes no flux because the electric field is parallel to that surface.\n\nEach flat face contributes $EA$, so the total flux is\n\n$\\Phi_E=2EA$\n\nThe enclosed charge is\n\n$Q_{\\mathrm{enc}}=\\sigma A$\n\nGauss’s law gives\n\n$2EA=\\frac{\\sigma A}{\\varepsilon_0}$\n\nTherefore,\n\n$E=\\frac{|\\sigma|}{2\\varepsilon_0}$\n\nFor a positively charged sheet, the electric field points away from the sheet.\n\nFor a negatively charged sheet, it points toward the sheet.\n\nIf the sheet lies in the plane $x=0$, the field may be written as\n\n$\\vec{E}(x)=\\frac{\\sigma}{2\\varepsilon_0}\\operatorname{sgn}(x)\\hat{x}$\n\nThe electric field of an ideal infinite sheet does not decrease with distance.\n\nThis occurs because increasing the size of the Gaussian pillbox increases both the enclosed charge and the flux area by the same factor.\n\n### Surface of a conductor\n\nFor a conductor in electrostatic equilibrium,\n\n$\\vec{E}_{\\mathrm{inside}}=0$\n\nUse a thin Gaussian pillbox crossing the surface of the conductor.\n\nGauss’s law gives the boundary condition\n\n$E_{\\perp,\\mathrm{out}}-E_{\\perp,\\mathrm{in}}=\\frac{\\sigma}{\\varepsilon_0}$\n\nBecause the field inside the conductor is zero,\n\n$E_{\\perp,\\mathrm{in}}=0$\n\nTherefore, immediately outside the conductor,\n\n$\\vec{E}_{\\mathrm{out}}=\\frac{\\sigma}{\\varepsilon_0}\\hat{n}$\n\nThis is different from the field of an isolated infinite nonconducting sheet:\n\n$E_{\\mathrm{sheet}}=\\frac{\\sigma}{2\\varepsilon_0}$\n\nFor the isolated nonconducting sheet, equal electric fields exist on both sides.\n\nFor the conductor, the electric field inside the conducting material must be zero, so the entire flux appears on the outside.\n\n### Two oppositely charged infinite sheets\n\nConsider two infinite sheets with surface charge densities $+\\sigma$ and $-\\sigma$.\n\nEach individual sheet produces a field of magnitude\n\n$\\frac{\\sigma}{2\\varepsilon_0}$\n\nUsing superposition:\n\n- outside the two sheets, the fields point in opposite directions and cancel;\n- between the sheets, the fields point in the same direction and add.\n\nTherefore,\n\n$E=\\begin{cases}0,&\\text{outside the sheets},\\[6pt]\\dfrac{\\sigma}{\\varepsilon_0},&\\text{between the sheets}.\\end{cases}$\n\nThe electric field between the sheets points from the positive sheet toward the negative sheet.\n\nThis is the idealized electric field between two large parallel capacitor plates when edge effects are neglected.\n\n### Uniform infinite slab\n\nConsider an infinite slab extending from $x=-a$ to $x=a$, with uniform volume charge density $\\rho$.\n\n#### Inside the slab: $|x|<a$\n\nChoose a symmetric pillbox extending from $-x$ to $+x$.\n\nThe enclosed volume is\n\n$V_{\\mathrm{enc}}=2xA$\n\nTherefore,\n\n$Q_{\\mathrm{enc}}=2\\rho xA$\n\nThe total flux through the two faces is\n\n$\\Phi_E=2EA$\n\nGauss’s law gives\n\n$2EA=\\frac{2\\rho xA}{\\varepsilon_0}$\n\nTherefore,\n\n$\\vec{E}(x)=\\frac{\\rho x}{\\varepsilon_0}\\hat{x}$\n\n#### Outside the slab: $|x|\\geq a$\n\nThe Gaussian surface encloses the full thickness $2a$:\n\n$Q_{\\mathrm{enc}}=2\\rho aA$\n\nTherefore,\n\n$2EA=\\frac{2\\rho aA}{\\varepsilon_0}$\n\nThus,\n\n$E=\\frac{\\rho a}{\\varepsilon_0}$\n\nThe complete result is\n\n$\\vec{E}(x)=\\begin{cases}\\dfrac{\\rho x}{\\varepsilon_0}\\hat{x},&|x|<a,\\[8pt]\\dfrac{\\rho a}{\\varepsilon_0}\\operatorname{sgn}(x)\\hat{x},&|x|\\geq a.\\end{cases}$\n\nInside the slab, the electric field increases linearly with the distance from the center.\n\nOutside the slab, the field has constant magnitude.\n\n## 8. Conductors in electrostatic equilibrium\n\nA conductor is in electrostatic equilibrium when its free charges are no longer moving macroscopically.\n\nThe main properties of a conductor in electrostatic equilibrium are:\n\n1. The electric field inside the conducting material is zero.\n2. Any excess net charge lies on the surface.\n3. The entire conductor is at the same electric potential.\n4. The electric field immediately outside the conductor is perpendicular to the surface.\n5. The tangential component of the electric field at the surface is zero.\n6. The electric field immediately outside is related to the local surface charge density by $E_\\perp=\\sigma/\\varepsilon_0$.\n\nThe electric field inside a conductor must be zero because free charges would otherwise accelerate.\n\nIf the charges were moving, the conductor would not be in electrostatic equilibrium.\n\n### Charge inside a conducting cavity\n\nSuppose a point charge $q$ is placed inside a cavity within a conductor.\n\nChoose a Gaussian surface entirely within the conducting material and surrounding the cavity.\n\nBecause the electric field inside the conducting material is zero,\n\n$\\oint\\vec{E}\\cdot d\\vec{A}=0$\n\nTherefore,\n\n$Q_{\\mathrm{enc}}=0$\n\nThe enclosed charge consists of the charge $q$ and the induced charge $Q_{\\mathrm{inner}}$ on the inner wall:\n\n$q+Q_{\\mathrm{inner}}=0$\n\nThus,\n\n$Q_{\\mathrm{inner}}=-q$\n\nIf the conductor originally has total charge $Q_{\\mathrm{conductor}}$, then the charge remaining on the outer surface is\n\n$Q_{\\mathrm{outer}}=Q_{\\mathrm{conductor}}+q$\n\nThe total induced charge on the cavity wall is always $-q$.\n\nHowever, the charge density on the cavity wall is not necessarily uniform unless the geometry and charge placement have sufficient symmetry.\n\n## 9. Electric potential connection\n\nElectric field and electric potential are related by\n\n$\\vec{E}=-\\nabla V$\n\nFor a one-dimensional radial situation,\n\n$E_r=-\\frac{dV}{dr}$\n\nA zero electric field means that the electric potential is constant in space.\n\nIt does not mean that the electric potential must equal zero.\n\n### Potential of a uniformly charged spherical shell\n\nTake the electric potential to be zero at infinity:\n\n$V(\\infty)=0$\n\nFor a uniformly charged spherical shell with total charge $Q$ and radius $R$:\n\n#### Outside the shell: $r\\geq R$\n\nThe potential is the same as that of a point charge:\n\n$V(r)=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q}{r}$\n\n#### Inside the shell: $r<R$\n\nThe electric field is zero, so the potential is constant.\n\nThe constant value must equal the potential at the surface:\n\n$V(r)=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q}{R}$\n\nTherefore,\n\n$V(r)=\\begin{cases}\\dfrac{1}{4\\pi\\varepsilon_0}\\dfrac{Q}{R},&r<R,\\[10pt]\\dfrac{1}{4\\pi\\varepsilon_0}\\dfrac{Q}{r},&r\\geq R.\\end{cases}$\n\nInside the shell,\n\n$\\vec{E}=0$\n\nbut\n\n$V=\\frac{Q}{4\\pi\\varepsilon_0R}$\n\nis generally not zero.\n\nThe potential is continuous at the surface, even though the electric field of an ideal thin shell changes discontinuously there.\n\nFor a test charge $q$,\n\n$U=qV$\n\nIf the test charge moves between two points inside the shell,\n\n$\\Delta V=0$\n\nTherefore,\n\n$\\Delta U=q\\Delta V=0$\n\nSince\n\n$W_{\\mathrm{electric}}=-\\Delta U$\n\nthe electric force does no net work:\n\n$W_{\\mathrm{electric}}=0$\n\n## 10. General Gauss’s-law calculation procedure\n\n### Step 1: Identify the symmetry\n\nDetermine whether the charge distribution has:\n\n- spherical symmetry;\n- cylindrical symmetry;\n- planar symmetry;\n- insufficient symmetry.\n\nDo not choose a Gaussian surface simply because the physical object looks round or regular.\n\nThe charge distribution itself must have the required symmetry.\n\n### Step 2: Choose the Gaussian surface\n\nChoose a closed surface on which:\n\n- $E$ is constant wherever the flux is nonzero;\n- $\\vec{E}$ is parallel or antiparallel to $d\\vec{A}$;\n- or $\\vec{E}$ is perpendicular to $d\\vec{A}$, so that part contributes zero flux.\n\n### Step 3: Calculate the electric flux\n\nStart with\n\n$\\oint_S\\vec{E}\\cdot d\\vec{A}$\n\nUse symmetry to simplify it.\n\nFor spherical symmetry,\n\n$\\oint_S\\vec{E}\\cdot d\\vec{A}=E(4\\pi r^2)$\n\nFor cylindrical symmetry,\n\n$\\oint_S\\vec{E}\\cdot d\\vec{A}=E(2\\pi rL)$\n\nFor a pillbox crossing an infinite nonconducting sheet,\n\n$\\oint_S\\vec{E}\\cdot d\\vec{A}=2EA$\n\n### Step 4: Find the enclosed charge\n\nCalculate only the charge inside the chosen Gaussian surface.\n\nFor a volume distribution,\n\n$Q_{\\mathrm{enc}}=\\int\\rho,dV$\n\nFor a surface distribution,\n\n$Q_{\\mathrm{enc}}=\\int\\sigma,dA$\n\nFor a line distribution,\n\n$Q_{\\mathrm{enc}}=\\int\\lambda,d\\ell$\n\n### Step 5: Apply Gauss’s law\n\nUse\n\n$\\oint_S\\vec{E}\\cdot d\\vec{A}=\\frac{Q_{\\mathrm{enc}}}{\\varepsilon_0}$\n\n### Step 6: State the direction\n\nThe calculation often gives only the magnitude.\n\nThe final answer should state whether the field points:\n\n- outward or inward;\n- away from or toward an axis;\n- above or below a plane;\n- from positive charge toward negative charge.\n\n## 11. Key AP Physics points\n\n### Gauss’s law is always valid but not always useful for finding $E$\n\nGauss’s law applies to every closed surface.\n\nHowever, without enough symmetry, the electric-field magnitude cannot be taken outside the flux integral.\n\n### Use net enclosed charge\n\nOnly charges inside the Gaussian surface contribute to $Q_{\\mathrm{enc}}$.\n\nCharges outside the surface are not included in the right side of Gauss’s law.\n\n### External charges may still affect the electric field\n\nExternal charges may create a nonzero electric field at points on the Gaussian surface.\n\nTheir net contribution to the total flux is zero, but their local field is not necessarily zero.\n\n### The Gaussian surface must be closed\n\nGauss’s law cannot be directly applied to a single disk, one face of a cube, or another open surface.\n\n### The Gaussian surface is imaginary\n\nIt does not need to coincide with the surface of a physical object.\n\n### Flux is not the same as electric field\n\nElectric flux depends on:\n\n- electric-field magnitude;\n- surface area;\n- orientation;\n- whether the field points inward or outward.\n\n### Zero net flux does not mean zero electric field\n\nA nonzero field may enter and leave a closed surface with equal total flux.\n\n### Zero net flux does not mean there are no enclosed charges\n\nThe enclosed positive and negative charges may add to zero.\n\n### Use enclosed charge inside an insulator\n\nInside a uniformly charged solid object, use only the charge within the Gaussian radius.\n\nDo not automatically use the total charge of the object.\n\n### The field inside a conductor is zero only in electrostatic equilibrium\n\nA conductor carrying a changing current or experiencing time-dependent electromagnetic effects may not satisfy the simple electrostatic result.\n\n### Distinguish conductors from insulators\n\nA conductor allows charges to move freely and places excess charge on its surface in electrostatic equilibrium.\n\nAn insulator may retain charge throughout its volume.\n\n### Distinguish an infinite sheet from a conducting surface\n\nFor an isolated infinite nonconducting sheet,\n\n$E=\\frac{\\sigma}{2\\varepsilon_0}$\n\nImmediately outside a conductor,\n\n$E=\\frac{\\sigma}{\\varepsilon_0}$\n\n## 12. Common mistakes\n\n| Mistake | Correct idea |\n| --- | --- |\n| Gauss’s law works only for spherical objects | It is valid for every closed surface |\n| If $Q_{\\mathrm{enc}}=0$, then $\\vec{E}=0$ | Only the net flux must be zero |\n| External charges should be included in $Q_{\\mathrm{enc}}$ | Include only charges inside the surface |\n| External charges have no effect | They can affect the local field but not the net enclosed-charge term |\n| Total charge should always be used inside a solid insulator | Use only the enclosed charge |\n| A Gaussian surface is a real physical surface | It is an imaginary mathematical surface |\n| Gauss’s law can be applied directly to an open surface | The surface must be closed |\n| Flux is always $EA$ | In general, use $\\vec{E}\\cdot\\vec{A}=EA\\cos\\theta$ |\n| A symmetric Gaussian surface guarantees that $E$ is constant | The charge distribution must also have symmetry |\n| Spherical $r$ is measured from the surface | It is measured from the center |\n| Cylindrical $r$ is measured from the end | It is measured perpendicular to the axis |\n| The field outside a conductor is $\\sigma/(2\\varepsilon_0)$ | Immediately outside a conductor, it is $\\sigma/\\varepsilon_0$ |\n| The field inside every charged sphere is zero | This is not true for a charged solid insulator |\n| Electric flux is a vector | Electric flux is a scalar |\n| Zero field means zero potential | Zero field means constant potential |\n\n## 13. Examples\n\n### Example 1: Point charge inside a closed surface\n\nA point charge $q$ is placed anywhere inside a closed surface.\n\nGauss’s law gives\n\n$\\Phi_E=\\oint_S\\vec{E}\\cdot d\\vec{A}=\\frac{q}{\\varepsilon_0}$\n\nThe total flux does not depend on:\n\n- the size of the surface;\n- the shape of the surface;\n- the position of the charge inside the surface.\n\nHowever, if the charge is off-center, the flux is not distributed uniformly over the surface.\n\nIf the charge is at the exact center of a cube, symmetry requires the flux to be divided equally among the six faces:\n\n$\\Phi_{\\mathrm{face}}=\\frac{1}{6}\\Phi_{\\mathrm{total}}$\n\nTherefore,\n\n$\\Phi_{\\mathrm{face}}=\\frac{q}{6\\varepsilon_0}$\n\nIf the charge is not at the center, the total flux is still $q/\\varepsilon_0$, but the six faces do not receive equal flux.\n\n### Example 2: Inside a uniform solid sphere\n\nA uniform insulating sphere has radius $R$ and total charge $Q$.\n\nFind the electric field at\n\n$r=\\frac{R}{2}$\n\nThe enclosed charge is\n\n$Q_{\\mathrm{enc}}=Q\\left(\\frac{r}{R}\\right)^3$\n\nSubstituting $r=R/2$,\n\n$Q_{\\mathrm{enc}}=Q\\left(\\frac{1}{2}\\right)^3=\\frac{Q}{8}$\n\nGauss’s law gives\n\n$E=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q_{\\mathrm{enc}}}{r^2}$\n\nTherefore,\n\n$E\\left(\\frac{R}{2}\\right)=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q/8}{(R/2)^2}$\n\nSince\n\n$\\left(\\frac{R}{2}\\right)^2=\\frac{R^2}{4}$\n\nwe obtain\n\n$E\\left(\\frac{R}{2}\\right)=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q}{2R^2}$\n\nThe field at the surface is\n\n$E_{\\mathrm{surface}}=\\frac{1}{4\\pi\\varepsilon_0}\\frac{Q}{R^2}$\n\nTherefore,\n\n$E\\left(\\frac{R}{2}\\right)=\\frac{1}{2}E_{\\mathrm{surface}}$\n\nA common mistake is to predict that the field is four times larger because the distance is halved.\n\nThat reasoning fails because the enclosed charge also decreases.\n\n### Example 3: Infinite line of charge\n\nAn infinitely long wire has uniform linear charge density $\\lambda$.\n\nFind the electric field a perpendicular distance $r$ from the wire.\n\nChoose a cylindrical Gaussian surface with radius $r$ and length $L$.\n\nThe flux through the end caps is zero.\n\nThe flux through the curved surface is\n\n$\\Phi_E=E(2\\pi rL)$\n\nThe enclosed charge is\n\n$Q_{\\mathrm{enc}}=\\lambda L$\n\nUsing Gauss’s law,\n\n$E(2\\pi rL)=\\frac{\\lambda L}{\\varepsilon_0}$\n\nCanceling $L$ gives\n\n$\\vec{E}(r)=\\frac{\\lambda}{2\\pi\\varepsilon_0r}\\hat{r}$\n\nFor positive $\\lambda$, the field points away from the wire.\n\nFor negative $\\lambda$, it points toward the wire.\n\n### Example 4: Electric flux with no enclosed charge\n\nA cube is placed in a uniform electric field and contains no charge.\n\nAssume that the field enters one face and leaves the opposite face.\n\nThe incoming flux is\n\n$\\Phi_{\\mathrm{in}}=-EA$\n\nThe outgoing flux is\n\n$\\Phi_{\\mathrm{out}}=+EA$\n\nThe field is parallel to the other four faces, so those faces contribute zero flux.\n\nTherefore,\n\n$\\Phi_{\\mathrm{net}}=-EA+EA=0$\n\nGauss’s law confirms the result:\n\n$\\Phi_{\\mathrm{net}}=\\frac{Q_{\\mathrm{enc}}}{\\varepsilon_0}=0$\n\nThe electric field is not zero, but the net electric flux is zero.\n\n### Example 5: Uniform thick spherical shell\n\nA uniformly charged insulating thick shell has inner radius $a$, outer radius $b$, and volume charge density $\\rho$.\n\nFind the electric field within the material, where\n\n$a<r<b$\n\nThe enclosed volume is\n\n$V_{\\mathrm{enc}}=\\frac{4}{3}\\pi r^3-\\frac{4}{3}\\pi a^3$\n\nTherefore,\n\n$V_{\\mathrm{enc}}=\\frac{4}{3}\\pi(r^3-a^3)$\n\nThe enclosed charge is\n\n$Q_{\\mathrm{enc}}=\\frac{4}{3}\\pi\\rho(r^3-a^3)$\n\nGauss’s law gives\n\n$E(4\\pi r^2)=\\frac{\\frac{4}{3}\\pi\\rho(r^3-a^3)}{\\varepsilon_0}$\n\nTherefore,\n\n$\\vec{E}(r)=\\frac{\\rho}{3\\varepsilon_0}\\left(r-\\frac{a^3}{r^2}\\right)\\hat{r}$\n\nAt $r=a$, the field approaches zero.\n\nAt $r=b$, the internal expression matches the external field calculated using the shell’s total charge.\n\n## 14. Comparison of the three principal symmetries\n\n| Symmetry | Gaussian area carrying flux | Typical external field dependence |\n| --- | --- | --- |\n| Spherical | $4\\pi r^2$ | $E\\propto1/r^2$ |\n| Cylindrical | $2\\pi rL$ | $E\\propto1/r$ |\n| Planar | $2A$ | $E$ is independent of distance |\n\nThe different distance dependences come from how electric flux spreads through space.\n\nFor spherical symmetry, the flux spreads over an area proportional to $r^2$:\n\n$A_{\\mathrm{sphere}}=4\\pi r^2$\n\nTherefore,\n\n$E\\propto\\frac{1}{r^2}$\n\nFor cylindrical symmetry, the flux spreads over an area proportional to $r$:\n\n$A_{\\mathrm{cylinder}}=2\\pi rL$\n\nTherefore,\n\n$E\\propto\\frac{1}{r}$\n\nFor an infinite plane, the relevant Gaussian area does not increase with distance from the plane.\n\nTherefore, the field remains constant.\n\n## One-sentence summary\n\nGauss’s law states that the net electric flux through any closed surface equals the net enclosed charge divided by $\\varepsilon_0$; it is most useful for calculating electric fields when spherical, cylindrical, or planar symmetry makes the flux integral easy to evaluate.\n\nThe fundamental equation is\n\n$\\boxed{\\oint_S\\vec{E}\\cdot d\\vec{A}=\\frac{Q_{\\mathrm{enc}}}{\\varepsilon_0}}$\n\nThe most important practical principle is:\n\n> Gauss’s law is always valid, but solving directly for the electric field requires sufficient symmetry.",
+      "keyPoints": [],
+      "commonMistakes": [],
+      "example": ""
     }
   ],
   "formulas": [],
@@ -187,6 +196,18 @@
   "folders": [],
   "subjects": [
     {
+      "id": "subject-physics-1",
+      "slug": "physics-1",
+      "name": "AP Physics 1",
+      "shortName": "Physics 1",
+      "description": "Algebra-based mechanics, energy, momentum, rotation, oscillations, and fluids.",
+      "icon": "⚛",
+      "color": "blue",
+      "order": 0,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
       "id": "subject-statistics",
       "slug": "statistics",
       "name": "AP Statistics",
@@ -195,6 +216,222 @@
       "icon": "∫",
       "color": "blue",
       "order": 0,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-physics-2",
+      "slug": "physics-2",
+      "name": "AP Physics 2",
+      "shortName": "Physics 2",
+      "description": "Thermodynamics, fluids, waves, optics, and modern physics without the site's EM extension.",
+      "icon": "⚛",
+      "color": "violet",
+      "order": 1,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-physics-c-mechanics",
+      "slug": "physics-c-mechanics",
+      "name": "AP Physics C: Mechanics",
+      "shortName": "Physics C: Mechanics",
+      "description": "Calculus-based mechanics and mathematical modeling.",
+      "icon": "⚛",
+      "color": "emerald",
+      "order": 2,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-physics-c-e-and-m",
+      "slug": "physics-c-e-and-m",
+      "name": "AP Physics C: E&M",
+      "shortName": "Physics C: E&M",
+      "description": "Calculus-based electricity and magnetism.",
+      "icon": "⚛",
+      "color": "amber",
+      "order": 3,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-calculus-ab-bc",
+      "slug": "calculus-ab-bc",
+      "name": "AP Calculus AB/BC",
+      "shortName": "Calculus AB/BC",
+      "description": "Limits, derivatives, integrals, differential equations, and BC series.",
+      "icon": "∫",
+      "color": "blue",
+      "order": 4,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-chemistry",
+      "slug": "chemistry",
+      "name": "AP Chemistry",
+      "shortName": "Chemistry",
+      "description": "Atomic structure, reactions, kinetics, equilibrium, and thermodynamics.",
+      "icon": "⚗",
+      "color": "emerald",
+      "order": 6,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-biology",
+      "slug": "biology",
+      "name": "AP Biology",
+      "shortName": "Biology",
+      "description": "Cells, genetics, evolution, energetics, and ecological systems.",
+      "icon": "◉",
+      "color": "amber",
+      "order": 7,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-psychology",
+      "slug": "psychology",
+      "name": "AP Psychology",
+      "shortName": "Psychology",
+      "description": "Research methods, cognition, behavior, development, and mental processes.",
+      "icon": "◇",
+      "color": "blue",
+      "order": 8,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-computer-science-a",
+      "slug": "computer-science-a",
+      "name": "AP Computer Science A",
+      "shortName": "Computer Science A",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP Computer Science A.",
+      "icon": "⌘",
+      "color": "violet",
+      "order": 9,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-computer-science-principles",
+      "slug": "computer-science-principles",
+      "name": "AP Computer Science Principles",
+      "shortName": "Computer Science Principles",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP Computer Science Principles.",
+      "icon": "⌘",
+      "color": "emerald",
+      "order": 10,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-microeconomics",
+      "slug": "microeconomics",
+      "name": "AP Microeconomics",
+      "shortName": "Microeconomics",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP Microeconomics.",
+      "icon": "◇",
+      "color": "amber",
+      "order": 11,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-macroeconomics",
+      "slug": "macroeconomics",
+      "name": "AP Macroeconomics",
+      "shortName": "Macroeconomics",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP Macroeconomics.",
+      "icon": "◇",
+      "color": "blue",
+      "order": 12,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-us-history",
+      "slug": "us-history",
+      "name": "AP US History",
+      "shortName": "US History",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP US History.",
+      "icon": "◎",
+      "color": "violet",
+      "order": 13,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-world-history",
+      "slug": "world-history",
+      "name": "AP World History",
+      "shortName": "World History",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP World History.",
+      "icon": "◎",
+      "color": "emerald",
+      "order": 14,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-european-history",
+      "slug": "european-history",
+      "name": "AP European History",
+      "shortName": "European History",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP European History.",
+      "icon": "◎",
+      "color": "amber",
+      "order": 15,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-english-language",
+      "slug": "english-language",
+      "name": "AP English Language",
+      "shortName": "English Language",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP English Language.",
+      "icon": "Aa",
+      "color": "blue",
+      "order": 16,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-english-literature",
+      "slug": "english-literature",
+      "name": "AP English Literature",
+      "shortName": "English Literature",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP English Literature.",
+      "icon": "Aa",
+      "color": "violet",
+      "order": 17,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-environmental-science",
+      "slug": "environmental-science",
+      "name": "AP Environmental Science",
+      "shortName": "Environmental Science",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP Environmental Science.",
+      "icon": "◉",
+      "color": "emerald",
+      "order": 18,
+      "enabled": true,
+      "createdAt": 0
+    },
+    {
+      "id": "subject-human-geography",
+      "slug": "human-geography",
+      "name": "AP Human Geography",
+      "shortName": "Human Geography",
+      "description": "Concepts, formulas, practice, documents, and study tools for AP Human Geography.",
+      "icon": "◎",
+      "color": "amber",
+      "order": 19,
       "enabled": true,
       "createdAt": 0
     }
@@ -220,8 +457,9 @@
   ],
   "questionnaires": [],
   "topics": [],
+  "recycleBin": [],
   "settings": {
     "advancedDefault": true
   },
-  "updatedAt": 1784872547828
+  "updatedAt": 1784890050948
 }
