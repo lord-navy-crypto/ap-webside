@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import EthicsBanner from "@/components/EthicsBanner";
 import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import LocalAIControls from "@/components/LocalAIControls";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { useLocalAI } from "@/components/LocalAIProvider";
 import RichContent from "@/components/RichContent";
 import TICalculator from "@/components/TICalculator";
@@ -330,6 +331,14 @@ function ToolboxContent() {
       </div>
 
       <EthicsBanner />
+
+      <UnifiedMediaFrame
+        title="AI Toolbox · Files & pictures"
+        folderArea="hints"
+        spaceKey="_root"
+        collapsedByDefault
+        enablePrivateImages
+      />
 
       {isAiTool && <LocalAIControls />}
 

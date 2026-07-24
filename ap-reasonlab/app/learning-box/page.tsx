@@ -6,6 +6,7 @@ import {
   deleteLearningItem,
   getLearningItems,
   getRandomLearningItem,
+  saveImage,
   saveLearningItem,
   type LearningBoxItem,
 } from "@/lib/storage";
@@ -100,6 +101,41 @@ export default function LearningBoxPage() {
     }
   }
 
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setError("");
+    try {
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) continue;
+        if (file.size > 4_500_000) throw new Error("Keep images under ~4 MB.");
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => reject(new Error("Could not read image"));
+          reader.readAsDataURL(file);
+        });
+        const name = file.name.replace(/\.[^.]+$/, "") || "Picture";
+        await saveImage({
+          kind: "uploaded",
+          name,
+          dataUrl,
+          note: "Private Learning Box",
+          tags: ["learning-box"],
+        });
+        await saveLearningItem({
+          title: name,
+          content: dataUrl,
+          category: "Private image",
+        });
+      }
+      await refresh();
+      e.target.value = "";
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Image upload failed");
+    }
+  }
+
   function startEdit(item: LearningBoxItem) {
     setEditingId(item.id);
     setTitle(item.title);
@@ -138,9 +174,7 @@ export default function LearningBoxPage() {
         <h1 className="text-3xl font-bold">Private Learning Box</h1>
         <p className="mt-2 text-slate-600">
           Your private folder stored only in this browser on this device—no change code required.
-          Store your own study notes, summaries, and self-developed learning materials.
-          Upload text files (.txt, .md) or paste content. Use Random Draw for spaced review
-          of knowledge that is not tied to the AP curriculum.
+          Store notes, summaries, text files, and private pictures. Use Random Draw for spaced review.
         </p>
         <Link href="/academic" className="mt-2 inline-block text-sm text-brand-600 hover:underline">
           ← Academic Platform
@@ -216,6 +250,19 @@ export default function LearningBoxPage() {
                 Text files are stored in this browser. PDF binary upload can be added later.
               </p>
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Or upload private pictures</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-600 file:px-4 file:py-2 file:text-white hover:file:bg-violet-700"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Pictures stay private in this browser (also appear under Picture).
+              </p>
+            </div>
             <div className="flex flex-wrap gap-3">
               <button type="submit" className="btn-primary">
                 {editingId ? "Update" : "Save to box"}
@@ -246,7 +293,16 @@ export default function LearningBoxPage() {
                       <span className="badge">{item.category}</span>
                     </div>
                     <div className="max-h-72 overflow-y-auto overscroll-contain rounded-lg bg-slate-50 p-3">
-                      <RichContent className="text-sm text-slate-700">{item.content}</RichContent>
+                      {item.content.startsWith("data:image") ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.content}
+                          alt={item.title}
+                          className="mx-auto max-h-64 rounded-lg object-contain"
+                        />
+                      ) : (
+                        <RichContent className="text-sm text-slate-700">{item.content}</RichContent>
+                      )}
                     </div>
                     <div className="flex gap-3 text-xs">
                       <button

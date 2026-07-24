@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import RichContent from "@/components/RichContent";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
-import UploadAndShow from "@/components/UploadAndShow";
+import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import ResourceEditor from "@/components/ResourceEditor";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import { concepts } from "@/data/content";
@@ -230,6 +230,24 @@ function SubjectWorkspaceContent() {
         ))}
       </section>
 
+      <section id="media-frame" className="space-y-3 scroll-mt-24">
+        <div>
+          <h2 className="section-title">Files &amp; pictures</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Mac-style scrollable frame for this AP subject — upload documents, pictures, and files.
+            Shared uploads need a content code; private pictures stay in your Learning Box.
+          </p>
+        </div>
+        <UnifiedMediaFrame
+          title={`${subject.shortName} · Files & pictures`}
+          folderArea="ap-subject"
+          spaceKey={params.subject}
+          defaultSubject={subjectName}
+          collapsedByDefault={false}
+          enablePrivateImages
+        />
+      </section>
+
       <section id="units" className="space-y-3">
         <h2 className="section-title">Units</h2>
         {units.length ? (
@@ -341,13 +359,13 @@ function SubjectWorkspaceContent() {
             Upload only officially released, public-domain, original, or authorized material. Link to restricted exams instead of redistributing them.
           </p>
         </div>
-        <UploadAndShow
-          alsoShow={["document"]}
-          defaultSubject={subjectName}
+        <UnifiedMediaFrame
+          title={`${subject.shortName} · Exam archive`}
           folderArea="past-papers"
           spaceKey={params.subject}
-          title={`${subject.shortName} exam archive`}
+          defaultSubject={subjectName}
           collapsedByDefault
+          enablePrivateImages
         />
       </section>
 
