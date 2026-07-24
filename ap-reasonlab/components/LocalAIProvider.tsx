@@ -17,15 +17,11 @@ import type {
 import type { AiProvider, SiteModelChoice } from "@/lib/ai-site-models";
 import { parseSiteModelChoice } from "@/lib/ai-site-models";
 import {
+  isInsideOpenThinkBlock,
   isReasoningLocalModel,
   REASONING_MODEL_DIRECT_ANSWER,
   stripReasoningTrace,
 } from "@/lib/ai-reasoning-strip";
-
-/** Older local ids we no longer offer (migrate selection away). */
-const RETIRED_LOCAL_MODEL_IDS = new Set([
-  "DeepSeek-R1-Distill-Qwen-7B-q4f16_1-MLC",
-]);
 
 /**
  * Shared AI path for every tool:
@@ -284,8 +280,17 @@ const LOCAL_MODELS: LocalModelOption[] = [
     vramMB: 5107,
     cached: null,
   },
-  // DeepSeek-R1 Distill removed: dumps long <think> traces, often freezes the UI,
-  // and rarely returns a clean study answer. Prefer Qwen / Llama instruct models.
+  {
+    id: "DeepSeek-R1-Distill-Qwen-7B-q4f16_1-MLC",
+    label: "DeepSeek-R1 Distill Heavy",
+    group: "heavy",
+    summary:
+      "Reasoning distill — thinks privately first; the site hides <think> and shows only the final answer.",
+    bestFor: "Hard multi-step problems when you can wait through a short reasoning phase",
+    parameterSize: "7B",
+    vramMB: 5107,
+    cached: null,
+  },
 ];
 
 async function detectWebGPU(): Promise<boolean> {
@@ -330,13 +335,7 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(MODE_KEY, savedMode);
     }
     const savedModel = localStorage.getItem(MODEL_KEY);
-    if (savedModel && RETIRED_LOCAL_MODEL_IDS.has(savedModel)) {
-      setSelectedModelIdState(DEFAULT_MODEL_ID);
-      localStorage.setItem(MODEL_KEY, DEFAULT_MODEL_ID);
-      setStatusText(
-        "DeepSeek-R1 Distill was removed (it flooded the UI with thinking). Pick Qwen or Llama instead."
-      );
-    } else if (LOCAL_MODELS.some((item) => item.id === savedModel)) {
+    if (LOCAL_MODELS.some((item) => item.id === savedModel)) {
       setSelectedModelIdState(String(savedModel));
     }
     const savedSiteModel = parseSiteModelChoice(localStorage.getItem(SITE_MODEL_KEY));
@@ -401,11 +400,6 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
 
       const run = (async () => {
         const targetModelId = requestedModelId || selectedModelId;
-        if (RETIRED_LOCAL_MODEL_IDS.has(targetModelId)) {
-          throw new Error(
-            "DeepSeek-R1 Distill was removed because it dumps long thinking and freezes the UI. Choose Qwen or Llama instead."
-          );
-        }
         if (!LOCAL_MODELS.some((item) => item.id === targetModelId)) {
           throw new Error("Select a valid local model first.");
         }
@@ -561,29 +555,43 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
         const modelId = loadedModelRef.current || selectedModelId;
         const reasoningModel = isReasoningLocalModel(modelId);
         const requestMessages: ChatCompletionMessageParam[] = reasoningModel
-          ? [
-              { role: "system", content: REASONING_MODEL_DIRECT_ANSWER },
-              ...messages,
-            ]
+          ? [{ role: "system", content: REASONING_MODEL_DIRECT_ANSWER }, ...messages]
           : messages;
+
+        if (reasoningModel) {
+          setStatusText("DeepSeek is reasoning privately… the final answer will appear next.");
+        }
 
         const stream = await engine.chat.completions.create({
           messages: requestMessages,
           stream: true,
-          temperature: reasoningModel ? 0.3 : 0.5,
-          // Reasoning distill models can dump endless CoT — hard cap keeps the UI usable.
-          ...(reasoningModel ? { max_tokens: 900 } : {}),
+          temperature: reasoningModel ? 0.4 : 0.5,
+          // R1 spends many tokens inside <think>; keep enough budget for the answer after.
+          ...(reasoningModel ? { max_tokens: 2800 } : {}),
         });
         let raw = "";
         let visible = "";
+        let announcedAnswer = false;
         for await (const chunk of stream) {
           const token = chunk.choices[0]?.delta?.content ?? "";
           raw += token;
           visible = stripReasoningTrace(raw);
-          // Only push visible answer text so the UI is not filled with <think> dumps.
+          if (reasoningModel && isInsideOpenThinkBlock(raw)) {
+            setStatusText("DeepSeek is reasoning privately… the final answer will appear next.");
+          } else if (reasoningModel && visible && !announcedAnswer) {
+            announcedAnswer = true;
+            setStatusText("Final answer ready — reasoning hidden.");
+          }
+          // Push only the stripped answer so the UI never fills with <think> dumps.
           onToken?.(token, visible);
         }
-        return stripReasoningTrace(raw);
+        const cleaned = stripReasoningTrace(raw);
+        if (reasoningModel && !cleaned) {
+          throw new Error(
+            "DeepSeek-R1 only produced hidden thinking and no final answer. Try again, shorten the prompt, or use Qwen / Llama."
+          );
+        }
+        return cleaned;
       } catch (caught) {
         const message = caught instanceof Error ? caught.message : "Local generation failed.";
         setStatus("error");
