@@ -4,6 +4,7 @@ import {
   parseSiteModelChoice,
   runChatJson,
 } from "@/lib/ai-client";
+import { appendAiSiteContext, buildServerAiSiteContext } from "@/lib/ai-site-context-server";
 import { getContentEditorLevel, getGithubTokenFromCookie } from "@/lib/auth";
 import { canEditContent } from "@/lib/change-codes";
 import {
@@ -70,13 +71,19 @@ export async function POST(req: NextRequest) {
       const result = await runChatJson({
         system:
           "You are Knowledge Explorer AI Developer, a content-only website manager assistant. Preserve facts, valid Markdown, Unicode, and LaTeX. Never propose or output secrets, authentication changes, API keys, payment code, database migrations, deployment configuration, or arbitrary server-file edits. Return JSON with proposal and summary. The proposal must contain only the replacement content, not commentary.",
-        user: `Operation: ${action}
+        user: appendAiSiteContext(
+          `Operation: ${action}
 Additional instruction: ${instruction || "(none)"}
 
 SOURCE:
 ${source}
 
 Return {"proposal":"...","summary":"one short description of the proposed change"}.`,
+          await buildServerAiSiteContext(
+            `${action}\n${instruction}\n${source.slice(0, 2_000)}`,
+            body.siteSearch !== false
+          )
+        ),
         maxTokens: 1_200,
         userApiKey: String(body.userApiKey || "").trim() || undefined,
         provider: parseAiProvider(body.provider),

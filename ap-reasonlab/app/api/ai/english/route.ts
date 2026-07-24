@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asStringList, parseAiProvider, parseSiteModelChoice, runChatJson } from "@/lib/ai-client";
 import { ENGLISH_TUTOR_SYSTEM } from "@/lib/ai-prompts";
+import { appendAiSiteContext, buildServerAiSiteContext } from "@/lib/ai-site-context-server";
 
 function isClearlyOutsideEnglishScope(input: string, mode: string): boolean {
   if (mode === "writing-feedback" || mode === "grammar-explanation") return false;
@@ -49,7 +50,17 @@ export async function POST(req: NextRequest) {
 
     const user = `Mode: ${mode}\nTarget: ${target}\n\nStudent input:\n${input}\n\nReturn the required English Tutor JSON.`;
     try {
-      const result = await runChatJson({ system: ENGLISH_TUTOR_SYSTEM, user, maxTokens: 900, userApiKey: userApiKey || undefined, provider, siteModel });
+      const siteSearch = body.siteSearch !== false;
+      const siteContext = await buildServerAiSiteContext(`${mode}\n${target}\n${input}`, siteSearch);
+      const userWithSite = appendAiSiteContext(user, siteContext);
+      const result = await runChatJson({
+        system: ENGLISH_TUTOR_SYSTEM,
+        user: userWithSite,
+        maxTokens: 900,
+        userApiKey: userApiKey || undefined,
+        provider,
+        siteModel,
+      });
       const data = result.data;
       return NextResponse.json({
         refused: Boolean(data.refused),

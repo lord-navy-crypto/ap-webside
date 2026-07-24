@@ -6,6 +6,7 @@ import LocalAIControls from "@/components/LocalAIControls";
 import RichContent from "@/components/RichContent";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
 import { useLocalAI } from "@/components/LocalAIProvider";
+import { appendAiSiteContext, fetchAiSiteContext } from "@/lib/ai-site-context";
 
 type Props = {
   defaultSubject?: string;
@@ -54,6 +55,8 @@ export default function ConceptAskAi({
             "Local is selected, but no model is enabled. Enable Local above, or switch to Website API / Your own API."
           );
         }
+        const localPrompt = `Subject: ${defaultSubject}\nConcept: ${conceptTitle}\nSummary: ${conceptSummary}\nMode: ${nextMode}\nQuestion: ${askText}`;
+        const { context } = await fetchAiSiteContext(localPrompt, localAI.siteSearchEnabled);
         const text = await localAI.complete([
           {
             role: "system",
@@ -62,7 +65,7 @@ export default function ConceptAskAi({
           },
           {
             role: "user",
-            content: `Subject: ${defaultSubject}\nConcept: ${conceptTitle}\nSummary: ${conceptSummary}\nMode: ${nextMode}\nQuestion: ${askText}`,
+            content: appendAiSiteContext(localPrompt, context),
           },
         ]);
         setResult({
@@ -70,7 +73,7 @@ export default function ConceptAskAi({
           reply: text,
           quizPrompt: "",
           aiMayBeWrong: "Local AI may be wrong — verify with your notes.",
-          note: "Local · processed in this browser",
+          note: context ? "Local · with Knowledge Explorer site search" : "Local · processed in this browser",
         });
         return;
       }

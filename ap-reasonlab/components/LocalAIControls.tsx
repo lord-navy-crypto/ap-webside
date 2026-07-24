@@ -134,6 +134,22 @@ export default function LocalAIControls() {
             </button>
           ))}
         </div>
+        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={localAI.siteSearchEnabled}
+            onChange={(event) => localAI.setSiteSearchEnabled(event.target.checked)}
+          />
+          <span>
+            <span className="font-semibold text-slate-900">Always search Knowledge Explorer</span>
+            <span className="mt-0.5 block text-xs text-slate-500">
+              Before answering, look up matching concepts/formulas/practice on this site and pass
+              them to the AI. Free to search — only a little extra prompt size if matches exist. Not
+              Google / open-web search.
+            </span>
+          </span>
+        </label>
       </div>
 
       {localAI.mode === "site" && (

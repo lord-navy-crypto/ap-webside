@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseAiProvider, parseSiteModelChoice, runChatJson } from "@/lib/ai-client";
 import { SITE_GUIDE_FACTS, SITE_GUIDE_SYSTEM } from "@/lib/ai-prompts";
+import { appendAiSiteContext, buildServerAiSiteContext } from "@/lib/ai-site-context-server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,9 +27,14 @@ ${question}
 Return JSON with refused, reply, aiMayBeWrong.`;
 
     try {
+      // Site Guide already embeds SITE_GUIDE_FACTS; still allow concept/formula hits when relevant.
+      const siteSearch = body.siteSearch !== false;
+      const siteContext = await buildServerAiSiteContext(question, siteSearch);
+      const userWithSite = appendAiSiteContext(user, siteContext);
+
       const result = await runChatJson({
         system: SITE_GUIDE_SYSTEM,
-        user,
+        user: userWithSite,
         maxTokens: 500,
         userApiKey: userApiKey || undefined,
         provider,

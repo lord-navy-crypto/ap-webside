@@ -6,6 +6,7 @@ import LocalAIControls from "@/components/LocalAIControls";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
 import RichContent from "@/components/RichContent";
 import { useLocalAI } from "@/components/LocalAIProvider";
+import { appendAiSiteContext, fetchAiSiteContext } from "@/lib/ai-site-context";
 
 type Result = {
   refused: boolean;
@@ -53,6 +54,8 @@ export default function EnglishAiTutor({ embedded = false, hideChannelUi = false
             "Local is selected, but no model is enabled. Enable Local above, or switch to Website API / Your own API."
           );
         }
+        const localPrompt = `Mode: ${mode}\nTarget: ${target}\n\nStudent input:\n${input}`;
+        const { context } = await fetchAiSiteContext(localPrompt, localAI.siteSearchEnabled);
         const text = await localAI.complete([
           {
             role: "system",
@@ -61,7 +64,7 @@ export default function EnglishAiTutor({ embedded = false, hideChannelUi = false
           },
           {
             role: "user",
-            content: `Mode: ${mode}\nTarget: ${target}\n\nStudent input:\n${input}`,
+            content: appendAiSiteContext(localPrompt, context),
           },
         ]);
         setResult({
@@ -72,7 +75,7 @@ export default function EnglishAiTutor({ embedded = false, hideChannelUi = false
           revisionExample: "",
           practicePrompt: "",
           aiMayBeWrong: "Local AI language advice may be wrong — verify important points.",
-          note: "Local AI · processed in this browser",
+          note: context ? "Local AI · with Knowledge Explorer site search" : "Local AI · processed in this browser",
         });
         return;
       }

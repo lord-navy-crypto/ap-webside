@@ -13,6 +13,7 @@ import TIGrapher from "@/components/TIGrapher";
 import ImageGenPanel from "@/components/ImageGenPanel";
 import EnglishAiTutor from "@/components/EnglishAiTutor";
 import CodingAiPanel from "@/components/CodingAiPanel";
+import { appendAiSiteContext, fetchAiSiteContext } from "@/lib/ai-site-context";
 
 type Tool =
   | "hint"
@@ -117,16 +118,21 @@ function ToolboxContent() {
       );
     }
 
+    const { context } = await fetchAiSiteContext(prompt, localAI.siteSearchEnabled);
+    const promptWithSite = appendAiSiteContext(prompt, context);
+
     setTextResult({
       refused: false,
       reply: "Starting local response…",
       aiMayBeWrong: "Small local models can miss facts and instructions. Verify important details.",
-      note: "Local AI · processed in this browser",
+      note: context
+        ? "Local AI · processed in this browser · with Knowledge Explorer site search"
+        : "Local AI · processed in this browser",
     });
     await localAI.complete(
       [
         { role: "system", content: system },
-        { role: "user", content: prompt },
+        { role: "user", content: promptWithSite },
       ],
       (_token, fullText) =>
         setTextResult({
@@ -134,7 +140,9 @@ function ToolboxContent() {
           reply: fullText,
           aiMayBeWrong:
             "Small local models can miss facts and instructions. Verify important details.",
-          note: "Local AI · processed in this browser",
+          note: context
+            ? "Local AI · processed in this browser · with Knowledge Explorer site search"
+            : "Local AI · processed in this browser",
         })
     );
     return true;

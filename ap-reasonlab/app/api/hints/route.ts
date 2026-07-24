@@ -6,6 +6,7 @@ import {
   runChatJson,
 } from "@/lib/ai-client";
 import { HINT_PROCESS_SYSTEM } from "@/lib/ai-prompts";
+import { appendAiSiteContext, buildServerAiSiteContext } from "@/lib/ai-site-context-server";
 
 function mockHints(question: string, subject: string) {
   return {
@@ -62,9 +63,16 @@ ${notes ? `Student notes / attempt (optional):\n${notes}` : ""}
 Return JSON with hints, keyFormulas, checkpoints, processOutline, aiMayBeWrong.`;
 
     try {
+      const siteSearch = body.siteSearch !== false;
+      const siteContext = await buildServerAiSiteContext(
+        `${subject}\n${question}\n${notes}`,
+        siteSearch
+      );
+      const userWithSite = appendAiSiteContext(user, siteContext);
+
       const result = await runChatJson({
         system: HINT_PROCESS_SYSTEM,
-        user,
+        user: userWithSite,
         maxTokens: 750,
         userApiKey: userApiKey || undefined,
         provider,

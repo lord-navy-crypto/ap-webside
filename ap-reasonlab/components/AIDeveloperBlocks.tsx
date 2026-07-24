@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import LocalAIControls from "@/components/LocalAIControls";
 import { useLocalAI } from "@/components/LocalAIProvider";
+import { appendAiSiteContext, fetchAiSiteContext } from "@/lib/ai-site-context";
 import RichContent from "@/components/RichContent";
 import { handleRichPaste } from "@/lib/rich-paste";
 import type { ManagedContent } from "@/lib/managed-types";
@@ -194,6 +195,8 @@ export default function AIDeveloperBlocks({
 
     try {
       if (useLocal) {
+        const localPrompt = `${instruction}\n\nSOURCE:\n${selectedText}`;
+        const { context } = await fetchAiSiteContext(localPrompt, localAI.siteSearchEnabled);
         await localAI.complete(
           [
             {
@@ -203,12 +206,16 @@ export default function AIDeveloperBlocks({
             },
             {
               role: "user",
-              content: `${instruction}\n\nSOURCE:\n${selectedText}`,
+              content: appendAiSiteContext(localPrompt, context),
             },
           ],
           (_token, fullText) => setPreview(buildFinalDraft(fullText, start, end))
         );
-        setProposalSummary(`Local AI · ${selectedAction.label}`);
+        setProposalSummary(
+          context
+            ? `Local AI · ${selectedAction.label} · with site search`
+            : `Local AI · ${selectedAction.label}`
+        );
       } else {
         const response = await fetch("/api/ai/developer", {
           method: "POST",

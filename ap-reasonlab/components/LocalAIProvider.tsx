@@ -54,11 +54,15 @@ type LocalAIContextValue = {
   setProvider: (provider: AiProvider) => void;
   userKey: string;
   setUserKey: (key: string) => void;
+  /** When true, AI tools search Knowledge Explorer content before answering. */
+  siteSearchEnabled: boolean;
+  setSiteSearchEnabled: (enabled: boolean) => void;
   /** Payload fields for /api/ai/* cloud calls from the shared settings. */
   cloudRequestFields: {
     userApiKey?: string;
     provider: AiProvider;
     siteModel: SiteModelChoice;
+    siteSearch?: boolean;
   };
   models: LocalModelOption[];
   selectedModelId: string;
@@ -86,6 +90,7 @@ const MODE_KEY = "results-ai-mode";
 const MODEL_KEY = "results-local-ai-model";
 const SITE_MODEL_KEY = "results-ai-site-model";
 const PROVIDER_KEY = "results-ai-provider";
+const SITE_SEARCH_KEY = "results-ai-site-search";
 
 function migrateMode(raw: string | null): AIMode | null {
   if (raw === "local" || raw === "site" || raw === "byok") return raw;
@@ -298,6 +303,7 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
   const [siteModel, setSiteModelState] = useState<SiteModelChoice>("auto");
   const [provider, setProviderState] = useState<AiProvider>("groq");
   const [userKey, setUserKey] = useState("");
+  const [siteSearchEnabled, setSiteSearchEnabledState] = useState(true);
   const [models, setModels] = useState<LocalModelOption[]>(LOCAL_MODELS);
   const [selectedModelId, setSelectedModelIdState] = useState(DEFAULT_MODEL_ID);
   const [loadedModelId, setLoadedModelId] = useState("");
@@ -338,6 +344,9 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
     ) {
       setProviderState(savedProvider);
     }
+    const savedSiteSearch = localStorage.getItem(SITE_SEARCH_KEY);
+    if (savedSiteSearch === "0") setSiteSearchEnabledState(false);
+    if (savedSiteSearch === "1") setSiteSearchEnabledState(true);
   }, []);
 
   const setMode = useCallback((nextMode: AIMode) => {
@@ -353,6 +362,11 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
   const setProvider = useCallback((next: AiProvider) => {
     setProviderState(next);
     localStorage.setItem(PROVIDER_KEY, next);
+  }, []);
+
+  const setSiteSearchEnabled = useCallback((enabled: boolean) => {
+    setSiteSearchEnabledState(enabled);
+    localStorage.setItem(SITE_SEARCH_KEY, enabled ? "1" : "0");
   }, []);
 
   const setSelectedModelId = useCallback((id: string) => {
@@ -568,10 +582,13 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
       setProvider,
       userKey,
       setUserKey,
+      siteSearchEnabled,
+      setSiteSearchEnabled,
       cloudRequestFields: {
         userApiKey: mode === "byok" ? userKey.trim() || undefined : undefined,
         provider,
         siteModel: mode === "site" ? siteModel : "auto",
+        siteSearch: siteSearchEnabled,
       },
       models,
       selectedModelId,
@@ -607,7 +624,9 @@ export function LocalAIProvider({ children }: { children: React.ReactNode }) {
       setProvider,
       setSelectedModelId,
       setSiteModel,
+      setSiteSearchEnabled,
       siteModel,
+      siteSearchEnabled,
       status,
       statusText,
       stop,

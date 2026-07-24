@@ -5,6 +5,7 @@ import LocalAIControls from "@/components/LocalAIControls";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
 import RichContent from "@/components/RichContent";
 import { useLocalAI } from "@/components/LocalAIProvider";
+import { appendAiSiteContext, fetchAiSiteContext } from "@/lib/ai-site-context";
 
 type Result = {
   refused: boolean;
@@ -44,6 +45,8 @@ export default function CodingAiPanel({ embedded = false, hideChannelUi = false 
             "Local is selected, but no model is enabled. Enable Local above, or switch to Website API / Your own API."
           );
         }
+        const localPrompt = `Language: ${language}\nTask: ${task}\nCode:\n${code || "(none)"}`;
+        const { context } = await fetchAiSiteContext(localPrompt, localAI.siteSearchEnabled);
         const text = await localAI.complete([
           {
             role: "system",
@@ -52,7 +55,7 @@ export default function CodingAiPanel({ embedded = false, hideChannelUi = false 
           },
           {
             role: "user",
-            content: `Language: ${language}\nTask: ${task}\nCode:\n${code || "(none)"}`,
+            content: appendAiSiteContext(localPrompt, context),
           },
         ]);
         setResult({
@@ -61,7 +64,7 @@ export default function CodingAiPanel({ embedded = false, hideChannelUi = false 
           steps: [],
           snippet: "",
           aiMayBeWrong: "Local AI may be wrong — test every suggestion.",
-          note: "Local AI · processed in this browser",
+          note: context ? "Local AI · with Knowledge Explorer site search" : "Local AI · processed in this browser",
         });
         return;
       }
