@@ -132,8 +132,28 @@ export type ManagedContent = {
   questionnaires: Questionnaire[];
   /** Optional topic index (mirrors concepts created via + Add topic) */
   topics: ManagedTopic[];
+  /** Soft-deleted items recoverable from Macintosh HD Recycle Bin */
+  recycleBin: ManagedRecycleEntry[];
   settings: ManagedSiteSettings;
   updatedAt: number;
+};
+
+/** Snapshot of a deleted file/concept/etc for Macintosh HD restore. */
+export type ManagedRecycleEntry = {
+  id: string;
+  target:
+    | "file"
+    | "document"
+    | "folder"
+    | "concept"
+    | "topic"
+    | "formula"
+    | "questionnaire"
+    | "content_item"
+    | "member";
+  label: string;
+  deletedAt: number;
+  payload: unknown;
 };
 
 export type StoredUser = {
@@ -176,6 +196,7 @@ export function emptyManagedContent(): ManagedContent {
     forumPosts: [],
     questionnaires: [],
     topics: [],
+    recycleBin: [],
     settings: emptySiteSettings(),
     updatedAt: 0,
   };
@@ -285,6 +306,9 @@ export function normalizeManagedContent(
     forumPosts: Array.isArray(raw.forumPosts) ? raw.forumPosts : [],
     questionnaires: Array.isArray(raw.questionnaires) ? raw.questionnaires : [],
     topics: Array.isArray(raw.topics) ? raw.topics : [],
+    recycleBin: Array.isArray((raw as Partial<ManagedContent>).recycleBin)
+      ? ((raw as Partial<ManagedContent>).recycleBin as ManagedRecycleEntry[])
+      : [],
     settings: normalizeSiteSettings(raw.settings),
     updatedAt: typeof raw.updatedAt === "number" ? raw.updatedAt : 0,
   };
