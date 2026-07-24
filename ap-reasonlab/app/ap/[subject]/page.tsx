@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import RichContent from "@/components/RichContent";
 import UnifiedAddContent from "@/components/UnifiedAddContent";
-import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
+import UploadAndShow from "@/components/UploadAndShow";
 import ResourceEditor from "@/components/ResourceEditor";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import { concepts } from "@/data/content";
@@ -230,22 +230,9 @@ function SubjectWorkspaceContent() {
         ))}
       </section>
 
-      <section id="media-frame" className="space-y-3 scroll-mt-24">
-        <div>
-          <h2 className="section-title">Files &amp; pictures</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Mac-style scrollable frame for this AP subject — upload documents, pictures, and files.
-            Shared uploads need a content code; private pictures stay in your Learning Box.
-          </p>
-        </div>
-        <UnifiedMediaFrame
-          title={`${subject.shortName} · Files & pictures`}
-          folderArea="ap-subject"
-          spaceKey={params.subject}
-          defaultSubject={subjectName}
-          collapsedByDefault={false}
-          enablePrivateImages
-        />
+      <section id="media-frame" className="scroll-mt-24 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        Files, pictures, and documents for this subject are in the <strong>top-right Media window</strong>
+        (scroll &amp; view). Open <Link href="/manage?tab=files" className="font-medium text-brand-700 underline">Manage → Files</Link> for the full Mac Finder backend.
       </section>
 
       <section id="units" className="space-y-3">
@@ -359,13 +346,13 @@ function SubjectWorkspaceContent() {
             Upload only officially released, public-domain, original, or authorized material. Link to restricted exams instead of redistributing them.
           </p>
         </div>
-        <UnifiedMediaFrame
+        <UploadAndShow
           title={`${subject.shortName} · Exam archive`}
           folderArea="past-papers"
           spaceKey={params.subject}
           defaultSubject={subjectName}
           collapsedByDefault
-          enablePrivateImages
+          alsoShow={["document", "folder"]}
         />
       </section>
 

@@ -258,12 +258,16 @@ export async function POST(req: NextRequest) {
         if (update.title !== undefined) found.title = text(update.title, 160);
         if (update.content !== undefined) found.content = text(update.content);
         if (update.category !== undefined) found.category = text(update.category, 80);
+        if (update.area !== undefined) found.area = String(update.area).slice(0, 80) || undefined;
+        if (update.space !== undefined) found.space = String(update.space).slice(0, 160) || undefined;
         found.updatedAt = Date.now();
       } else if (target === "file") {
         const found = current.files.find((entry) => entry.id === id);
         if (!found) return NextResponse.json({ error: "File not found" }, { status: 404 });
         if (update.name !== undefined) found.name = text(update.name, 200);
         if (update.note !== undefined) found.note = text(update.note, 2_000);
+        if (update.area !== undefined) found.area = String(update.area).slice(0, 80) || undefined;
+        if (update.space !== undefined) found.space = String(update.space).slice(0, 160) || undefined;
         if (update.dataUrl !== undefined) {
           if (String(update.dataUrl).length > 1_500_000) return NextResponse.json({ error: "Replacement file is too large" }, { status: 400 });
           found.dataUrl = String(update.dataUrl);

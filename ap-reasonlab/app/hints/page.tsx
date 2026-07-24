@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import EthicsBanner from "@/components/EthicsBanner";
 import AiApiChannel, { type ApiChannel } from "@/components/AiApiChannel";
 import LocalAIControls from "@/components/LocalAIControls";
-import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { useLocalAI } from "@/components/LocalAIProvider";
 import RichContent from "@/components/RichContent";
 import TICalculator from "@/components/TICalculator";
@@ -339,13 +338,10 @@ function ToolboxContent() {
 
       <EthicsBanner />
 
-      <UnifiedMediaFrame
-        title="AI Toolbox · Files & pictures"
-        folderArea="hints"
-        spaceKey="_root"
-        collapsedByDefault
-        enablePrivateImages
-      />
+      <p className="text-xs text-slate-500">
+        Toolbox files, pictures, and documents live in the top-right Media window (scroll &amp; view).
+        Manage → Files is the Mac Finder backend for the same storage.
+      </p>
 
       {isAiTool && <LocalAIControls />}
 

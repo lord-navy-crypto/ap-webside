@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
 import { AP_CATALOG, type SubjectDefinition, type SubjectGroup } from "@/data/ap-catalog";
 import type { ManagedContent } from "@/lib/managed-types";
 
@@ -115,15 +114,11 @@ export default function ApHubPage() {
       <section className="card space-y-4">
         <input className="input" type="search" placeholder="Search AP subjects…" value={query} onChange={(event) => setQuery(event.target.value)} />
         <div className="flex flex-wrap gap-2">{groups.map((option) => <button key={option} type="button" onClick={() => setGroup(option)} className={group === option ? "filter-pill-active" : "filter-pill"}>{option}</button>)}</div>
+        <p className="text-xs text-slate-500">
+          Uploaded files, pictures, and documents for this page appear in the top-right Media window.
+          Full Mac Finder management is in Manage → Files.
+        </p>
       </section>
-
-      <UnifiedMediaFrame
-        title="AP hub · Files & pictures"
-        folderArea="ap"
-        spaceKey="_root"
-        collapsedByDefault
-        enablePrivateImages
-      />
 
       <section>
         <div className="mb-4 flex items-center justify-between"><h2 className="section-title">AP subjects</h2><span className="text-sm text-slate-500">{subjects.length} subjects</span></div>

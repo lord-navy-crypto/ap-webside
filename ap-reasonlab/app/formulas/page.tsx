@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { formulas, getFormulaSubjects } from "@/data/formulas";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
-import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
+import UploadAndShow from "@/components/UploadAndShow";
 import { ROOT_SPACE, spaceFromSearchParams } from "@/lib/storage-space";
 import RichContent, { FormulaMath } from "@/components/RichContent";
 import type { Formula } from "@/lib/types";
@@ -113,7 +113,7 @@ function FormulasContent() {
             create a new subject in this grid.
           </p>
         </div>
-        <UnifiedMediaFrame
+        <UploadAndShow
           alsoShow={["subject", "folder"]}
           folderArea="formulas"
           spaceKey={ROOT_SPACE}
@@ -139,7 +139,7 @@ function FormulasContent() {
         </p>
       </div>
 
-      <UnifiedMediaFrame
+      <UploadAndShow
         alsoShow={["formula", "folder"]}
         folderArea="formulas"
         defaultSubject={activeSubject || undefined}
@@ -147,6 +147,7 @@ function FormulasContent() {
         spaceBasePath="/formulas"
         title={`${activeSubject} storage`}
         onSubjectsChange={setManagedSubjects}
+        collapsedByDefault
       />
 
       <input

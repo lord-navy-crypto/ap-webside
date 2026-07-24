@@ -7,7 +7,7 @@ import { concepts } from "@/data/content";
 import { keyConceptGuides } from "@/data/key-concepts";
 import { AP_SUBJECTS } from "@/data/ap-expanded";
 import FolderGrid from "@/components/FolderGrid";
-import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
+import UploadAndShow from "@/components/UploadAndShow";
 import {
   ROOT_SPACE,
   isFolderSpace,
@@ -168,7 +168,7 @@ function ConceptsContent() {
             Markdown document with optional LaTeX math.
           </p>
         </div>
-        <UnifiedMediaFrame
+        <UploadAndShow
           alsoShow={["topic", "concept", "document", "folder"]}
           defaultSubject={subject || folderTitle || "Custom"}
           folderArea="concepts"
@@ -176,6 +176,7 @@ function ConceptsContent() {
           spaceBasePath="/concepts"
           title="Folder storage"
           onSubjectsChange={setManagedSubjects}
+          collapsedByDefault
         />
       </div>
     );
@@ -194,7 +195,7 @@ function ConceptsContent() {
             to create a new subject that appears in this grid.
           </p>
         </div>
-        <UnifiedMediaFrame
+        <UploadAndShow
           alsoShow={["subject", "folder"]}
           folderArea="concepts"
           spaceKey={ROOT_SPACE}
@@ -228,7 +229,7 @@ function ConceptsContent() {
         </p>
       </div>
 
-      <UnifiedMediaFrame
+      <UploadAndShow
         alsoShow={["topic", "concept", "document", "folder"]}
         defaultSubject={subject}
         folderArea="concepts"
@@ -236,6 +237,7 @@ function ConceptsContent() {
         spaceBasePath="/concepts"
         title={`${subject} storage`}
         onSubjectsChange={setManagedSubjects}
+        collapsedByDefault
       />
 
       <div className="flex flex-wrap gap-2">

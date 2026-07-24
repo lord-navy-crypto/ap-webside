@@ -9,15 +9,24 @@ import UnifiedAddContent from "@/components/UnifiedAddContent";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import ResourceEditor from "@/components/ResourceEditor";
 import { AP_CATALOG, type SubjectDefinition } from "@/data/ap-catalog";
-import type { ManagedContent, ManagedContentItem, ManagedDocument, ManagedFile, ManagedUnit } from "@/lib/managed-types";
-import UnifiedMediaFrame from "@/components/UnifiedMediaFrame";
+import type { ManagedContent, ManagedContentItem, ManagedUnit } from "@/lib/managed-types";
+import MacFinderDesktop from "@/components/MacFinderDesktop";
 
 type Tab = "content" | "subjects" | "units" | "files" | "trash" | "ai" | "settings" | "history";
+
+const TAB_IDS: Tab[] = ["content", "subjects", "units", "files", "trash", "ai", "settings", "history"];
 
 export default function ManagePage() {
   const { active: editMode, unlocked, editor, refresh: refreshEditor } = useEditorMode();
   const [data, setData] = useState<Partial<ManagedContent>>({});
   const [tab, setTab] = useState<Tab>("content");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("tab");
+    if (next && TAB_IDS.includes(next as Tab)) setTab(next as Tab);
+  }, []);
   const [query, setQuery] = useState("");
   const [subjectId, setSubjectId] = useState(AP_CATALOG[0].id);
   const [status, setStatus] = useState("all");
@@ -107,39 +116,6 @@ export default function ManagePage() {
     }
   }
 
-  const [fileAreaFilter, setFileAreaFilter] = useState("all");
-
-  const fileRows = useMemo(() => {
-    const files = (data.files || []).map((file: ManagedFile) => ({
-      id: file.id,
-      kind: "file" as const,
-      name: file.name,
-      area: file.area || "general",
-      space: file.space || "_root",
-      when: file.uploadedAt,
-      preview: file.dataUrl?.startsWith("data:image") ? file.dataUrl : undefined,
-    }));
-    const docs = (data.documents || []).map((doc: ManagedDocument) => ({
-      id: doc.id,
-      kind: "document" as const,
-      name: doc.title,
-      area: doc.area || "general",
-      space: doc.space || "_root",
-      when: doc.updatedAt,
-      preview: undefined as string | undefined,
-    }));
-    return [...files, ...docs]
-      .filter((row) => fileAreaFilter === "all" || row.area === fileAreaFilter)
-      .sort((a, b) => b.when - a.when);
-  }, [data.documents, data.files, fileAreaFilter]);
-
-  const fileAreas = useMemo(() => {
-    const set = new Set<string>();
-    for (const file of data.files || []) set.add(file.area || "general");
-    for (const doc of data.documents || []) set.add(doc.area || "general");
-    return ["all", ...Array.from(set).sort()];
-  }, [data.documents, data.files]);
-
   const tabs: Array<{ id: Tab; label: string; count?: number }> = [
     { id: "content", label: "Content", count: activeItems.length },
     { id: "subjects", label: "Subjects", count: subjects.length },
@@ -212,7 +188,30 @@ export default function ManagePage() {
         {message && <p role="status" className="text-sm text-brand-700 md:col-span-2">{message}</p>}
       </section>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">{tabs.map((item) => <button key={item.id} type="button" onClick={() => setTab(item.id)} className={tab === item.id ? "filter-pill-active whitespace-nowrap" : "filter-pill whitespace-nowrap"}>{item.label}{item.count !== undefined ? ` (${item.count})` : ""}</button>)}</div>
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {tabs.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => {
+              setTab(item.id);
+              if (typeof window !== "undefined") {
+                const url = new URL(window.location.href);
+                url.searchParams.set("tab", item.id);
+                window.history.replaceState({}, "", url.toString());
+              }
+            }}
+            className={
+              tab === item.id
+                ? "filter-pill-active whitespace-nowrap"
+                : "filter-pill whitespace-nowrap"
+            }
+          >
+            {item.label}
+            {item.count !== undefined ? ` (${item.count})` : ""}
+          </button>
+        ))}
+      </div>
 
       {tab === "content" && (
         <section className="space-y-4">
@@ -236,91 +235,20 @@ export default function ManagePage() {
       )}
 
       {tab === "files" && (
-        <section className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-300 bg-slate-100 shadow-lg">
-            <div className="flex items-center gap-3 border-b border-slate-300 bg-gradient-to-b from-slate-200 to-slate-150 px-3 py-2">
-              <div className="flex gap-1.5" aria-hidden>
-                <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
-                <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
-                <span className="h-3 w-3 rounded-full bg-[#28c840]" />
-              </div>
-              <p className="flex-1 text-center text-xs font-semibold text-slate-700">
-                System files · Finder view
-              </p>
-            </div>
-            <div className="grid gap-0 md:grid-cols-[14rem_1fr]">
-              <aside className="max-h-[28rem] overflow-y-auto border-b border-slate-200 bg-slate-50 p-3 md:border-b-0 md:border-r">
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                  Areas
-                </p>
-                <ul className="space-y-1">
-                  {fileAreas.map((area) => (
-                    <li key={area}>
-                      <button
-                        type="button"
-                        onClick={() => setFileAreaFilter(area)}
-                        className={
-                          fileAreaFilter === area
-                            ? "w-full rounded-lg bg-brand-600 px-3 py-2 text-left text-sm font-semibold text-white"
-                            : "w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-white"
-                        }
-                      >
-                        {area === "all" ? "All areas" : area}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </aside>
-              <div className="max-h-[28rem] overflow-y-auto bg-white p-3">
-                {fileRows.length === 0 ? (
-                  <p className="text-sm text-slate-500">No files or documents in this area yet.</p>
-                ) : (
-                  <ul className="divide-y divide-slate-100">
-                    {fileRows.map((row) => (
-                      <li key={`${row.kind}-${row.id}`} className="flex items-center gap-3 py-2">
-                        {row.preview ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={row.preview}
-                            alt=""
-                            className="h-10 w-10 rounded object-cover"
-                          />
-                        ) : (
-                          <span className="flex h-10 w-10 items-center justify-center rounded bg-slate-100 text-lg">
-                            {row.kind === "file" ? "📄" : "▤"}
-                          </span>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-slate-900">{row.name}</p>
-                          <p className="truncate text-xs text-slate-500">
-                            {row.kind} · {row.area} · {row.space}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          className="btn-ghost text-xs text-red-600"
-                          onClick={() =>
-                            mutate("delete", {
-                              target: row.kind === "file" ? "file" : "document",
-                              id: row.id,
-                            })
-                          }
-                        >
-                          Delete
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
+        <section className="space-y-3">
+          <div>
+            <h2 className="section-title">Mac Files backend</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Full Finder-style manager for the same uploaded files, pictures, and documents shown in
+              the top-right Media window on every page. Drag icons onto Locations to move them.
+            </p>
           </div>
-          <UnifiedMediaFrame
-            title="Manage · upload into site storage"
-            folderArea="manage"
-            spaceKey="_root"
-            collapsedByDefault={false}
-            enablePrivateImages={false}
+          <MacFinderDesktop
+            data={data}
+            changeCode={changeCode}
+            githubToken={githubToken}
+            onMutate={mutate}
+            onContent={setData}
           />
         </section>
       )}
