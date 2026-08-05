@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ChangePanel from "@/components/ChangePanel";
 import LocalAiRecommendation from "@/components/LocalAiRecommendation";
 import ResourceEditor, { type EditableTarget } from "@/components/ResourceEditor";
@@ -14,6 +14,7 @@ import type {
   ManagedFile,
   ManagedRecycleEntry,
 } from "@/lib/managed-types";
+import { fetchManagedFileDataUrl, isImageFile } from "@/lib/media-files";
 import {
   SITE_SECTION_FOLDERS,
   apSubjectPageFolders,
@@ -48,6 +49,8 @@ type ContentRow = {
   icon: string;
   previewText?: string;
   imageUrl?: string;
+  /** True when this file is an image (dataUrl may still need hydration). */
+  isImageRow?: boolean;
   href?: string;
   raw: Record<string, unknown>;
   editTarget?: EditableTarget;
@@ -79,8 +82,52 @@ type Props = {
   onContent: (content: Partial<ManagedContent>) => void;
 };
 
-function isImage(file: ManagedFile): boolean {
-  return Boolean(file.mime?.startsWith("image/") || file.dataUrl?.startsWith("data:image"));
+function FinderImageThumb({
+  fileId,
+  imageUrl,
+  icon,
+  sizeClass,
+}: {
+  fileId: string;
+  imageUrl?: string;
+  icon: string;
+  sizeClass: string;
+}) {
+  const [src, setSrc] = useState(imageUrl || "");
+
+  useEffect(() => {
+    if (imageUrl) {
+      setSrc(imageUrl);
+      return;
+    }
+    let cancelled = false;
+    void fetchManagedFileDataUrl(fileId)
+      .then((url) => {
+        if (!cancelled) setSrc(url);
+      })
+      .catch(() => {
+        /* keep glyph */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [fileId, imageUrl]);
+
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt="" className={`${sizeClass} rounded-lg object-cover shadow`} />
+    );
+  }
+  return (
+    <span
+      className={`flex ${sizeClass} items-center justify-center rounded-lg bg-white/90 shadow ${
+        sizeClass.includes("h-6") ? "text-sm" : "text-2xl"
+      }`}
+    >
+      {icon}
+    </span>
+  );
 }
 
 function subjectMatches(itemSubject: string | undefined, pageSpace: string): boolean {
@@ -166,13 +213,15 @@ function collectPageRows(
       ? matchesSpace(file, page.area, scoped)
       : matchesFolderItem(file, page.area, scoped);
     if (!inHere) continue;
+    const image = isImageFile(file);
     fileRows.push({
       kind: "file",
       id: file.id,
       label: file.name,
       meta: file.mime || "file",
-      icon: isImage(file) ? "🖼" : "📎",
-      imageUrl: isImage(file) ? file.dataUrl : undefined,
+      icon: image ? "🖼" : "📎",
+      imageUrl: image ? file.dataUrl : undefined,
+      isImageRow: image,
       previewText: file.note || file.area || undefined,
       raw: file as unknown as Record<string, unknown>,
       editTarget: "file",
@@ -310,8 +359,32 @@ export default function MacFinderDesktop({
   const [nav, setNav] = useState<NavLevel>({ kind: "desktop" });
   const [view, setView] = useState<"icons" | "list">("icons");
   const [selected, setSelected] = useState<ContentRow | null>(null);
+  const [selectedImageSrc, setSelectedImageSrc] = useState("");
   const [message, setMessage] = useState("");
   const [dragOverKey, setDragOverKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selected?.isImageRow) {
+      setSelectedImageSrc("");
+      return;
+    }
+    if (selected.imageUrl) {
+      setSelectedImageSrc(selected.imageUrl);
+      return;
+    }
+    let cancelled = false;
+    setSelectedImageSrc("");
+    void fetchManagedFileDataUrl(selected.id)
+      .then((url) => {
+        if (!cancelled) setSelectedImageSrc(url);
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedImageSrc("");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selected]);
 
   const dynamicPages = useMemo(
     () =>
@@ -875,12 +948,12 @@ export default function MacFinderDesktop({
                           <span className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-b from-amber-200 to-amber-400 text-3xl shadow-lg">
                             📁
                           </span>
-                        ) : row.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={row.imageUrl}
-                            alt=""
-                            className="h-14 w-14 rounded-lg object-cover shadow"
+                        ) : row.isImageRow ? (
+                          <FinderImageThumb
+                            fileId={row.id}
+                            imageUrl={row.imageUrl}
+                            icon={row.icon}
+                            sizeClass="h-14 w-14"
                           />
                         ) : (
                           <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-white/90 text-2xl shadow">
@@ -964,7 +1037,16 @@ export default function MacFinderDesktop({
                                 : "·"}
                           </span>
                           <span className="flex min-w-0 items-center gap-2">
-                            <span className="text-base">{row.icon}</span>
+                            {row.isImageRow ? (
+                              <FinderImageThumb
+                                fileId={row.id}
+                                imageUrl={row.imageUrl}
+                                icon={row.icon}
+                                sizeClass="h-6 w-6"
+                              />
+                            ) : (
+                              <span className="text-base">{row.icon}</span>
+                            )}
                             <span className="truncate font-medium text-slate-900">{row.label}</span>
                           </span>
                           <span className="truncate text-xs text-slate-500">
@@ -1041,10 +1123,10 @@ export default function MacFinderDesktop({
           {selected ? (
             <div className="mt-4 space-y-3 border-t border-slate-200 pt-3">
               <div className="flex justify-center">
-                {selected.imageUrl ? (
+                {selected.isImageRow && selectedImageSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={selected.imageUrl}
+                    src={selectedImageSrc}
                     alt=""
                     className="max-h-40 rounded-lg object-contain shadow"
                   />
@@ -1075,10 +1157,10 @@ export default function MacFinderDesktop({
                   Open on site →
                 </Link>
               ) : null}
-              {selected.kind === "file" && !selected.imageUrl ? (
-                selected.raw.dataUrl ? (
+              {selected.kind === "file" ? (
+                selected.raw.dataUrl || selectedImageSrc ? (
                   <a
-                    href={String(selected.raw.dataUrl)}
+                    href={String(selected.raw.dataUrl || selectedImageSrc)}
                     download={selected.label}
                     className="inline-flex text-xs font-medium text-sky-700 underline"
                   >
@@ -1090,14 +1172,9 @@ export default function MacFinderDesktop({
                     className="inline-flex text-xs font-medium text-sky-700 underline"
                     onClick={async () => {
                       try {
-                        const res = await fetch(`/api/edit?fileId=${encodeURIComponent(String(selected.id))}`, {
-                          cache: "no-store",
-                        });
-                        const payload = await res.json();
-                        const dataUrl = payload?.file?.dataUrl;
-                        if (!res.ok || !dataUrl) throw new Error(payload?.error || "Download unavailable");
+                        const dataUrl = await fetchManagedFileDataUrl(String(selected.id));
                         const link = document.createElement("a");
-                        link.href = String(dataUrl);
+                        link.href = dataUrl;
                         link.download = selected.label;
                         link.click();
                       } catch (error) {

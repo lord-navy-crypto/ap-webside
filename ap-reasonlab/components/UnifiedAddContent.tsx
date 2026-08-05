@@ -11,6 +11,7 @@ import {
   type BulkDraftEntry,
 } from "@/lib/bulk-draft-rows";
 import { readResponseJson } from "@/lib/safe-json";
+import { isImageFile } from "@/lib/media-files";
 import { assertUploadableDataUrl, assertUploadableFile } from "@/lib/upload-limits";
 import { sortNotesWithAi } from "@/lib/structure-concept-client";
 
@@ -118,7 +119,7 @@ export default function UnifiedAddContent({
         if (files.length === 0) {
           throw new Error(type === "image" ? "Choose at least one image" : "Choose at least one file");
         }
-        if (type === "image" && files.some((f) => !f.type.startsWith("image/"))) {
+        if (type === "image" && files.some((f) => !isImageFile(f))) {
           throw new Error("Image upload accepts image files only.");
         }
         action = "add_files";
@@ -364,7 +365,7 @@ export default function UnifiedAddContent({
                     required={files.length === 0}
                   />
                   <span className="mt-1 block text-xs text-slate-500">
-                    {files.length} selected · each must stay under ~1MB
+                    {files.length} selected · each must stay under ~750 KB
                   </span>
                 </label>
               </>

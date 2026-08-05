@@ -14,6 +14,7 @@ import {
   normalizeSpace,
 } from "@/lib/storage-space";
 import { readResponseJson } from "@/lib/safe-json";
+import { fetchManagedFileById, isImageFile } from "@/lib/media-files";
 import { assertUploadableDataUrl, assertUploadableFile } from "@/lib/upload-limits";
 
 type Tab = "all" | "folders" | "pics" | "docs" | "files";
@@ -36,7 +37,7 @@ type Preview =
 type FolderTrail = { id: string; title: string };
 
 function isImage(file: ManagedFile): boolean {
-  return Boolean(file.mime?.startsWith("image/") || file.dataUrl?.startsWith("data:image"));
+  return isImageFile(file);
 }
 
 function compareName(a: string, b: string): number {
@@ -182,13 +183,8 @@ export function FloatingMediaWindow({
       return;
     }
     try {
-      const res = await fetch(`/api/edit?fileId=${encodeURIComponent(item.id)}`, {
-        cache: "no-store",
-      });
-      const parsed = await readResponseJson<{ file?: ManagedFile; error?: string }>(res);
-      if (!parsed.ok) throw new Error(parsed.error);
-      if (!res.ok || !parsed.data.file) throw new Error(parsed.data.error || "File unavailable");
-      setPreview({ kind: "file", item: parsed.data.file });
+      const full = await fetchManagedFileById(item.id);
+      setPreview({ kind: "file", item: full });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not open file");
     }
@@ -245,11 +241,7 @@ export function FloatingMediaWindow({
       }
       setNote(`Added ${items.length} file(s) — File 1, File 2… updated.`);
       if (uploadRef.current) uploadRef.current.value = "";
-      const allImages = chosen.every(
-        (file) =>
-          file.type.startsWith("image/") ||
-          /\.(png|jpe?g|gif|webp|bmp|svg|heic|avif)$/i.test(file.name)
-      );
+      const allImages = chosen.every((file) => isImageFile(file));
       setTab(allImages ? "pics" : "all");
       await refresh();
     } catch (caught) {

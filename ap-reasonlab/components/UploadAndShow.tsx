@@ -14,6 +14,7 @@ import type {
   ManagedFolder,
 } from "@/lib/managed-types";
 import { managedSubjectNames } from "@/lib/managed-types";
+import { isImageFile } from "@/lib/media-files";
 import { readResponseJson } from "@/lib/safe-json";
 import {
   ROOT_SPACE,
@@ -48,14 +49,6 @@ type Props = {
   mediaOnly?: boolean;
 };
 
-function isImageFile(file: ManagedFile) {
-  const name = file.name.toLowerCase();
-  return Boolean(
-    file.mime?.startsWith("image/") ||
-      file.dataUrl?.startsWith("data:image") ||
-      /\.(png|jpe?g|gif|webp|bmp|svg|heic|avif)$/i.test(name)
-  );
-}
 
 /**
  * Per-area / per-folder storage panel.

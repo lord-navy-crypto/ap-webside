@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ResourceEditor from "@/components/ResourceEditor";
 import type { ManagedContent, ManagedDocument, ManagedFile } from "@/lib/managed-types";
+import { fetchManagedFileDataUrl, isImageFile } from "@/lib/media-files";
 import { matchesMediaSearch } from "@/lib/media-month-buckets";
 
 type FileRow = {
@@ -67,11 +68,34 @@ function FileGlyph({ variant }: { variant: "image" | "file" | "document" }) {
 }
 
 function ImageThumb({ file }: { file: ManagedFile }) {
-  if (file.dataUrl?.startsWith("data:image")) {
+  const [src, setSrc] = useState(
+    file.dataUrl?.startsWith("data:image") ? file.dataUrl : ""
+  );
+
+  useEffect(() => {
+    if (file.dataUrl?.startsWith("data:image")) {
+      setSrc(file.dataUrl);
+      return;
+    }
+    if (!isImageFile(file)) return;
+    let cancelled = false;
+    void fetchManagedFileDataUrl(file.id)
+      .then((url) => {
+        if (!cancelled) setSrc(url);
+      })
+      .catch(() => {
+        /* keep glyph */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [file.id, file.dataUrl, file.mime, file.name]);
+
+  if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={file.dataUrl}
+        src={src}
         alt=""
         className="h-10 w-10 shrink-0 rounded-md object-cover"
         loading="lazy"

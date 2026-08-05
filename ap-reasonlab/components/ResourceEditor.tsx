@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
 import { useEditorMode } from "@/components/EditorModeProvider";
 import { readResponseJson } from "@/lib/safe-json";
+import { assertUploadableDataUrl, assertUploadableFile } from "@/lib/upload-limits";
 
 export type EditableTarget =
   | "concept"
@@ -105,8 +106,9 @@ export default function ResourceEditor({
       if (target === "folder" || target === "file" || target === "member") update.note = body;
       if (target === "document") update.category = category;
       if (target === "file" && replacement) {
+        assertUploadableFile(replacement);
         const dataUrl = await readFileAsDataURL(replacement);
-        if (dataUrl.length > 1_500_000) throw new Error("Replacement file is too large (keep under ~1MB).");
+        assertUploadableDataUrl(dataUrl, replacement.name);
         update.name = replacement.name;
         update.mime = replacement.type || "application/octet-stream";
         update.dataUrl = dataUrl;
@@ -200,8 +202,16 @@ export default function ResourceEditor({
             {target === "file" && (
               <label className="block rounded-2xl border border-dashed border-slate-300 p-4 text-sm font-medium">
                 Replace file (optional)
-                <input className="mt-2 block w-full text-sm" type="file" onChange={(event) => setReplacement(event.target.files?.[0] || null)} />
-                <span className="mt-1 block text-xs font-normal text-slate-500">Leave empty to keep the current download. Choosing a replacement updates the file name and type.</span>
+                <input
+                  className="mt-2 block w-full text-sm"
+                  type="file"
+                  accept="image/*,.pdf,.txt,.md,.doc,.docx,.png,.jpg,.jpeg,.gif,.webp,.csv"
+                  onChange={(event) => setReplacement(event.target.files?.[0] || null)}
+                />
+                <span className="mt-1 block text-xs font-normal text-slate-500">
+                  Leave empty to keep the current download. Choosing a replacement updates the file name and type.
+                  Keep replacements under ~750 KB.
+                </span>
               </label>
             )}
 
