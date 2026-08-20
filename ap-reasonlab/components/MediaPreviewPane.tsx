@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import RichContent from "@/components/RichContent";
 import type { MediaRow } from "@/components/MediaFinderBrowser";
 import type { ManagedFile } from "@/lib/managed-types";
-import { readResponseJson } from "@/lib/safe-json";
+import { fetchManagedFileById, isImageFile } from "@/lib/media-files";
 
 type Props = {
   selection: MediaRow | null;
@@ -50,16 +50,9 @@ export default function MediaPreviewPane({ selection, onClose, onDownload }: Pro
     setLoading(true);
     void (async () => {
       try {
-        const res = await fetch(`/api/edit?fileId=${encodeURIComponent(selection.item.id)}`, {
-          cache: "no-store",
-        });
-        const parsed = await readResponseJson<{ file?: ManagedFile; error?: string }>(res);
+        const file = await fetchManagedFileById(selection.item.id);
         if (cancelled) return;
-        if (!parsed.ok) throw new Error(parsed.error);
-        if (!res.ok || !parsed.data.file) {
-          throw new Error(parsed.data.error || "Preview unavailable");
-        }
-        setFilePayload(parsed.data.file);
+        setFilePayload(file);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Preview failed");
@@ -95,7 +88,11 @@ export default function MediaPreviewPane({ selection, onClose, onDownload }: Pro
   const dataUrl = selection.kind === "file" ? filePayload?.dataUrl || selection.item.dataUrl : undefined;
   const isImage =
     selection.kind === "file" &&
-    (mime.startsWith("image/") || Boolean(dataUrl?.startsWith("data:image")));
+    isImageFile({
+      name: selection.item.name,
+      mime,
+      dataUrl,
+    });
   const isPdf =
     selection.kind === "file" &&
     (mime === "application/pdf" || Boolean(dataUrl?.startsWith("data:application/pdf")));

@@ -7,6 +7,7 @@ import { useEditorMode } from "@/components/EditorModeProvider";
 import MarkdownLatexField from "@/components/MarkdownLatexField";
 import { readResponseJson } from "@/lib/safe-json";
 import { sortNotesWithAi } from "@/lib/structure-concept-client";
+import { isImageFile } from "@/lib/media-files";
 import { assertUploadableDataUrl, assertUploadableFile } from "@/lib/upload-limits";
 
 export type ChangeMode =
@@ -228,7 +229,7 @@ export default function ChangePanel({
         if (files.length === 0) throw new Error("Choose one or more files first");
         if (files.length > 10) throw new Error("Upload at most 10 files at once");
         for (const file of files) {
-          if (fileAccept?.includes("image") && !file.type.startsWith("image/")) {
+          if (fileAccept?.includes("image") && !isImageFile(file)) {
             throw new Error(`Image upload only — “${file.name}” is not an image.`);
           }
           assertUploadableFile(file);
@@ -586,7 +587,7 @@ export default function ChangePanel({
                 </ul>
               ) : null}
               <p className="text-xs text-slate-500">
-                Select multiple files at once (max 10). Keep each under ~1MB.
+                Select multiple files at once (max 10). Keep each under ~750 KB.
               </p>
             </>
           ) : null}
